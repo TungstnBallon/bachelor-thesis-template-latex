@@ -4,9 +4,9 @@
 %%   clashes with 'apacite', so the 'captionsetup' command is used in     %%
 %%   configuration instead                                                %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{url} 
+\usepackage{url}
 \usepackage{a4}
-\usepackage[bookmarks=true,pdfborder={0 0 0}]{hyperref} 
+\usepackage[bookmarks=true,pdfborder={0 0 0}]{hyperref}
 \usepackage{fancyhdr}
 \usepackage[titletoc,header,title,toc,page]{appendix}
 \usepackage{caption}
@@ -16,47 +16,50 @@
 \usepackage{acronym}
 \usepackage{csquotes}
 
-\usepackage{graphicx} 
+\usepackage{graphicx}
+
+\usepackage{plantuml}
+\usepackage{listings}
 
 %% Determine which date setting and language to use by default
-\usepackage{ifthen} 
+\usepackage{ifthen}
 \ifthenelse{\equal{\thesislanguage}{German}}
-    { % true
-        \usepackage[british,ngerman]{babel} % last entry as primary language
-        \usepackage[british,ngerman]{isodate}
-        \selectlanguage{ngerman}
+{ % true
+	\usepackage[british,ngerman]{babel} % last entry as primary language
+	\usepackage[british,ngerman]{isodate}
+	\selectlanguage{ngerman}
 
-        \newcommand{\appendixnamesingular}{Anhang}
-        \newcommand{\appendixnameplural}{Anhänge}
-        \newcommand{\referencesname}{Literaturverzeichnis}
-        \newcommand{\acronymsnameplural}{Akronyme}
+	\newcommand{\appendixnamesingular}{Anhang}
+	\newcommand{\appendixnameplural}{Anhänge}
+	\newcommand{\referencesname}{Literaturverzeichnis}
+	\newcommand{\acronymsnameplural}{Akronyme}
 
-        \newcommand{\submittedon}{Eingereicht am}
-        \newcommand{\supervisor}{Betreuer}
-        
-        \newcommand{\logo}{Logo_FAU_TechFak_DE.png}
-        \newcommand{\faculty}{Technische Fakultät}
-        \newcommand{\department}{Department Informatik}
-        \newcommand{\professorship}{Professur für Open Source Software}
-    }
-    { % false
-        \usepackage[ngerman,british]{babel} % last entry as primary language
-        \usepackage[ngerman,british]{isodate}
-        \selectlanguage{british}
-        \cleanlookdateon
+	\newcommand{\submittedon}{Eingereicht am}
+	\newcommand{\supervisor}{Betreuer}
 
-        \newcommand{\appendixnamesingular}{Appendix}
-        \newcommand{\appendixnameplural}{Appendices}
-        \newcommand{\referencesname}{References}
-        \newcommand{\acronymsnameplural}{Acronyms}
+	\newcommand{\logo}{Logo_FAU_TechFak_DE.png}
+	\newcommand{\faculty}{Technische Fakultät}
+	\newcommand{\department}{Department Informatik}
+	\newcommand{\professorship}{Professur für Open Source Software}
+}
+{ % false
+	\usepackage[ngerman,british]{babel} % last entry as primary language
+	\usepackage[ngerman,british]{isodate}
+	\selectlanguage{british}
+	\cleanlookdateon
 
-        \newcommand{\submittedon}{Submitted on}
-        \newcommand{\supervisor}{Supervisor}
-        \newcommand{\logo}{Logo_FAU_TechFak_EN.png}
-        \newcommand{\faculty}{Faculty of Engineering}
-        \newcommand{\department}{Department Computer Science}
-        \newcommand{\professorship}{Professorship for Open Source Software}
-    }
+	\newcommand{\appendixnamesingular}{Appendix}
+	\newcommand{\appendixnameplural}{Appendices}
+	\newcommand{\referencesname}{References}
+	\newcommand{\acronymsnameplural}{Acronyms}
+
+	\newcommand{\submittedon}{Submitted on}
+	\newcommand{\supervisor}{Supervisor}
+	\newcommand{\logo}{Logo_FAU_TechFak_EN.png}
+	\newcommand{\faculty}{Faculty of Engineering}
+	\newcommand{\department}{Department Computer Science}
+	\newcommand{\professorship}{Professorship for Open Source Software}
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% GENERAL CONFIGURATION                                                  %%
@@ -76,49 +79,49 @@
 
 %% fancyhdr package configuration
 \renewcommand{\chaptermark}[1]{
-    \markboth{
-        \@chapapp\ {\footnotesize\thechapter}. \ % no uppercase for header bar \rightmark in all chapters (excluding appendix)
-        #1%
-    }{}%
-} 
+\markboth{
+\@chapapp\ {\footnotesize\thechapter}. \ % no uppercase for header bar \rightmark in all chapters (excluding appendix)
+#1%
+}{}%
+}
 
 \fancypagestyle{plain}{         % chapter config
-    \fancyhf{}
-    \fancyfoot[LE,RO]{\thepage}            % page number on outer edge
-    \renewcommand{\headrulewidth}{0pt}     % no head rule 
+	\fancyhf{}
+	\fancyfoot[LE,RO]{\thepage}            % page number on outer edge
+	\renewcommand{\headrulewidth}{0pt}     % no head rule 
 }
 
 \pagestyle{fancy}
 
 \newcommand\headerstyleprefixsection{      % prefix section
-    \fancyhf{}                             % clear top/bottom bar
-    \renewcommand{\headrulewidth}{0pt}     % no head rule 
-    \fancyfoot[LE,RO]{\thepage}            % page number on outer edge
+	\fancyhf{}                             % clear top/bottom bar
+	\renewcommand{\headrulewidth}{0pt}     % no head rule 
+	\fancyfoot[LE,RO]{\thepage}            % page number on outer edge
 }
 \newcommand\headerstylemainsection{        % main section
-    \fancyhf{}                             % clear top/bottom bar
-    \renewcommand{\headrulewidth}{1pt}     % head rule
-    \fancyfoot[LE,RO]{\thepage}            % page number on outer edge
-    \fancyhead[LE,RO]{\nouppercase{\leftmark}}
+	\fancyhf{}                             % clear top/bottom bar
+	\renewcommand{\headrulewidth}{1pt}     % head rule
+	\fancyfoot[LE,RO]{\thepage}            % page number on outer edge
+	\fancyhead[LE,RO]{\nouppercase{\leftmark}}
 }
 \newcommand\headerstyleclosingsection{     % closing section
-    \fancyhf{}                             % clear top/bottom bar
-    \renewcommand{\headrulewidth}{1pt}     % head rule
-    \fancyfoot[LE,RO]{\thepage}            % page number on outer edge
-    \fancyhead[LE,RO]{\normalfont{\appendixnamesingular\ \nouppercase{\rightmark}}} % Prepend "Appendix" to header
+	\fancyhf{}                             % clear top/bottom bar
+	\renewcommand{\headrulewidth}{1pt}     % head rule
+	\fancyfoot[LE,RO]{\thepage}            % page number on outer edge
+	\fancyhead[LE,RO]{\normalfont{\appendixnamesingular\ \nouppercase{\rightmark}}} % Prepend "Appendix" to header
 }
 
 %% caption package configuration
-\captionsetup{labelfont=bf}   
+\captionsetup{labelfont=bf}
 
 %% titlesec package configuration
 \titleformat{\chapter}[hang]
-{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{1em}{} 
+{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{1em}{}
 
 %% hyperref package configuration
 \hypersetup{
-    pdftitle={\thesistitle},
-    pdfauthor={\thesisauthorsurname}
+	pdftitle={\thesistitle},
+	pdfauthor={\thesisauthorsurname}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -130,46 +133,46 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \makeatletter
 \renewcommand\maketitle{%
-    \begin{titlepage}
-        \thispagestyle{empty}
+	\begin{titlepage}
+		\thispagestyle{empty}
 
-        \begin{center}
-            \huge{\textbf{{\thesistitle}}}
-            \par        % fixes line height
-            \vspace{0.2in}
-            \normalsize{\MakeUppercase{\thesistype}}
-            \\
-            \vspace{0.3in}
-            \textbf{\Large{\thesisauthorgivenname\ \thesisauthorsurname}}
-            
-            \vfill
-            
-            \submittedon\ \printdate{\thesissubmissiondate}
+		\begin{center}
+			\huge{\textbf{{\thesistitle}}}
+			\par        % fixes line height
+			\vspace{0.2in}
+			\normalsize{\MakeUppercase{\thesistype}}
+			\\
+			\vspace{0.3in}
+			\textbf{\Large{\thesisauthorgivenname\ \thesisauthorsurname}}
 
-            \vfill
-            
-            \begin{center}
-                \includegraphics[width=.3\textwidth]{./resources/Logo_FAU_Sigil.png}
-            \end{center}
-            \vspace{0.3in}
-            Friedrich-Alexander-Universität Erlangen-Nürnberg
-            \vspace{0.03in} \\
-            \faculty, \department
-            \vspace{0.03in} \\
-            \professorship
-            \vspace{0.3in}
+			\vfill
 
-            \vfill
+			\submittedon\ \printdate{\thesissubmissiondate}
 
-            \underline{\supervisor :}
-            \\
-            \thesissupervisors
-            
-            \vfill
+			\vfill
 
-            \includegraphics[width=.6\textwidth]{./resources/\logo}
-        \end{center}
-    \end{titlepage}
+			\begin{center}
+				\includegraphics[width=.3\textwidth]{./resources/Logo_FAU_Sigil.png}
+			\end{center}
+			\vspace{0.3in}
+			Friedrich-Alexander-Universität Erlangen-Nürnberg
+			\vspace{0.03in} \\
+			\faculty, \department
+			\vspace{0.03in} \\
+			\professorship
+			\vspace{0.3in}
+
+			\vfill
+
+			\underline{\supervisor :}
+			\\
+			\thesissupervisors
+
+			\vfill
+
+			\includegraphics[width=.6\textwidth]{./resources/\logo}
+		\end{center}
+	\end{titlepage}
 }
 \makeatother
 
