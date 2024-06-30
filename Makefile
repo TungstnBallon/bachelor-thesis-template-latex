@@ -9,8 +9,14 @@ pdflatex: ## Run only the pdflatex command.
 	biber ${TEX_FILE} && \
 	pdflatex ${TEX_FILE}.tex
 
+.PHONY: lualatex
+lualatex: ## Run only the pdflatex command.
+	lualatex -shell-escape ${TEX_FILE}
+	biber ${TEX_FILE} && \
+	lualatex -shell-escape -synctex=1 ${TEX_FILE}.tex
+
 .PHONY: build
-build: pdflatex ## Compile the final PDF (latex & pdflatex).
+build: lualatex ## Compile the final PDF (latex & pdflatex).
 
 .PHONY: cleantemp
 cleantemp: ## Remove all temporary files created during the compiling process.
