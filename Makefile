@@ -3,9 +3,11 @@ CONTENTS = $(wildcard contents/*.tex)
 RESOURCES = $(wildcard resources/*)
 
 .PHONY: all
-all: thesis.bbl thesis.pdf
+all: ${TEX_FILE}.pdf
 
-${TEX_FILE}.pdf: thesis.tex thesis.bbl osrthesis.sty myconfiguration.sty ${CONTENTS} ${RESOURCES} ## build the .pdf without rerunnning unchanged dependencies
+${TEX_FILE}.pdf: thesis.tex mybibliography.bib osrthesis.sty myconfiguration.sty ${CONTENTS} ${RESOURCES} ## build the .pdf without rerunnning unchanged dependencies
+	lualatex -shell-escape ${TEX_FILE}
+	biber ${TEX_FILE}
 	lualatex -shell-escape -synctex=1 ${TEX_FILE}
 
 .PHONY: cleantemp
@@ -15,10 +17,6 @@ cleantemp: ## Remove all temporary files created during the compiling process.
 .PHONY: clean
 clean: cleantemp ## Remove all created files including the compiled PDF.
 	rm -f ${TEX_FILE}.pdf
-
-${TEX_FILE}.bbl: ## Create the bibliography file
-	lualatex -shell-escape ${TEX_FILE}
-	biber ${TEX_FILE}
 
 .PHONY: help
 help:

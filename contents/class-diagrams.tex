@@ -1,4 +1,3 @@
-
 \chapter{Introduction}
 \label{chapter:Introduction}
 
@@ -49,9 +48,10 @@ Some more text.
 
 Jayvee processes pipelines made up of a sequence blocks.
 Each block has an input and ouptut.
-Jayvee allows certain types of input / output defined in \lstinline{libs/language-server/src/lib/ast/io-type.ts}:
+Jayvee allows certain types of input / output defined in \mintinline{typescript}{libs/language-server/src/lib/ast/io-type.ts}:
 
-\begin{lstlisting}[caption=The \lstinline{IOType} enum]
+\begin{listing}
+	\begin{minted}{typescript}
 enum IOType {
 	NONE = 'None',
 	FILE = 'File',
@@ -61,17 +61,19 @@ enum IOType {
 	TABLE = 'Table',
 	WORKBOOK = 'Workbook',
 }
-\end{lstlisting}
+\end{minted}
+	\caption{The \mintinline{typescript}{IOType} enum}
+\end{listing}
 
-If a class wants to be allowed as an input / output it must implement the \lstinline{IOTypeImplementation<T>} interface where \lstinline{T} is one of the variants of the above enum.
-\lstinline{libs/execution/src/lib/types/io-types/io-type-implementation.ts}:
+If a class wants to be allowed as an input / output it must implement the \mintinline{typescript}{IOTypeImplementation<T>} interface where \mintinline{typescript}{T} is one of the variants of the above enum.
+\mintinline{typescript}{libs/execution/src/lib/types/io-types/io-type-implementation.ts}:
 
-\begin{lstlisting}
+\begin{minted}{typescript}
 interface IOTypeImplementation<T extends IOType = IOType> {
 	ioType: T;
 	acceptVisitor<R = unknown>(visitor: IoTypeVisitor<R>): R;
 }
-\end{lstlisting}
+\end{minted}
 
 One of the requirements is to be able to pick the implementation at runtime, via a flag passed to the interpreter.
 Because of this, the architecture uses the strategy pattern. % TODO: Add citation with advantages and drawbacks of this pattern
@@ -116,7 +118,7 @@ Because of this, the architecture uses the strategy pattern. % TODO: Add citatio
 \chapter{Implementation}
 \label{chapter:Implementation}
 
-Jayvee implements \lstinline{IOTypeImplementation<IOType.TABLE>} in \lstinline{libs/execution/src/lib/types/io-types/table.ts} and \lstinline{libs/execution/src/lib/types/io-types/table-column.ts}.
+Jayvee implements \mintinline{typescript}{IOTypeImplementation<IOType.TABLE>} in \mintinline{typescript}{libs/execution/src/lib/types/io-types/table.ts} and \mintinline{typescript}{libs/execution/src/lib/types/io-types/table-column.ts}.
 
 \chapter{Evaluation}
 \label{chapter:Evaluation}
