@@ -1,0 +1,142 @@
+\chapter{Architecture}
+\label{chapter:Architecture}
+
+\section{Requirements}
+\label{section:Requirements}
+
+We follow the established practice of differentiating between functional and non functional requirements.
+
+\subsection{Functional Requirements}
+\label{subsection:FunctionalRequirements}
+
+Tables are represented with a columnar in-memory format.
+No blocks become unsupported because of this transition.
+
+\subsection{Non Functional Requirements}
+\label{subsection:NonFunctionalRequirements}
+
+The time needed to execute \mintinline{typescript}{.jv} files decreases.
+The source code is readable for non-rust developers.
+Informative log messages are generated.
+The source code adheres to the project's code style.
+
+\section{Previous Situation}
+\label{section:prev}
+Pipeline definitions in jayvee consist of a series of block definitions.
+At runtime, the jayvee interpreter associates each block-definition with a class implementing the \mintinline{typescript}|BlockExecutor<I extends IOType, O extends IOType>| interface.
+\mintinline{typescript}|IOType| is an enum specifing all of the allowed types inputs and ouptuts can have (see \ref{lst:iotype}), which is made use of by the \mintinline{typescript}|IOTypeImplementation<T extends IOType>| interface, whose implementors are the actual inputs and ouptuts.
+\begin{listing}
+	\begin{minted}{typescript}
+enum IOType {
+	NONE = 'None',
+	FILE = 'File',
+	TEXT_FILE = 'TextFile',
+	FILE_SYSTEM = 'FileSystem',
+	SHEET = 'Sheet',
+	TABLE = 'Table',
+	WORKBOOK = 'Workbook',
+}
+\end{minted}
+	\caption{The \mintinline{typescript}{IOType} enum}
+	\label{lst:iotype}
+\end{listing}
+One of these is the \mintinline{typescript}|Table| class which implements \mintinline{typescript}|IOTypeImplementation<IOType.TABLE>|, and can thus serve as both input and output to blocks using tables.
+For an overview of how \mintinline{typescript}{Table} fits into the interpreter, see \ref{fig:prev_sit}.
+% This interface also provides the method \mint{typescript}|execute(input: IOTypeImplementation<I>, context: ExecutionContext): Promise<R.Result<IOTypeImplementation<O>>>|.
+% These inputs/outputs must fall into one of seven categories (see \ref{lst:iotype}).
+% Jayvee uses this \mintinline{typescript}|IOType| via \mintinline{typescript}|IOTypeImplementation<T>| where \mintinline{typescript}|T| is a variant of the \mintinline{typescript}|IOType| enum.
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		hide empty members
+
+		interface PipelineDefinition
+		interface BlockDefinition
+
+		interface BlockExecutor<I extends IOType, O extends IOType>
+
+		interface BlockExecutorClass
+
+		PipelineDefinition "1" *-- "many" BlockDefinition
+		BlockDefinition "1" --> "1" BlockExecutor: interpreter finds
+
+		interface IOTypeImplementation<T extends IOType>
+		IOTypeImplementation - BlockExecutor: input
+		IOTypeImplementation - BlockExecutor: output
+
+		class Table
+		IOTypeImplementation <|.. Table : IOTypeImplementation<IOType.TABLE>
+
+		abstract class AbstractBlockExecutor<I extends IOType, O extend IOType> implements BlockExecutor
+
+		class TableTransformerExecutor {}
+		AbstractBlockExecutor <|-- TableTransformerExecutor: AbstractBlockExecutor<IOType.TABLE, IOType.TABLE>
+		BlockExecutorClass <|-- TableTransformerExecutor
+		@enduml
+	\end{plantuml}
+	\caption{How \mintinline{typescript}|Table| fits into the interpreter} %FIXME
+	\label{fig:prev_sit}
+\end{figure}
+
+Looking at the code in \ref{lst:prev_table}, we can see that \mintinline{typescript}|Table| already follows a columnar format.
+\begin{listing}
+	\begin{minted}[linenos, firstnumber=35]{typescript}
+export class Table implements IOTypeImplementation<IOType.TABLE> {
+  public readonly ioType = IOType.TABLE;
+
+  private numberOfRows = 0;
+
+  private columns = new Map<string, TableColumn>();
+}
+	\end{minted}
+	\caption{\mintinline{typescript}{libs/execution/src/lib/types/io-types/table.ts}} %FIXME
+	\label{lst:prev_table}
+\end{listing}
+
+\section{General Idea}
+\label{section:General Idea}
+The first decision is to create a new class \mintinline{typescript}|PolarsTable|, which utilises from \mintinline{typescript}|polars.DataFrame| under the hood %FIXME
+. This follows the adapter pattern.
+% We decided the best approach to the requirements outlined in \ref{section:Requirements} is to place one layer of abstraction between the current \mintinline{typescript}|Table| class and the systems it interacts with.
+As described in \ref{section:prev}, if a class wants to be allowed as an input or output, it must implement the \mintinline{typescript}{IOTypeImplementation<T>} interface where \mintinline{typescript}{T} is one of the variants of \ref{lst:iotype}.
+However, we decided against implementing \mintinline{typescript}{IOTypeImplementation<T>} seperately for \mintinline{typescript}|PolarsTable| and \mintinline{typescript}|Table| and chose to make \mintinline{typescript}|Table| an abstract class, which meant moving the existing functionality into a new class \mintinline{typescript}|TsTable|.
+% FIXME: Table vs TsTable is confusing
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		hide empty members
+		interface IOTypeImplementation<T extends IOType = IOType> {
+				+ioType: T
+				+acceptVisitor<R>(vistor: IoTypeVisitor<R>): R
+			}
+		abstract class Table {
+				+ioType: IOType.TABLE
+			}
+		IOTypeImplementation <|.. Table : IOtypeImplementation<IOType.TABLE>
+		abstract class TableColumn {
+			}
+		class PolarsTable extends Table {
+				-df: polars.DataFrame
+			}
+		class TsTable extends Table {
+				+columns: Map<string, TsTableColumn>
+			}
+		class PolarsTableColumn extends TableColumn {
+				-series: polars.Series
+			}
+		class TsTableColumn<T extends InternalValueRepresentation> extends TableColumn {
+			}
+		TsTable "1" *-- "many" TsTableColumn
+		PolarsTable "1" *-- "1" polars.DataFrame: df
+		PolarsTableColumn "1" *-- "1" polars.Series: series
+		@enduml
+	\end{plantuml}
+	\caption{How jayvee represents tables} % FIXME
+	\label{fig:current_sit}
+\end{figure}
+
+
+\subsection{Implementing the adapter pattern}
+\label{subsection:adapter}
+
+\mintinline{typescript}|PolarsTable| serves as an adapter between \mintinline{typescript}|Table| and \mintinline{typescript}|polars.DataFrame|
