@@ -17,11 +17,6 @@ Please refer to the outlines at
 	\label{fig:example}
 \end{figure}
 
-\chapter{Literature Review}
-\label{chapter:Literature}
-
-All chapters shall start on a right page!
-
 For more convenient creation of latex tables we recommend:
 
 \url{https://www.tablesgenerator.com/}
@@ -43,6 +38,10 @@ I am using an the \ac{FACR} here. The second usage of \ac{FACR} will only displa
 \newpage
 Some more text.
 
+
+
+\input contents/literature_review.tex
+
 \input contents/architecture.tex
 
 \chapter{Implementation}
@@ -50,8 +49,7 @@ Some more text.
 
 Jayvee implements \mintinline{typescript}{IOTypeImplementation<IOType.TABLE>} in \mintinline{typescript}{libs/execution/src/lib/types/io-types/table.ts} and \mintinline{typescript}{libs/execution/src/lib/types/io-types/table-column.ts}.
 
-\chapter{Evaluation}
-\label{chapter:Evaluation}
+\input contents/evaluation.tex
 
 \chapter{Conclusions}
 \label{chapter:Conclusions}
