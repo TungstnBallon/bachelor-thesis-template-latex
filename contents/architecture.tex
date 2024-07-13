@@ -9,7 +9,7 @@ We follow the established practice of differentiating between functional and non
 \subsection{Functional Requirements}
 \label{subsection:FunctionalRequirements}
 
-Tables are represented with a columnar in-memory format.
+Tables are represented with a standardized, columnar, in-memory format.
 No blocks become unsupported because of this transition.
 
 \subsection{Non Functional Requirements}
@@ -95,6 +95,16 @@ export class Table implements IOTypeImplementation<IOType.TABLE> {
 
 \section{General Idea}
 \label{section:General Idea}
+
+\subsection{Apache Arrow}
+\label{subsection:apache arrow}
+Adapting Jayvee Tables to implement the apache arrow format fulfills the functional requirements of a standardized, columnar, in-memory representation.
+Additionaly Arrow is optimized for modern CPUs and GPUs, and organized for efficent analytical workloads, which will get us closer to the non functional requrement of decreased runtime.
+
+
+
+
+
 The first decision is to create a new class \mintinline{typescript}|PolarsTable|, which utilises from \mintinline{typescript}|polars.DataFrame| under the hood %FIXME
 . This follows the adapter pattern.
 % We decided the best approach to the requirements outlined in \ref{section:Requirements} is to place one layer of abstraction between the current \mintinline{typescript}|Table| class and the systems it interacts with.

@@ -1,0 +1,68 @@
+\chapter{Introduction}
+\label{chapter:Introduction}
+
+Each year the European Union publishes a report on the maturity of open data offerings by its member states.
+The European Union's anual Open Data Maturity Report shows a $19\%$ increase in average maturity scores since 2018. % TODO: citation
+The use of this open data is diminished by the often significant technical knowledge required to work with it.
+Lowering this barrier of entry is the major motivation beind the JValue Project \autocite{jvalue:landing} in general and its language, Jayvee, specifically \autocite{jvalue:jayvee}.
+
+\section{The Jayvee language}
+\label{section:jv_intro}
+
+Jayvee's goal is to allow everyone to describe data pipelines \autocite{jvalue:jayvee}.
+Pipelines are made up of a user defined sequence of blocks, which fall into one of three categories: Extractor, Tranformer or Loader.
+
+Extractors bring the data into the pipeline and make it available for the other types of blocks.
+They can retrieve data from local files (\Verb|LocalFileExtractor|) and urls (\Verb|HttpExtractor|).
+
+Loaders export data to somewhere outside the pipeline.
+Most common is an sqlite file (\Verb|SQLiteLoader|), but postgres (\Verb|PostgresLoader|) and csv (\Verb|CSVFileLoader|) are also supported.
+
+Between an extractor and a loader the user can define an arbitrary amount of transformer blocks.
+They have one input and one output, both with a specific type like \Verb|TextFile| \Verb|Table|.
+Some transformers change the type of the data, like \Verb|CSVInterpreter| which interprets a text file as a csv sheet or \Verb|TableInterpreter|, who converts a sheet into a table.
+Others transform their input data, like \Verb|CellWriter| or \Verb|TableTranformer|.
+To accomplish this they use transforms, which are similar to a map function in other programming languages.
+They let the user define multiple inputs with their types (jayvee supports \Verb{text}, \Verb{integer}, \Verb{decimal} and \Verb{boolean}), an output with its type and an expression to transform the inputs into the output.
+
+Expressions support basic arithmetic, boolean algebra and rudimentary string operations like \Verb|uppercase| or \Verb|matches|.
+
+
+
+
+Optimizing how jayvee represents data in-memory is the goal of this thesis.
+
+	{\textsl{General instructions:}}
+You should make use of our outline for structuring your
+thesis. The specific outline is determined by your thesis type.
+Please refer to the outlines at
+\url{https://oss.cs.fau.de/theses/structure-content/}.
+
+{\textsl{\LaTeX\ instructions:}} Here is an example citation
+\autocite{riehle:2011:controlling}.
+\textcite{riehle:2007:economic} gave another example citation.
+
+\begin{figure}[ht]
+	\includegraphics[width=0.5\textwidth]{resources/\logo}
+	\caption{Example of a Figure}
+	\label{fig:example}
+\end{figure}
+
+For more convenient creation of latex tables we recommend:
+
+\url{https://www.tablesgenerator.com/}
+
+\begin{table}[ht]
+	\caption{Example of a Table}
+	\label{tab:example}
+	\begin{tabular}{|l|l|}
+		\hline
+		Nice column      & Very nice column          \\
+		\hline
+		some content     & some more content         \\
+		some information & some ... (you guess what) \\
+		\hline
+	\end{tabular}
+\end{table}
+
+I am using an the \ac{FACR} here. The second usage of \ac{FACR} will only display the acronym itself.
