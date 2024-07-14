@@ -5,23 +5,47 @@
 \label{section:Requirements}
 
 We follow the established practice of differentiating between functional and non functional requirements.
+These requirements have been evaluated for completenes, consistency and feasability.
 
 \subsection{Functional Requirements}
 \label{subsection:FunctionalRequirements}
 
-Tables are represented with a standardized, columnar, in-memory format.
-No blocks become unsupported because of this transition.
+% As we've described in \ref{chapter:Literature} tables are a crucial factor of the Jayvee interpreter's performance.
+Tables are the central way Jayvee represent's data.
+The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
+Hence % TODO: ?
+we shall focus on how to efficiently represent tables in memory.
+Since Jayvee's \Verb|TableTransformer| work on columns and not rows, the advantages of the columnar format outlined in %TODO: ref
+lend themselves well to jayvee.
+Jayvee needs manipulate the data, so data needs to be stored in memory not on disk.
+This leads to the requirement that \emph{tables are represented with a columnar, in-memory data layout}.
+
+The goal of this thesis is not to create a fully mature implementation of this new format, but rather to prototype an integration and evaluate the results of this migration.
+However to accurately evaluate the changes, the core functionality of jayvee (parse data into table, apply function to columns of that table, export table) needs to be preserved.
+\emph{Core functionality is maintained}.
+This includes that tables can still be created in the same ways (\Verb|TableIntepreter|) and exported with the same blocks (\Verb|SQLiteLoader|) (\Verb|PostresLoader|).
+\emph{Arithmetic operations work in transforms}.
+
+Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typesript.
+This ensures usability and increases maintainability by for other developers.
+
+To make evaluation easier the new implementation must be choosable with a commandline flag \emph{at runtime}.
 
 \subsection{Non Functional Requirements}
 \label{subsection:NonFunctionalRequirements}
 
-The time needed to execute \mintinline{typescript}{.jv} files decreases.
+The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
+Therefore, the \emph{time needed to execute Jayvee pipelines should decrease}.
+
 The source code is readable for non-rust developers.
 Informative log messages are generated.
 The source code adheres to the project's code style.
 
-\section{Previous Situation}
+\section{Interpreter Overview}
 \label{section:prev}
+
+In this section, we will give an overview of how the interpreter executes a jayvee pipeline.
+
 Pipeline definitions in jayvee consist of a series of block definitions.
 At runtime, the jayvee interpreter associates each block-definition with a class implementing the \mintinline{typescript}|BlockExecutor<I extends IOType, O extends IOType>| interface.
 \mintinline{typescript}|IOType| is an enum specifing all of the allowed types inputs and ouptuts can have (see \ref{lst:iotype}), which is made use of by the \mintinline{typescript}|IOTypeImplementation<T extends IOType>| interface, whose implementors are the actual inputs and ouptuts.
@@ -53,9 +77,11 @@ For an overview of how \mintinline{typescript}{Table} fits into the interpreter,
 		interface PipelineDefinition
 		interface BlockDefinition
 
-		interface BlockExecutor<I extends IOType, O extends IOType>
+		interface BlockExecutor<I extends IOType, O extends IOType> {
+				+execute(input: IOTypeImplementation<I\>, context: ExecutionContext): Result<IOTypeImplementation<O>>
+			}
 
-		interface BlockExecutorClass
+		interface BlockExecutorClass {}
 
 		PipelineDefinition "1" *-- "many" BlockDefinition
 		BlockDefinition "1" --> "1" BlockExecutor: interpreter finds
@@ -67,9 +93,13 @@ For an overview of how \mintinline{typescript}{Table} fits into the interpreter,
 		class Table
 		IOTypeImplementation <|.. Table : IOTypeImplementation<IOType.TABLE>
 
-		abstract class AbstractBlockExecutor<I extends IOType, O extend IOType> implements BlockExecutor
+		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType> implements BlockExecutor {
+				+doExecute(input: IOTypeImplementation<I\>, context: ExecutionContext): Result<IOTypeImplementation<O\>>
+			}
 
-		class TableTransformerExecutor {}
+		class TableTransformerExecutor {
+				+doExecute(input: Table, context: ExecutionContext): Result<Table>
+			}
 		AbstractBlockExecutor <|-- TableTransformerExecutor: AbstractBlockExecutor<IOType.TABLE, IOType.TABLE>
 		BlockExecutorClass <|-- TableTransformerExecutor
 		@enduml
@@ -96,17 +126,62 @@ export class Table implements IOTypeImplementation<IOType.TABLE> {
 \section{General Idea}
 \label{section:General Idea}
 
-\subsection{Apache Arrow}
-\label{subsection:apache arrow}
 Adapting Jayvee Tables to implement the apache arrow format fulfills the functional requirements of a standardized, columnar, in-memory representation.
-Additionaly Arrow is optimized for modern CPUs and GPUs, and organized for efficent analytical workloads, which will get us closer to the non functional requrement of decreased runtime.
+Additionaly Arrow is optimized for modern CPUs and GPUs, and organized for efficent analytical workloads, which will get us closer to the non functional requrement of decreased runtime. % TODO: citation
+
+\subsection{Possible implementations}
+\label{subsection:arrow implementations}
+
+In this section, we will discuss possible implementations of the arrow specification.
+
+\subsubsection{Implementation from scratch}
+\label{subsubsection:direct_implementation}
+The most direct option is to implement the Arrow specification directily.
+This would have the advantage of having full control over the implementation.
+It is not guaranteed that an enough of the specification can be implemented within the timeframe of the thesis.
+This implementation would probably perform worse than a mature implementation.
+Correctness is hard to guarantee.
+
+An implementation from scratch is \emph{too big in scope} for a bachelor's thesis.
+
+\subsubsection{Apache arrow in JS}
+\label{subsubsection:arrow_in_js}
+There is an implementation of arrow in typescript.
+This has the advantage of being the same lanugage as the jayvee interpreter.
+typescript on nodejs has a reputation of being slow compared to other languages. % TODO: citation
+this implementation is comparable to other languages in terms of supported datatypes, but is lacks behind in support for other apache frameworks \autocite{arrow:status}, which takes away one of arrow's strengths.
+
+Considering this, an implementation inside a compiled language, that offers a typescript api seems preferable.
+
+\subsubsection{Polars}
+\label{subsection:polars}
+As described in % TODO: reference.
+Polars is a high level api built on top of apache arrows, but it also offers useful abstractions like dataframes.
+It also promises huge %FIXME: wording
+speed gains compared to it's competitors %TODO: citation
+
+%TODO: bild über abstraktion polars zu js.
+
+The Dataframe abstractions allows us to get the in-memory layout we want, by simply creating an adapter %FIXME: design pattern is strategy not adapter
+between the interpeter classes utilising tables and the polars dataframe.
 
 
+\section{The strategy pattern}
+The requirement to pick the implementation at runtime makes the strategy pattern really appealing. %FIXME: wording
+%TODO: Describe strategy pattern more
+
+\section{new table} %TODO: find an actual title
+\label{section:new_table}
 
 
+The Polars class \Verb|DataFrame| is made useful to the jayvee interpreter by wrapping it in a new class \Verb|PolarsTable|.
+
+We move all of the functionality from \Verb{Table} to \Verb{TsTable} and create a new \emph{abstract} class \Verb|Table|.
+This differs from the usual stratergy pattern in that, normally, an interface is used to represent the shared functionality between the algorithms.
+We feel that an abstract class represents the relationship between \Verb|TsTable| and \Verb|PolarsTable| better than an interface. %TODO: why?
 
 The first decision is to create a new class \mintinline{typescript}|PolarsTable|, which utilises from \mintinline{typescript}|polars.DataFrame| under the hood %FIXME
-. This follows the adapter pattern.
+.
 % We decided the best approach to the requirements outlined in \ref{section:Requirements} is to place one layer of abstraction between the current \mintinline{typescript}|Table| class and the systems it interacts with.
 As described in \ref{section:prev}, if a class wants to be allowed as an input or output, it must implement the \mintinline{typescript}{IOTypeImplementation<T>} interface where \mintinline{typescript}{T} is one of the variants of \ref{lst:iotype}.
 However, we decided against implementing \mintinline{typescript}{IOTypeImplementation<T>} seperately for \mintinline{typescript}|PolarsTable| and \mintinline{typescript}|Table| and chose to make \mintinline{typescript}|Table| an abstract class, which meant moving the existing functionality into a new class \mintinline{typescript}|TsTable|.

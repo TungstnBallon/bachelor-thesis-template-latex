@@ -63,8 +63,8 @@
 }
 
 @article{Ahmad2020,
-	author = {Ahmad, Tanveer and Ahmed, Nauman and Al-Ars, Zaid and Hofstee,
-	          H. Peter},
+	author = {Tanveer Ahmad and Nauman Ahmed and Zaid Al-Ars and H. Peter
+	          Hofstee},
 	title = {Optimizing performance of GATK workflows using Apache Arrow
 	         In-Memory data framework},
 	journal = {BMC Genomics},
@@ -104,6 +104,49 @@
 	doi = {10.1186/s12864-020-07013-y},
 	url = {https://doi.org/10.1186/s12864-020-07013-y},
 }
+@article{Peltenburg2021,
+	author = {Johan Peltenburg and Jeroen van Straten and Matthijs Brobbel
+	          and Zaid Al-Ars and H. Peter Hofstee},
+	title = {Generating High-Performance FPGA Accelerator Designs for Big
+	         Data Analytics with Fletcher and Apache Arrow},
+	journal = {Journal of Signal Processing Systems},
+	year = {2021},
+	month = {May},
+	day = {01},
+	volume = {93},
+	number = {5},
+	pages = {565-586},
+	abstract = {As big data analytics systems are squeezing out the last
+	            bits of performance of CPUs and GPUs, the next near-term and
+	            widely available alternative industry is considering for
+	            higher performance in the data center and cloud is the FPGA
+	            accelerator. We discuss several challenges a developer has to
+	            face when designing and integrating FPGA accelerators for big
+	            data analytics pipelines. On the software side, we observe
+	            complex run-time systems, hardware-unfriendly in-memory
+	            layouts of data sets, and (de)serialization overhead. On the
+	            hardware side, we observe a relative lack of
+	            platform-agnostic open-source tooling, a high design effort
+	            for data structure-specific interfaces, and a high design
+	            effort for infrastructure. The open source Fletcher framework
+	            addresses these challenges. It is built on top of Apache
+	            Arrow, which provides a common, hardware-friendly in-memory
+	            format to allow zero-copy communication of large tabular data
+	            , preventing (de)serialization overhead. Fletcher adds FPGA
+	            accelerators to the list of over eleven supported software
+	            languages. To deal with the hardware challenges, we present
+	            Arrow-specific components, providing easy-to-use,
+	            high-performance interfaces to accelerated kernels. The
+	            components are combined based on a generic architecture that
+	            is specialized according to the application through an
+	            extensive infrastructure generation framework that is
+	            presented in this article. All generated hardware is
+	            vendor-agnostic, and software drivers add a platform-agnostic
+	            layer, allowing users to create portable implementations.},
+	issn = {1939-8115},
+	doi = {10.1007/s11265-021-01650-6},
+	url = {https://doi.org/10.1007/s11265-021-01650-6},
+}
 
 @article{Dremio,
 	title = {It’s Time to Replace ODBC \& JDBC},
@@ -111,4 +154,49 @@
 	date = {2019-07-03},
 	url = {https://www.dremio.com/blog/is-time-to-replace-odbc-jdbc},
 	urldate = {2024-07-13},
+}
+@inbook{Floratou2019,
+	author = "Floratou, Avrilia",
+	editor = "Sakr, Sherif and Zomaya, Albert Y.",
+	title = "Columnar Storage Formats",
+	bookTitle = "Encyclopedia of Big Data Technologies",
+	year = "2019",
+	publisher = "Springer International Publishing",
+	address = "Cham",
+	pages = "464--469",
+	isbn = "978-3-319-77525-8",
+	doi = "10.1007/978-3-319-77525-8_248",
+	url = "https://doi.org/10.1007/978-3-319-77525-8_248",
+}
+@online{arrow:status,
+	url = {https://arrow.apache.org/docs/status.html},
+	urldate = {2024-07-14},
+}
+@online{arrow:projects,
+	url = {https://arrow.apache.org/powered_by/},
+	urldate = {2024-07-14},
+}
+@inproceedings{Grossman2022,
+	author = "Max Grossman and Steve Poole and Howard Pritchard and Vivek
+	          Sarkar",
+	editor = "Stephen Poole and Oscar Hernandez and Matthew Baker and Tony
+	          Curtis",
+	title = "SHMEM-ML: Leveraging OpenSHMEM and Apache Arrow for Scalable,
+	         Composable Machine Learning",
+	booktitle = "OpenSHMEM and Related Technologies. OpenSHMEM in the Era of
+	             Exascale and Smart Networks",
+	year = "2022",
+	publisher = "Springer International Publishing",
+	address = "Cham",
+	pages = "111--125",
+	abstract = "SHMEM-ML is a domain specific library for distributed array
+	            computations and machine learning model training {\&}
+	            inference. Like other projects at the intersection of machine
+	            learning and HPC (e.g. dask, Arkouda, Legate Numpy), SHMEM-ML
+	            aims to leverage the performance of the HPC software stack to
+	            accelerate machine learning workflows. However, it differs in
+	            a number of ways.",
+	isbn = "978-3-031-04888-3",
+	doi = {10.1007/978-3-031-04888-3_7},
+	url = {https://doi.org/10.1007/978-3-031-04888-3_7},
 }

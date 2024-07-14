@@ -1,19 +1,29 @@
 \chapter{Background}
 \label{chapter:Literature}
 
-At the time of writing jayvee only supports csv as a data source and csv, sqlite and postgres as a data sink, all of which utilize tables as a central abstraction over their dat
+There are some projects working with arrow directly
+\autocite{Ahmad2020}
+\autocite{Peltenburg2021}
+\autocite{Grossman2022}. %TODO: expand
 
-
-
+Tables are the central way Jayvee represent's data.
+The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
+Hence % TODO: ?
+we shall focus on how to efficiently represent tables in memory.
 
 \section{Columnar vs. Rows}
 \label{section:column_vs_row}
 How Jayvee lays out data internaly is a crucial factor in metrics like execution speed and memory efficency.
-Many formats for this exist, but all of them are either row or column oriented.
+Many formats for this exist, but all of them are either row or column oriented, of which columnar formats are better suited for read access and analytical operations that operate on columns. \autocite{Floratou2019}
+See \ref{fig:row_v_col}.
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=0.95\textwidth]{resources/columnar}
+	\end{center}
+	\caption{\textbf{Top:} An example table \textbf{Left:} The table in row oriented memory \textbf{Right:} The table in columnar memory}
+	\label{fig:row_v_col}
+\end{figure}
 
-The row based format saves the values of a row sequentially.
-
-The columnar format saves the values of a column seuantially.
 
 \section{Columnar Formats}
 \label{section:columnar}
@@ -26,7 +36,7 @@ This framework provides an open and a common standardized format for different p
 Through language-specific libraries, multiple languages can share data without any copying or serialization." \autocite{Ahmad2020} (see \ref{fig:arrow_com})
 "In the Arrow format, data entries (records) are stored in a table called a RecordBatch.
 Each record field is stored in a separate column of the RecordBatch table in a manner that is as contiguous as possible in memory.
-This is called an Arrow Array which can store data of different types—i.e., int, float, strings, binary, timestamps and lists, but also nested types (such as lists of lists, etc.).
+This is called an Arrow Array which can store data of different types — i.e., int, float, strings, binary, timestamps and lists, but also nested types (such as lists of lists, etc.).
 Arrays may have different types of physical buffers to store data.
 This layout provides higher spatial locality when iterating over column contiguous data entries for better CPU cache performance.
 SIMD (Single instruction, multiple data) vector operations can also benefit from such a layout as vector elements are already aligned properly in memory." \autocite{Ahmad2020}
@@ -42,9 +52,13 @@ SIMD (Single instruction, multiple data) vector operations can also benefit from
 	\label{fig:arrow_com}
 \end{figure}
 
+Apache Arrow has implementations in many languages, including Typescript and Rust \autocite{arrow:status}.
+At the time of writing there are 48 projects powered by Apache Arrow \autocite{arrow:projects}.
+One of those is Polars.
 
 
 
 \section{Polars}
 \label{section:polars}
 Polars not only implements the apache arrow format, but adds convenient abstractions like dataframes and series and promises a drastic performance increase.
+
