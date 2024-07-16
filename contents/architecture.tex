@@ -94,8 +94,8 @@ For an overview of how \mintinline{typescript}{Table} fits into the interpreter,
 		IOTypeImplementation <|.. Table : IOTypeImplementation<IOType.TABLE>
 
 		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType> implements BlockExecutor {
-				+doExecute(input: IOTypeImplementation<I\>, context: ExecutionContext): Result<IOTypeImplementation<O\>>
-			}
+		+ {abstract} doExecute(input: IOTypeImplementation<I\>, context: ExecutionContext): Result<IOTypeImplementation<O\>>
+		}
 
 		class TableTransformerExecutor {
 				+doExecute(input: Table, context: ExecutionContext): Result<Table>
@@ -220,8 +220,4 @@ However, we decided against implementing \mintinline{typescript}{IOTypeImplement
 	\label{fig:current_sit}
 \end{figure}
 
-
-\subsection{Implementing the adapter pattern}
-\label{subsection:adapter}
-
-\mintinline{typescript}|PolarsTable| serves as an adapter between \mintinline{typescript}|Table| and \mintinline{typescript}|polars.DataFrame|
+\section{new executors}

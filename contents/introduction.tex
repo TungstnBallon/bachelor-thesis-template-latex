@@ -28,10 +28,34 @@ They let the user define multiple inputs with their types (jayvee supports \Verb
 Expressions support basic arithmetic, boolean algebra and rudimentary string operations like \Verb|uppercase| or \Verb|matches|.
 
 %TODO: picture
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		start
+		:LocalFileExtractor;
+		->File;
+		:TextFileInterpreter;
+		->TextFile;
+		:CSVFileInterpreter;
+		->Sheet;
+		:TableInterpreter;
+		->Table;
+		:TableTransformer;
+		->Table;
+		:SQLiteLoader;
+		stop
+		@enduml
+	\end{plantuml}
+	\caption{The Flow of an examplory pipeline in jayvee. Between the blocks is noted the type of the data called IOType}
+	\label{fig:}
+\end{figure}
+
 
 Optimizing how jayvee represents data in-memory is the goal of this thesis.
 
-	{\textsl{General instructions:}}
+\newpage
+
+{\textsl{General instructions:}}
 You should make use of our outline for structuring your
 thesis. The specific outline is determined by your thesis type.
 Please refer to the outlines at
