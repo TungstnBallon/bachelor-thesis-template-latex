@@ -69,6 +69,44 @@ ETL: fachbegriff extract, transform, load.
     - zahlen wenn available
     - schon gut
 
-
-TODO:
-- cite images
+30. How to make smaller class diagrams (leave out function parameters)
+31. call-stack as sequence diagram
+    ```plantuml
+    @startuml
+-> "operator-evaluator.ts": polarsEvaluateExpression(expression: Expression)
+alt undefined
+  <- "operator-evaluator.ts": undefined
+else free variable
+  "operator-evaluator.ts" -> EvaluationContext: getValueFor(literal: FreeVariableLiteral) 
+  alt is InternalValueRepresenation
+    <- "operator-evaluator.ts": pl.lit(x)
+  else
+    <- "operator-evaluator.ts": x
+  end
+else literal
+  "operator-evaluator.ts" -> "operator-evaluator.ts": evaluateValueLiteral(expression)
+  "operator-evaluator.ts" -> "operator-evaluator.ts": lit: InternalValueRepresenation
+  alt lit is undefined
+    <- "operator-evaluator.ts": undefined
+  else
+    <- "operator-evaluator.ts": pl.lit(lit)
+  end
+  "operator-evaluator.ts" -> "operator-evaluator.ts": getEvaluator(expression)
+  "operator-evaluator.ts" -> EvaluationContext: operatorRegistry
+  alt unary expression
+    EvaluationContext -> OperatorRegistry: unary[operator]
+  else binary expression
+    EvaluationContext -> OperatorRegistry: binary[operator]
+  else ternary expression
+    EvaluationContext -> OperatorRegistry: ternary[operator]
+  end
+    OperatorRegistry -> "operator-evaluator.ts": OperatorEvaluator
+    "operator-evaluator.ts" -> OperatorEvaluator: polarsEvaluate(expression: Expression, evaluationContext: EvaluationContext)
+end
+@enduml
+    ```
+32. pseudo code
+33. how to cite websites with  no author (arrow.apache.org), or even imprint (jvalue.com)
+34. async in class diagram?
+35. citations for acronyms
+36. ask about `@implementStatic<BlockExecutorClass>`

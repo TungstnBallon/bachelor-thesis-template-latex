@@ -129,6 +129,53 @@ export class Table implements IOTypeImplementation<IOType.TABLE> {
 Adapting Jayvee Tables to implement the apache arrow format fulfills the functional requirements of a standardized, columnar, in-memory representation.
 Additionaly Arrow is optimized for modern CPUs and GPUs, and organized for efficent analytical workloads, which will get us closer to the non functional requrement of decreased runtime. % TODO: citation
 
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		start
+		:start interpreter;
+		:parse model;
+		if (parseOnly) then (yes)
+		else (no)
+		while (more pipeline)
+		partition run pipelines {
+				:sort blocks into execution order;
+				while (more blocks)
+				partition run block {
+						partition get block exectutor {
+								if (block has multiple executors) then (yes)
+								if (usePolars) then (true)
+								:pick polars executor;
+								else (false)
+								:pick typescript executor;
+								endif
+								else (no)
+								:pick general executor;
+								endif
+							}
+						:call exectutor;
+						note
+						<code>
+						BlockExecutor<I extends IOType,O extends IOType>.execute(
+						input: IOTypeImplementation<I>,
+						context: ExectutionContext
+						): Result<IOTypeImplementation<O>>
+						</code>
+						end note
+						:save output as input for the next block;
+					}
+				endwhile
+			}
+		endwhile
+		endif
+		stop
+		@enduml
+	\end{plantuml}
+	\caption{An activity diagram overview of the interpreter}
+	\label{fig:interpreter_activity}
+\end{figure}
+
+
 \subsection{Possible implementations}
 \label{subsection:arrow implementations}
 
