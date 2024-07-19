@@ -65,9 +65,14 @@ we shall focus on how to efficiently represent tables in memory.
 
 ETL: fachbegriff extract, transform, load.
 
+
+
+
 29. Do I have to have numbers on how much more performant arrow is.
     - zahlen wenn available
     - schon gut
+
+HERE
 
 30. How to make smaller class diagrams (leave out function parameters)
 31. call-stack as sequence diagram
@@ -110,3 +115,6 @@ end
 34. async in class diagram?
 35. citations for acronyms
 36. ask about `@implementStatic<BlockExecutorClass>`
+37. cite code from stack overflow / official docs
+38. logarithmic scale?
+39. didn't notice biases?

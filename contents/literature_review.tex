@@ -58,6 +58,12 @@ At the time of writing there are 48 projects powered by Apache Arrow \autocite{a
 One of those is Polars.
 
 
+\section{Napi}
+- napi allows us to call rust library functions from javascript
+- we use the #[napi] macro to declare a rust function callable by typescript
+- napi then compiles the rust library to .node file, a binary node addon file.
+- the types that can be passed to this function is restricted by napi.rs capabilites
+
 
 \section{Polars}
 \label{section:polars}

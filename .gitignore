@@ -1,4 +1,5 @@
 thesis.*
+thesis-*.*
 !thesis.tex
 thesis-plantuml.*
 _*/

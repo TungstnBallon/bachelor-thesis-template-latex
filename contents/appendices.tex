@@ -1,7 +1,7 @@
 \section{Tables}
 \label{appendix:example1}
 \begin{table}[ht]
-	\caption{OUTDATED: Evaluation runs plobrs-none-$10_000_000$}
+	\caption{Evaluation runs plobrs-none-$10_000_000$}
 	\label{outdated:tab:eval:plobrs-none-10_000_000}
 	\begin{tabular}{|l|l|l|l|}
 		\hline
@@ -24,7 +24,7 @@
 	\end{tabular}
 \end{table}
 \begin{table}[ht]
-	\caption{Evaluation runs plobrs-none-$10_000_000$}
+	\caption{OUTDATED: Evaluation runs plobrs-none-$10_000_000$}
 	\label{tab:eval:plobrs-none-10_000_000}
 	\begin{tabular}{|l|l|l|l|}
 		\hline
@@ -43,6 +43,20 @@
 		\hline
 		avg. & 988,9ms              & 51091,6ms        & 52080,9 ms    \\
 		std. & 502.03295709ms       & 4067.25964748 ms & 4129.34707793 \\
+		\hline
+	\end{tabular}
+\end{table}
+\begin{table}[ht]
+	\caption{Average / Standard deviation for no transforms on 100 repetitions}
+	\label{tab:eval:none}
+	\begin{tabular}{|l|l|l|l|l|l|}
+		\hline
+		lines  & ts              & pl              & plob            & plrs            & plobrs          \\
+		\hline
+		100    & 864 ms / 24 ms  & 878 ms / 23 ms  & 853 ms / 23 ms  & 869 ms / 41 ms  & 849 ms / 29 ms  \\
+		1000   & 942 ms / 31 ms  & 983 ms / 35 ms  & 894 ms / 28 ms  & 925 ms / 24 ms  & 853 ms / 26 ms  \\
+		10000  & 1426 ms / 31 ms & 1587 ms / 33 ms & 1162 ms / 28 ms & 1312 ms / 26 ms & 883 ms / 41 ms  \\
+		100000 & 5935 ms / 69 ms & 7541 ms / 83 ms & 3894 ms / 45 ms & 4932 ms / 69 ms & 1222 ms / 28 ms \\
 		\hline
 	\end{tabular}
 \end{table}

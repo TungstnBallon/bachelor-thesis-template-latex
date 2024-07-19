@@ -228,6 +228,12 @@ Now, we use the same approach as with the tables, by creating an abstract superc
 \end{figure}
 
 
+\section{LocalFileToTableIntepreter}
+- combine LocalFileExtractor, TextFileInterpreter, CSVInterpreter, TableIntepreter.
+- no circular dependencies rule prevents code sharing with LocalFileExtractor -> copy logic.
+- use the static method csvOptions of PolarsTableInterpreterExecutor to reuse the code there and get csv parser options
+- leave all of the actual filereading to polars
+
 
 \section{TableTransformer}
 - again strategy.
