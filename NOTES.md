@@ -21,7 +21,7 @@
     - yes
 16. exclude JayveeModel (above PipelineDefinition)
 17. how deep strategy pattern?
-    -defer 
+    -defer
 18. requirements in enumeration?
 19. is `TsTable` an acronym?
     - no but csv
@@ -82,7 +82,7 @@ HERE
 alt undefined
   <- "operator-evaluator.ts": undefined
 else free variable
-  "operator-evaluator.ts" -> EvaluationContext: getValueFor(literal: FreeVariableLiteral) 
+  "operator-evaluator.ts" -> EvaluationContext: getValueFor(literal: FreeVariableLiteral)
   alt is InternalValueRepresenation
     <- "operator-evaluator.ts": pl.lit(x)
   else
@@ -118,3 +118,11 @@ end
 37. cite code from stack overflow / official docs
 38. logarithmic scale?
 39. didn't notice biases?
+40. create good question for architecture vs. implementation
+41. thoughts on eval:
+42. implement abstract class?
+    - individual stages of the ETL pipeline?
+    - some and many transfrom amounts, or is just one model with transforms enough.
+    - how many repeats?
+        - can i say: "the values had to be read by hand, so many repetitions weren't possible"
+    - can i do the individual stages comparision with just five repetitions, while others with 100?

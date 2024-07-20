@@ -93,19 +93,21 @@ The chosen dataset is called "Brewery Operations and Market Analysis" and not ba
 - only plobrs can process the full $10_000_000$ (2.5gb) lines.
 
 \section{the numbers}
+
+
 %TODO: pie chart of supported transfrorms
 %TODO: stuff that is not supported by jayvee
 
 \begin{figure}
 	\begin{tikzpicture}
-		\begin{semilogxaxis}[
+		\begin{axis}[
 				title = {no transforms}
 				axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
-				xmin=0, xmax=100000,
-				ymin=0, ymax=8000,
-				xtick={0,100,1000,10000,100000},
+				xmin=0, xmax=1800000,
+				ymin=0, ymax=60000,
+				xtick={0,56250,112500,225000,450000},
 				% ytick={0,1000,2000,3000,4000,5000,6000},
 				legend pos=north west,
 				ymajorgrids=true,
@@ -116,39 +118,50 @@ The chosen dataset is called "Brewery Operations and Market Analysis" and not ba
 				mark=square,
 			]
 			coordinates {
-					(100,864)(1000,942)(10000,1426)(100000,5935)
+					(56250,3724)(112500,6648)(225000,12202)(450000,25701)
 				};
 			\addplot[
 				color=blue,
 				mark=square,
 			]
 			coordinates {
-					(100,878)(1000,983)(10000,1587)(100000,7541)
-				};
-			\addplot[
-				color=green,
-				mark=square,
-			]
-			coordinates {
-					(100,853)(1000,894)(10000,1162)(100000,3864)
+					(56250,4581)(112500,8323)(225000,16118)(450000,34125)
 				};
 			\addplot[
 				color=brown,
 				mark=square,
 			]
 			coordinates {
-					(100,869)(1000,925)(10000,1312)(100000,4932)
+					(56250,2531)(112500,4231)(225000,7739)(450000,14976)
 				};
 			\addplot[
-				% color=orange,
+				color=green,
 				mark=square,
 			]
 			coordinates {
-					(100,849)(1000,853)(10000,883)(100000,1222)
+					(56250,3102)(112500,5390)(225000,10126)(450000,21270)
 				};
+			\addplot[
+				mark=square,
+			]
+			coordinates {
+					(56250,1035)(112500,1221)(225000,1936)(450000,2740)
+				};
+
 			\legend{ts,pl,plob,plrs,plobrs}
-		\end{semilogxaxis}
+		\end{axis}
 	\end{tikzpicture}
 	\caption{plot no transforms}\label{fig:plot}
 \end{figure}
+
+
+/subsection{Explanation}
+- pl is slowest, because:
+- no transforms yet, so no speedup from there
+- from comparing the debug output of two example runs we can see that PolarsSQLiteLoaderExecutor is slower than TsSQLiteLoaderExecutor %TODO: provide numbers
+
+- the one block optimization yields better results than the rust sqlite loader implementation
+
+- pobrs is the best significantly
+
 

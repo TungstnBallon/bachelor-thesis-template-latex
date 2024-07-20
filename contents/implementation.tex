@@ -2,15 +2,6 @@
 \label{chapter:Implementation}
 
 \section{Type Conversion}
-- polars has its own type system not compatible with Jayvee valuetypes
-- need for conversion between the two
-- jayvee also has InternalValueRepresentation (stuff that expressions can evaluate to)
-- wrong apporach:
-- add the polars datatypes to internalvaluerepresentation
-- they do not contain actual data, they are values representing types
-- tried to do strategy on valuetypeproviders, didn't work
-- right approach:
-- jayvee is able to convert between valuetypes and polars datatypes when required
 - dtype -> vtype: add \Verb|fromPolarsDType| method to \Verb|ValueTypeProvider|. unsupported plds throw an error.
 - unsupported: pl.Categorical, pl.Date, pl.DateTime, pl.List, pl.Null, pl.Struct
 - vtype -> dtype: add \Verb|toPolarsDataType| method to interface \Verb|ValueType|. unsupported vts return undefined.
@@ -18,6 +9,7 @@
 
 - InternalValueRepresentation
 - gets new typeguards
+% TODO: better explanation
 - prev: could only be used to narrow down internalvaluerepresentation it is
 - now: unknwon types can be tested
 - pl.Expr should be an atomicinternalvaluerepresentation but is kept seperate for allow the ts backend to coexist
@@ -28,78 +20,14 @@
 Jayvee implements \Verb{IOTypeImplementation<IOType.TABLE>} in \Verb{libs/execution/src/lib/types/io-types/table.ts}.
 To increase clarity, the abstract \Verb|TableColumn| class and its subclasses \Verb|PolarsTableColumn| and \Verb|TsTableColumn| are moved into their own file \Verb|table-column.ts|.
 \Verb|Table| defines defines abstract methods for its subclasses to implement and directly implements general behaviour in static methods. %TODO?: code snippet here?
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		abstract class Table {
-		{abstract} <<getter>> nRows(): number
-			{abstract} <<getter>>  nColumns(): number
-			{abstract} <<getter>> columns(): ReadonlyArray<TableColumn>
-			{abstract} withColumn(column: TableColumn): Table
-			{abstract} hasColumn(name: string): boolean
-			{abstract} getColumn(name: string): TableColumn | undefined
-			{abstract} getRow(id: number): TableRow
-			{abstract} clone(): Table
-			{abstract} acceptVisitor<R>(visitor: IoTypeVisitor<R>): R
-			{abstract} isPolars(): this is PolarsTable
-			{abstract} isTypescript(): this is TsTable
-			{static} generateDropTableStatement(tableName: string): string
-			{abstract} generateInsertValuesStatement(tableName: string): string;
-		{abstract} generateCreateTableStatement(tableName: string): string;
-		}
-		@enduml
-	\end{plantuml}
-	\caption{The class diagram of the \Verb{Table} class}
-	\label{fig:table_uml}
-\end{figure}
 
-\subsubsection{changes compared to old table}
-- The \Verb|addColumn| method was replaced with the \Verb|withColumn| metod
-- \Verb|isPolars| and \Verb|isTypescript| typeguards were added
-- utilised the \Verb|get| keyword for \Verb|getNumberOfColumns|
 
 
 \subsection{PolarsTable}
-\Verb|PolarsTable| extends \Verb|Table| and thereby also implements \Verb|IOTypeImplementation<IOType.Table>|.
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		class PolarsTable {
-				-df: polars.DataFrame
-				-valueTypeProvider: ValueTypeProvider
-				<<getter>> nRows(): number
-				<<getter>> nColumns(): number
-				<<getter>> columns(): readonly PolarsTableColumn[]
-				getTypes(): ValueType[]
-				generateInsertValuesStatement(tableName: string): string
-				generateCreateTableStatement(tableName: string): string
-				withColumn(column: PolarsTableColumn): PolarsTable
-				withColumnFromInternal(expr: PolarsInternal): PolarsTable
-				hasColumn(name: string): boolean
-				getColumn(name: string): PolarsTableColumn | undefined
-				getRow(id: number): TableRow
-				clone(): PolarsTable
-				acceptVisitor<R>(visitor: IoTypeVisitor<R>): R
-				isPolars(): this is PolarsTable
-				isTypescript(): this is TsTable
-				toString(): string
-				writeIpc(options?: WriteIPCOptions): Buffer
-				writeIpcTo(destination: string | Writable, options?: WriteIPCOptions): void
-			}
-		@enduml
-	\end{plantuml}
-	\caption{The class diagram of the \Verb{PolarsTable} class}
-	\label{fig:polarstable_uml}
-\end{figure}
-
 It wraps the \Verb|polars.DataFrame| class and uses its methods to implement the abstract methods from \Verb|Table|, except with the general abstract types like \Verb|TableColumn| or \Verb|Table| replaced with types interacting with polars like \Verb|PolarsTable| or \Verb|PolarsTableColumn|.
+- adapter pattern
 
-\subsubsection{ValueTypeProvider}
-This tells the jayvee interpreter jayvee specific type a value has.
-This information is saved on a per column basis in the typescript backend.
-The polars backend cannot do this, because the polars has its own valuetype system.
 The Valuetype will have to be reinferred anytime a column is requested. %FIXME: getColumn() is called.
-
 \begin{listing}
 	\begin{minted}{typescript}
 override withColumn(column: PolarsTableColumn): PolarsTable {
@@ -112,65 +40,6 @@ override withColumn(column: PolarsTableColumn): PolarsTable {
 \end{listing}
 
 \section{TableColumn}
-Originally \Verb|TableColumn| was just %FIXME: "just" bad
-an interface (see \ref{lst:table_column_interface})
-\begin{listing}
-	\begin{minted}{typescript}
-interface TableColumn<
-  T extends InternalValueRepresentation = InternalValueRepresentation,
-> {
-  values: T[];
-  valueType: ValueType;
-}
-	\end{minted}
-	\caption{The old implementation of TableColum}
-	\label{lst:table_column_interface}
-\end{listing}
-
-
-Now, we use the same approach as with the tables, by creating an abstract superclass \Verb|TableColumn| (see \ref{fig:tablecolumn_uml}) that both \Verb|TsTableColumn|, with the old functionality, and \Verb|PolarsTableColumn| implement.
-
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		abstract class TableColumn{
-				{abstract} <<getter>> valueType(): ValueType
-					{abstract} <<getter>> length(): number
-					{abstract} <<getter>> name(): string
-					{abstract} <<setter>> name(newName: string)
-				{abstract} nth(n: number): InternalValueRepresentation | undefined | null
-					{abstract} clone(): TableColumn
-					{abstract} isPolars(): this is PolarsTableColumn
-					{abstract} isTypescript(): this is TsTableColumn
-			}
-		@enduml
-	\end{plantuml}
-	\caption{The \Verb|TableColumn| class diagram}
-	\label{fig:tablecolumn_uml}
-\end{figure}
-
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		class PolarsTableColumn {
-				-_valueType: ValueType;
-				-_series: polars.Series
-				PolarsTableColumn(_series: Series, valueType: ValueType | ValueTypeProvider)
-				<<getter>> valueType(): ValueType
-				<<getter>> series(): Readonly<pl.Series>
-				<<getter>> length(): number
-				<<getter>> name(): string
-				<<setter>> name(newName: string)
-				nth(n: number): InternalValueRepresentation | undefined | null
-				clone(): PolarsTableColumn
-				isPolars(): this is PolarsTableColumn
-				isTypescript(): this is TsTableColumn
-			}
-		@enduml
-	\end{plantuml}
-	\caption{The \Verb|PolarsTableColumn| class diagram}
-	\label{fig:polastablecolumn_uml}
-\end{figure}
 
 - The constructor accepts both valuetype and valuetypeProvider
 - if it's a valuetypeprovider the valuetype is inferred from the series dtype with the \Verb{fromPolarsDType} method.
@@ -188,48 +57,19 @@ Now, we use the same approach as with the tables, by creating an abstract superc
 - push and drop are supported, because they are required by the typescript blocks
 
 
-\section{TableInterpreter}
-- same approach as always (strategy).
-- move previous implementation into \Verb|TsTableInterpreter|
-- create abstract class \Verb|TableInterpreter|
-- create new class \Verb|PolarsTableInterpreter|
-- \Verb|toPolarsDataTypeWithLogs| is its own mehtod to enable code sharing with other table blocks.
-- can't be in language-server because circular dependency
-- uses the already present \Verb|ColumnDefintionEntry|
+\section{new executors}
+- we insert if statements into getExecutorForBlockype to change what BlockExecutorClass type is being searched for.
 
 
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		abstract class TableInterpeter {
-		doExecute(inputSheet: Sheet, context: R.ExecutionContext): Promise<R.Result<R.Table>>
-		# {abstract} constructAndValidateTable(sheet: Sheet, header: boolean, columnEntries: ColumnDefinitionEntry[], context: ExecutionContext): Table
-		#deriveColumnDefinitionEntriesWithoutHeader(columnDefinitions: ValuetypeAssignment[], context: ExecutionContext): ColumnDefinitionEntry[]
-		#deriveColumnDefinitionEntriesFromHeader(columnDefinitions: ValuetypeAssignment[], headerRow: string[], context: ExecutionContext): ColumnDefinitionEntry[]
-		#parseAndValidateValue(value: string, valueType: ValueType, context: ExecutionContext): InternalValueRepresentation | undefined
-		}
-		@enduml
-	\end{plantuml}
-	\caption{}
-	\label{fig:tableinterpreter_uml}
-\end{figure}
 
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		class PolarsTableInterpreterExecutor {
-		+ {static} <<readonly>> type: 'PolarsTableInterpreter' = 'PolarsTableInterpreter';
-		# constructAndValidateTable(sheet: Sheet, header: boolean, columnEntries: ColumnDefinitionEntry[], context: ExecutionContext): PolarsTable
-		- constructSeries(rows: readonly (readonly string[])[], columnEntry: ColumnDefinitionEntry, context: ExecutionContext): pl.Series
-		}
-		@enduml
-	\end{plantuml}
-	\caption{}\label{fig:polarstableinterpreter_uml}
-\end{figure}
 
+\subsection{TableInterpreter} %TODO
+static methods
+
+
+\section{FileToTableIntepreter}
 
 \section{LocalFileToTableIntepreter}
-- combine LocalFileExtractor, TextFileInterpreter, CSVInterpreter, TableIntepreter.
 - no circular dependencies rule prevents code sharing with LocalFileExtractor -> copy logic.
 - use the static method csvOptions of PolarsTableInterpreterExecutor to reuse the code there and get csv parser options
 - leave all of the actual filereading to polars
@@ -268,64 +108,57 @@ Now, we use the same approach as with the tables, by creating an abstract superc
 - this snippet \ref{lst:pl_expr_example} multiplies the values in column "a" with those in column "b".
 \begin{listing}
 	\begin{minted}{typescript}
+use {pl} from 'nodejs-polars';
+const dataFrame = ...;
 const newDataFrame = dataFrame.withColumn(pl.col("a").mul(pl.col("b")))
 	\end{minted}
 	\caption{How to multiply column "a" and "b" of a dataframe}
 	\label{lst:pl_expr_example}
 \end{listing}
 - instead of calculating the new values directly, evaluators now return pl.Expression
-\begin{listing}
-	\begin{minted}{typescript}
-export function polarsEvaluateExpression(
-  expression: Expression | undefined,
-  evaluationContext: EvaluationContext,
-  wrapperFactories: WrapperFactoryProvider,
-  context: ValidationContext | undefined = undefined,
-  strategy: EvaluationStrategy = EvaluationStrategy.LAZY,
-): PolarsInternal | undefined {
-  if (expression === undefined) {
-    return undefined;
-  }
-  if (isExpressionLiteral(expression)) {
-    if (isFreeVariableLiteral(expression)) {
-      const fv = evaluationContext.getValueFor(expression);
-      if (INTERNAL_VALUE_REPRESENTATION_TYPEGUARD(fv)) {
-        return pl.lit(fv);
-      }
-      return fv;
-    } else if (isValueLiteral(expression)) {
-      const lit = evaluateValueLiteral(
-        expression,
-        evaluationContext,
-        wrapperFactories,
-        context,
-        strategy,
-      );
-      if (lit === undefined) {
-        return undefined;
-      }
-      return pl.lit(lit);
-    }
-    assertUnreachable(expression);
-  }
-  const evaluator = getEvaluator(expression, evaluationContext);
 
-  return evaluator.polarsEvaluate(
-    expression,
-    evaluationContext,
-    wrapperFactories,
-    strategy,
-    context,
-  );
-}
-	\end{minted}
-	\caption{pseudocode}
-	\label{lst:pseudocode}
-\end{listing}
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		start
+		if (""expr"" is a free variable) then (yes)
+		:retrieve the ""value"" of ""expr"" from context;
+		if (""value"" is ""InternalValueRepresentation"") then (yes)
+		:return ""pl.lit(value)"";
+		stop
+		else (no)
+		:return ""value"";
+		stop
+		endif
+		elseif (""expr"" is a valueLiteral) then (yes)
+		:evaluate the ""value"" of ""expr"";
+		if (""value === undefined"") then (true)
+		:return ""undefined"";
+		stop
+		else (false)
+		:return ""pl.lit(value)"";
+		stop
+		endif
+		else
+		:use the expressions n-ness (unary, binary, tertiary) and its
+		operator to get the fitting evaluator from ""evaluationContext"";
+		:call the ""eval.polarsEvaluate"" method;
+		:return the result of that;
+		stop
+		endif
+		@enduml
+	\end{plantuml}
+	\caption{
+		Activity diagram of the \Verb|polarsEvaluateExpression| function.
+		\Verb|expr| is the expression that should be evaluated. %FIXME: caption
+	}
+	\label{fig:uml:polars_evaluate_expression}
+\end{figure}
 
 
 \begin{figure}
 	\begin{plantuml}
+		@startuml
 		class AdditionOperatorEvaluator {
 				AdditionOperatorEvaluator()
 				doEvaluate(left: number, right: number): number
@@ -391,6 +224,7 @@ export function polarsEvaluateExpression(
 			}
 		DefaultOperatorEvaluatorRegistry "1" -- "1" AdditionOperatorEvaluator: "'+'"
 		DefaultOperatorEvaluatorRegistry "1" -- "1" RoundOperatorEvaluator: "'round'"
+		@enduml
 	\end{plantuml}
 	\caption{Assuming the only operations were \Verb|round| and \Verb|plus|, this is how the Evaluators would be structured}
 	\label{fig:evaluators_class_diagram}

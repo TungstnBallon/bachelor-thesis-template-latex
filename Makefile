@@ -12,7 +12,7 @@ ${TEX_FILE}.pdf: thesis.tex mybibliography.bib osrthesis.sty myconfiguration.sty
 
 .PHONY: cleantemp
 cleantemp: ## Remove all temporary files created during the compiling process.
-	rm -f *.aux *.bbl *.bcf *.out *.blg *.dvi *.log *.toc *.run.xml *.synctex.gz *.lot *.lof thesis-plantuml.* *.fdb_latexmk *.fls *.pyg *.pytxcode
+	rm -f *.aux *.bbl *.bcf *.out *.blg *.dvi *.log *.toc *.run.xml *.synctex.gz *.lot *.lof thesis-plantuml.* *.fdb_latexmk *.fls *.pyg *.pytxcode *.lol *.auxlock thesis-figure*.*
 
 .PHONY: clean
 clean: cleantemp ## Remove all created files including the compiled PDF.
