@@ -10,7 +10,13 @@
 - InternalValueRepresentation
 - gets new typeguards
 % TODO: better explanation
-- prev: could only be used to narrow down internalvaluerepresentation it is
+- string, number, boolean: typeof
+- RegExp: instanceof
+- CellRangeLiteral, ConstraintDefintion, Valuetypeassignment, blocktype property, transform definition: langiun generated function
+- atomicvaluerepresentation: any of the above
+- internalarraytypeguard: node:isArray -> then every value fulfills internalvaluerepresentationtypeguard
+- internalvaluerepresentationtypeguard: atomic or array
+- prev: could only be used to narrow down internalvaluerepresentation
 - now: unknwon types can be tested
 - pl.Expr should be an atomicinternalvaluerepresentation but is kept seperate for allow the ts backend to coexist
 
@@ -19,7 +25,10 @@
 \subsection{abstract Table}
 Jayvee implements \Verb{IOTypeImplementation<IOType.TABLE>} in \Verb{libs/execution/src/lib/types/io-types/table.ts}.
 To increase clarity, the abstract \Verb|TableColumn| class and its subclasses \Verb|PolarsTableColumn| and \Verb|TsTableColumn| are moved into their own file \Verb|table-column.ts|.
-\Verb|Table| defines defines abstract methods for its subclasses to implement and directly implements general behaviour in static methods. %TODO?: code snippet here?
+
+- \Verb|Table| defines defines abstract methods for its subclasses to implement and directly implements general behaviour in static methods. %TODO?: code snippet here?
+- generateDropTableStatement is a string with the tablename.
+
 
 
 
@@ -79,7 +88,7 @@ static methods
 - again strategy.
 - steps:
 1. check input coluns exist
-2. create executor
+2. create transform executor
 3. check input columns match the transform input types.
 3.1 compare the nth input column type to the nth transform input type and check with \Verb|isConvertibleTo|
 3.1 return variableToColumnMap (varname -> columnexpr)
@@ -97,26 +106,10 @@ static methods
 3. add resulting column (transforms only allow for one result): if outputname is the same as another column that one gets replaced
 
 \subsubsection{Expressions}
-- there is no \Verb|ExpressionEvaluator| class, a function \Verb|evaluateExpression|
-- strategy pattern, the way we did it previously,is out.
-- directly modifying the the values from the dataframe would require converting it back into a js datastructure, apply the expression, create new dataframe -> SLOW!
-- utilise \Verb|polars.Expr|, which describe changes made to a polars DataFrame.
-- add new method \Verb|polarsEvaluateExpression| that replicates the structure of \Verb|evaluateExpression|
+- polarsEvaluateExpression:
 - 1. free variable -> retrieve from context, if InternalValueRepresentation wrap in pl.lit and return.
 - 2. literal -> wrap in pl.lit and return
 - 3. other -> get evaluator from context / DefaultOperatorRegistry, evaluateExpression, return resulting pl.Expr or undefined
-- this snippet \ref{lst:pl_expr_example} multiplies the values in column "a" with those in column "b".
-\begin{listing}
-	\begin{minted}{typescript}
-use {pl} from 'nodejs-polars';
-const dataFrame = ...;
-const newDataFrame = dataFrame.withColumn(pl.col("a").mul(pl.col("b")))
-	\end{minted}
-	\caption{How to multiply column "a" and "b" of a dataframe}
-	\label{lst:pl_expr_example}
-\end{listing}
-- instead of calculating the new values directly, evaluators now return pl.Expression
-
 \begin{figure}
 	\begin{plantuml}
 		@startuml
@@ -156,79 +149,6 @@ const newDataFrame = dataFrame.withColumn(pl.col("a").mul(pl.col("b")))
 \end{figure}
 
 
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		class AdditionOperatorEvaluator {
-				AdditionOperatorEvaluator()
-				doEvaluate(left: number, right: number): number
-				polarsDoEvaluate(left: polars.Expr, right: polars.Expr): polars.Expr
-			}
-
-		class RoundOperatorEvaluator {
-				RoundOperatorEvaluator()
-				doEvaluate(operandValue: number): number
-				polarsDoEvaluate(operand: polars.Expr): polars.Expr
-			}
-		DefaultUnaryOperatorEvaluator <|-- RoundOperatorEvaluator: DefaultUnaryOperatorEvaluator<number, number>
-
-		abstract class DefaultBinaryOperatorEvaluator<L extends InternalValueRepresentation, R extends InternalValueRepresentation, T extends InternalValueRepresentation> {
-		DefaultBinaryOperatorEvaluator(operator, leftValueTypeGuard, rightValueTypeGuard)
-		+ <<readonly>> operator: BinaryExpressionOperator
-		- <<readonly>> leftValueTypeGuard: InternalValueRepresentationTypeguard<L>
-		- <<readonly>> rightValueTypeGuard: InternalValueRepresentationTypeguard<R>
-		evaluate(expression: BinaryExpression, evaluationContext: EvaluationContext, wrapperFactories: WrapperFactoryProvider, strategy: EvaluationStrategy, validationContext: ValidationContext | undefined): T | undefined
-		polarsEvaluate(expression: BinaryExpression, evaluationContext: EvaluationContext, wrapperFactories: WrapperFactoryProvider, strategy: EvaluationStrategy, validationContext: ValidationContext | undefined): polars.Expr | undefined
-		# {abstract} doEvaluate(leftValue: L, rightValue: R, expression: BinaryExpression, context: ValidationContext | undefined): T | undefined
-		# polarsDoEvaluate(_left: polars.Expr, _right: polars.Expr, expression: BinaryExpression, context: ValidationContext): polars.Expr | undefined
-		}
-		DefaultBinaryOperatorEvaluator <|-- AdditionOperatorEvaluator: DefaultBinaryOperatorEvaluator<number, number, number>
-
-		abstract class DefaultUnaryOperatorEvaluator<0 extends InternalValueRepresentation T extends InternalValueRepresentation> {
-		DefaultUnaryOperatorEvaluator(operator: string, operandValueTypeGuard: InternalValueRepresentationTypeguard<O>)
-		+ <<readonly>> operator: BinaryExpressionOperator
-		- <<readonly>> operandValueTypeGuard: InternalValueRepresentationTypeguard<O>
-		evaluate(expression: UnaryExpression, evaluationContext: EvaluationContext, wrapperFactories: WrapperFactoryProvider, strategy: EvaluationStrategy, validationContext: ValidationContext | undefined): T | undefined
-		polarsEvaluate(expression: UnaryExpression, evaluationContext: EvaluationContext, wrapperFactories: WrapperFactoryProvider, strategy: EvaluationStrategy, validationContext: ValidationContext | undefined): polars.Expr | undefined
-		# {abstract} doEvaluate(operandValue: O, expression: UnaryExpression, context: ValidationContext | undefined): T | undefined
-		# polarsDoEvaluate(_operand: polars.Expr, expression: UnaryExpression, context: ValidationContext): polars.Expr | undefined
-		}
-
-		interface PolarsOperatorEvaluator<E extends UnaryExpression | BinaryExpression | TernaryExpression> {
-				<<readonly>> operator: E['operator']
-				polarsEvaluate(expression: E, evaluationContext: EvaluationContext, wrapperFactories: WrapperFactoryProvider, strategy: EvaluationStrategy, validationContext: ValidationContext | undefined): polars.Expr | undefined
-			}
-		PolarsOperatorEvaluator <|.. DefaultBinaryOperatorEvaluator
-		PolarsOperatorEvaluator <|.. DefaultUnaryOperatorEvaluator
-
-		interface OperatorEvaluator<E extends UnaryExpression | BinaryExpression | TernaryExpression> {
-				<<readonly>> operator: E['operator']
-				evaluate(expression: E, evaluationContext: EvaluationContext, wrapperFactories: WrapperFactoryProvider, strategy: EvaluationStrategy, validationContext: ValidationContext | undefined): InternalValueRepresentation | undefined
-			}
-		OperatorEvaluator <|-- PolarsOperatorEvaluator
-
-		interface OperatorEvaluatorRegistry {
-				unary: Record<UnaryExpressionOperator,PolarsOperatorEvaluator<UnaryExpression>>
-				binary: Record<BinaryExpressionOperator, PolarsOperatorEvaluator<BinaryExpression>>
-			}
-
-		interface OperatorTypeComputerRegistry {
-				unary: Record<UnaryExpressionOperator, UnaryOperatorTypeComputer>
-				binary: Record<BinaryExpressionOperator, BinaryOperatorTypeComputer>
-			}
-		class DefaultOperatorEvaluatorRegistry implements OperatorEvaluatorRegistry {
-				DefaultOperatorEvaluatorRegistry(valueTypeProvider: ValueTypeProvider)
-				- <<readonly>> valueTypeProvider: ValueTypeProvider
-				unary: Record<UnaryExpressionOperator, UnaryOperatorTypeComputer>
-				binary: Record<BinaryExpressionOperator, BinaryOperatorTypeComputer>
-			}
-		DefaultOperatorEvaluatorRegistry "1" -- "1" AdditionOperatorEvaluator: "'+'"
-		DefaultOperatorEvaluatorRegistry "1" -- "1" RoundOperatorEvaluator: "'round'"
-		@enduml
-	\end{plantuml}
-	\caption{Assuming the only operations were \Verb|round| and \Verb|plus|, this is how the Evaluators would be structured}
-	\label{fig:evaluators_class_diagram}
-\end{figure}
 
 
 % TODO:
@@ -253,8 +173,6 @@ const newDataFrame = dataFrame.withColumn(pl.col("a").mul(pl.col("b")))
 
 
 \section{SQLiteLoader}
-- again, create abstract class and move ts implementation into \Verb|TsSQLiteLoader|
-- \Verb|SQLiteLoader<T>| has a general implementation for loading sqlite data utilising methods
 - generateDropTableStatement
 - generateCreateTableStatement
 - use sqlvisitor to get column definitions
@@ -295,39 +213,6 @@ const newDataFrame = dataFrame.withColumn(pl.col("a").mul(pl.col("b")))
 
 
 
-
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		interface BlockExecutorClass<T extends BlockExecutor> {
-				<<readonly>> type: string
-			}
-		class RustSQLiteLoaderExecutor implements BlockExecutorClass {
-		+ {static} <<readonly>> type: 'RustSQLiteLoader'
-		# executeLoad(table: PolarsTable, file: string, tableName: string, dropTable: boolean, context: ExecutionContext): Result<None>
-		}
-		class PolarsSQLiteLoaderExecutor implements BlockExecutorClass {
-		+ {static} <<readonly>> type: 'PolarsSQLiteLoader'
-		}
-		class TsSQLiteLoaderExecutor implements BlockExecutorClass {
-		+ {static} <<readonly>> type: 'TsSQLiteLoader'
-		}
-		abstract class SQLiteLoaderExecutor<T extends Table> {
-		doExecute(table: T, context:ExecutionContext): Result<None>
-		# {abstract} executeLoad(table: T, file: string, tableName: string, dropTable: boolean, context: ExecutionContext): Result<None>
-		}
-		SQLiteLoaderExecutor <|-- RustSQLiteLoaderExecutor: SQLiteLoader<PolarsTable>
-		SQLiteLoaderExecutor <|-- PolarsSQLiteLoaderExecutor: SQLiteLoader<PolarsTable>
-		SQLiteLoaderExecutor <|-- TsSQLiteLoaderExecutor: SQLiteLoader<TsTable>
-		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType> implements BlockExecutor {
-		+ {abstract} doExecute(input: IOTypeImplementation<I\>, context: ExecutionContext): Result<IOTypeImplementation<O>\>
-		}
-		AbstractBlockExecutor <|-- SQLiteLoaderExecutor: AbstractBlockExecutor<IOType.TABLE, IOType.NONE>
-		@enduml
-	\end{plantuml}
-	\caption{The Executors for SQLiteLoader}
-	\label{fig:sqliteloaderexecutor_uml}
-\end{figure}
 
 
 

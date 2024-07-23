@@ -105,9 +105,9 @@ The chosen dataset is called "Brewery Operations and Market Analysis" and not ba
 				axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
-				xmin=0, xmax=1800000,
-				ymin=0, ymax=60000,
-				xtick={0,56250,112500,225000,450000},
+				xmin=0, xmax=2000000,
+				ymin=0, ymax=140000,
+				xtick={0,56250,112500,225000,450000,900000,1800000},
 				% ytick={0,1000,2000,3000,4000,5000,6000},
 				legend pos=north west,
 				ymajorgrids=true,
@@ -118,34 +118,34 @@ The chosen dataset is called "Brewery Operations and Market Analysis" and not ba
 				mark=square,
 			]
 			coordinates {
-					(56250,3724)(112500,6648)(225000,12202)(450000,25701)
+					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1800000,96513)
 				};
 			\addplot[
 				color=blue,
 				mark=square,
 			]
 			coordinates {
-					(56250,4581)(112500,8323)(225000,16118)(450000,34125)
+					(56250,4581)(112500,8323)(225000,16118)(450000,34125)(900000,63728)(1800000,139939)
 				};
 			\addplot[
 				color=brown,
 				mark=square,
 			]
 			coordinates {
-					(56250,2531)(112500,4231)(225000,7739)(450000,14976)
+					(56250,2531)(112500,4231)(225000,7739)(450000,14976)(900000,30211)(1800000,64660)
 				};
 			\addplot[
 				color=green,
 				mark=square,
 			]
 			coordinates {
-					(56250,3102)(112500,5390)(225000,10126)(450000,21270)
+					(56250,3102)(112500,5390)(225000,10126)(450000,21270)(900000,37705)(1800000,94274)
 				};
 			\addplot[
 				mark=square,
 			]
 			coordinates {
-					(56250,1035)(112500,1221)(225000,1936)(450000,2740)
+					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1800000,8184)
 				};
 
 			\legend{ts,pl,plob,plrs,plobrs}

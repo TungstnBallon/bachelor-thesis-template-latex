@@ -75,6 +75,8 @@ ETL: fachbegriff extract, transform, load.
 HERE
 
 30. How to make smaller class diagrams (leave out function parameters)
+    - can leave out
+    - es ist ein "Ausschnitt", "nix mit der aktuellen thematik" ausgeblendt
 31. call-stack as sequence diagram
     ```plantuml
     @startuml
@@ -111,18 +113,25 @@ end
 @enduml
     ```
 32. pseudo code
+    - yes, better than ts
 33. how to cite websites with  no author (arrow.apache.org), or even imprint (jvalue.com)
+     organization, jayvee contributors
 34. async in class diagram?
+    - yes
+    - add promies
 35. citations for acronyms
+    - no
 36. ask about `@implementStatic<BlockExecutorClass>`
 37. cite code from stack overflow / official docs
 38. logarithmic scale?
 39. didn't notice biases?
+    - yes can write that, polars/rust bessere datentypen (strings)
 40. create good question for architecture vs. implementation
-41. thoughts on eval:
 42. implement abstract class?
+    - better not
+41. thoughts on eval:
     - individual stages of the ETL pipeline?
     - some and many transfrom amounts, or is just one model with transforms enough.
     - how many repeats?
-        - can i say: "the values had to be read by hand, so many repetitions weren't possible"
-    - can i do the individual stages comparision with just five repetitions, while others with 100?
+        - 10
+42. UML diagramme sind brillen
