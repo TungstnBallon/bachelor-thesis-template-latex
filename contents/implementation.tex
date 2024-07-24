@@ -36,19 +36,89 @@ To increase clarity, the abstract \Verb|TableColumn| class and its subclasses \V
 It wraps the \Verb|polars.DataFrame| class and uses its methods to implement the abstract methods from \Verb|Table|, except with the general abstract types like \Verb|TableColumn| or \Verb|Table| replaced with types interacting with polars like \Verb|PolarsTable| or \Verb|PolarsTableColumn|.
 - adapter pattern
 
-The Valuetype will have to be reinferred anytime a column is requested. %FIXME: getColumn() is called.
-\begin{listing}
-	\begin{minted}{typescript}
-override withColumn(column: PolarsTableColumn): PolarsTable {
-  const ndf = this.df.withColumn(column.series);
-  return new PolarsTable(ndf, this.valueTypeProvider);
-}
-	\end{minted}
-	\caption{An exemplary implementation in PolarsTable}
-	\label{lst:polarstable_impl_example}
-\end{listing}
+- "wrapper" functions:
+- writeIpc, writeIpc
+- withColumn, withColumnFromInternal
+- nRows, nColumns
+- clone
+- tostring
+
+- getTypes uses this.valueTypeProvider.formPolarsDType
+
+- generateInsertValuesStatement
+- use \Verb|SQLValueRepresentationVisitor| and valuetype to get the cell representation
+- if cell is not internalvaluerepresentation (can be any in polars) use \mintedinline{typescript}|'NULL'|
+- join cells using template literal / template string and \mintedinline{typescript}|Array<string>.join|
+- join rows using and \mintedinline{typescript}|Array<string>.join|
+- use template literal for final sql statement
+
+- generateCreateTableStatement
+- uses SQLColumnTypeVisitor to create convert ValueTypes to SQL Types e.g. 'decimal' becomes 'real'.
+
+- hasColumn tries to get the column: no exception -> true, catch -> false
+
+- columns: use this.valueTypProvider to recreate the valuetype
+
+- getColumn:
+- try/catch
+- this.valueTypeProvider
+
+- getRow:
+- polars.DataFrame.row(id) returns any[] -> have to typeguard row, otherwise throw error
+
+- acceptVisitor calls visitor.visitPolarsTable(this)
+
+- isPolars returns True isTypescript returns False
+
+\subsubsection{TsTable}
+- attributes:
+- number of rows: ensure rectangular shape
+- _columns: map<String, TsTableColumn>: underscore to not intrefere with columns getter
+
+- withColumn
+- replaces addColumn: copy instead of mut
+- clones prevoius table and sets the "name" entry to ncol (pseoudocode maybe?)
+
+- columns returns the new TsTableColumn
+
+- clone:
+- create new map
+- clone individual columns, wrap map in new table
+
 
 \section{TableColumn}
+\subsection{polarsTableColumn}
+- wraps polars.Series
+- constructor
+- if given a valuetype its just set, if given a valuetypeprovider that ones fromPolarsDType function is used to do this
+
+- wrappers:
+- valueType, name, length, clone, series
+
+- nth has to guard the type because polars.series.getIndex() returns any
+- null if field is 'NULL'
+- throw error on unexpected type
+
+
+\subsubsection{TsTableColumn}
+- properties are prefixed with underscored to allow for the getters to have the appropriate names.
+- name is now a property (wan't in the old TableColumn interface)
+- has a generic type T compared to PolarsTableColumn:
+- pl.Series doesn't offer a generic type parameter, so PolarsTableColumn doesn't offer one either.
+- T is the valuetype contained in the column
+- wraps an array
+
+- wrapper functions:
+- valueType, name, length, nth (wraps at),
+- \Verb|structuredClone| function loses type information (citation: programm crashes):
+- hacky solution:
+- stringify everything to json
+- reparse it
+- reassert types using typeguards
+- don't do this to this.valueType. it must remain the same object to successfully check for equality
+
+- drop uses splice
+- push checks \_valueType.isInternalValueRepresentation before pushing
 
 - The constructor accepts both valuetype and valuetypeProvider
 - if it's a valuetypeprovider the valuetype is inferred from the series dtype with the \Verb{fromPolarsDType} method.
@@ -68,15 +138,143 @@ override withColumn(column: PolarsTableColumn): PolarsTable {
 
 \section{new executors}
 - we insert if statements into getExecutorForBlockype to change what BlockExecutorClass type is being searched for.
-
-
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		!pragma useVerticalIf on
+		start
+		if (blockTypeName === 'TableInterpreter') then (true)
+		if (usePolars) then (true)
+		:blockTypeName = 'PolarsTableInterpreter';
+		else (false)
+		:blockTypeName = 'TsTableInterpreter';
+		endif
+		elseif (blockTypeName === 'TableTransformer') then (true)
+		if (usePolars) then (true)
+		:blockTypeName = 'PolarsTableTransformer';
+		else (false)
+		:blockTypeName = 'TsTableTransformer';
+		endif
+		elseif (blockTypeName === 'SQLiteLoader') then (true)
+		if (useRusqlite) then (true)
+		:blockTypeName = 'RustTableTransformer';
+		elseif (usePolars) then (true)
+		:blockTypeName = 'PolarsTableTransformer';
+		else (false)
+		:blockTypeName = 'TsTableTransformer';
+		endif
+		endif
+		stop
+		@enduml
+	\end{plantuml}
+	\caption{How we pick the right blocktype name}\label{fig:uml:getExecutorForBlockType}
+\end{figure}
 
 
 \subsection{TableInterpreter} %TODO
-static methods
+- much of the functionality is implemented in static methods in the abstract class,
+- both subclasses can use this functionality
+- other classes that can import TableInterpreter can use it too.
 
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		interface ColumnDefinitionEntry {
+				sheetColumnIndex: number
+				columnName: string
+				valueType: ValueType
+				astNote: ValuetypeAssignment
+			}
+		@enduml
+	\end{plantuml}
+	\caption{\Verb|ColumnDefinitionEntry|}\label{fig:uml:ColumnDefinitionEntry}
+\end{figure}
+
+
+- deriveColumnDefinitionEntriesWithoutHeader
+- uses the definitions from the schema property of the TableInterpreter block
+- return ColumnDefinitionEntry containing columnname and valueType
+
+- deriveColumnDefinitionEntriesFromHeader
+- use names in the header row to find column index of the header
+- if name isn't in the header row the column is ignored
+- otherwise same behavior as deriveColumnDefinitionEntriesWithoutHeader
+
+- doExecute
+- \begin{listing}
+	\begin{minted}{python}
+function doExecute(inputSheet, context):
+	header = context.get("columns")
+	columnDefinitions = context.get("columns")
+	if header then
+		columnEntries = deriveColumnDefinitionEntriesFromHeader(columnDefinitions, inputSheet.header_row)
+	else
+		columnEntries = deriveColumnDefinitionEntriesWithoutHeader(columnDefinitions)
+	endif
+		return constructAndValidateTable(
+			inputSheet,
+			header,
+			columnEntries,
+			context
+		)
+	\end{minted}
+	\caption{}
+	\label{lst:tableInterpreter:doExecute}
+\end{listing}
+- subclasses only override the abstract constructAndValidateTable.
+
+- parseAndValidateValue
+- parses with preexisting parseValueToInternalRepresenation
+- validates with preexisting isValidValueRepresentation
+
+- export function toPolarsDataTypeWithLogs
+- reusable by other block executors
+- wrapper around ValueType.toPolarsDataType
+- adds logging using Logger class unavailable for toPolarsDataType
+- default is pl.Utf8 (string)
+
+\subsection{PolarsTableInterpreterExecutor}
+- type is 'PolarsTableInterpreter'
+
+- constructAndValidateTable
+- if header skip first sheet row
+- for each columndefinitionentry call constructseries with a d2 array of all cells (row oriented)
+- have list of series
+- create df
+- create PolarsTable
+- hand valueTypeProvider to PolarsTable (see above)
+
+- constructSeries
+- recieve 2d array of rows + columndefinitionentry
+- get polars dtype from toPolarsDataTypeWithLogs
+\begin{listing}
+	\begin{minted}{python}
+function constructSeries(rows, columnEntry, context):
+	dtype = toPolarsTypeWithLogs(columnEntry.valueType, context.logger)
+	columnData = empty list
+	for row in rows do
+		cell = row[columnEntry.sheetColumnIndex]
+		valueType = columnEntry.valueType
+		cell = parseAndValidateValue(cell, valueType, context)
+		columnData.push(cell)
+	done
+	return polars.Series(columnEntry.ColumnName, columnData, dtype)
+	\end{minted}
+	\caption{}
+	\label{lst:polarsTableInterpreter:constructSeries}
+\end{listing}
+
+\subsection{TsTableInterpreter}
+- many of the TableInterpreter functions used to be here
+- no functionality added or changed
 
 \section{FileToTableIntepreter}
+- didn't exist prior
+- only has a polars implementation
+
+- colsAndSchema
+- satic so it can be reused
+- returns a list of column names and a map from colame to polarstype
 
 \section{LocalFileToTableIntepreter}
 - no circular dependencies rule prevents code sharing with LocalFileExtractor -> copy logic.

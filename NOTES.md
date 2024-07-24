@@ -72,7 +72,6 @@ ETL: fachbegriff extract, transform, load.
     - zahlen wenn available
     - schon gut
 
-HERE
 
 30. How to make smaller class diagrams (leave out function parameters)
     - can leave out
@@ -135,3 +134,8 @@ end
     - how many repeats?
         - 10
 42. UML diagramme sind brillen
+
+
+HERE
+
+43. visitor pattern erklären?
