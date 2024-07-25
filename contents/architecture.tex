@@ -569,9 +569,9 @@ The polars backend cannot do this, because the polars has its own valuetype syst
 		abstract class TableInterpeter {
 		doExecute(inputSheet: Sheet, context: R.ExecutionContext): Promise<R.Result<R.Table>>
 		# {abstract} constructAndValidateTable(sheet: Sheet, header: boolean, columnEntries: ColumnDefinitionEntry[], context: ExecutionContext): Table
-		#deriveColumnDefinitionEntriesWithoutHeader(columnDefinitions: ValuetypeAssignment[], context: ExecutionContext): ColumnDefinitionEntry[]
-		#deriveColumnDefinitionEntriesFromHeader(columnDefinitions: ValuetypeAssignment[], headerRow: string[], context: ExecutionContext): ColumnDefinitionEntry[]
-		#parseAndValidateValue(value: string, valueType: ValueType, context: ExecutionContext): InternalValueRepresentation | undefined
+		# {static} deriveColumnDefinitionEntriesWithoutHeader(columnDefinitions: ValuetypeAssignment[], context: ExecutionContext): ColumnDefinitionEntry[]
+		# {static} deriveColumnDefinitionEntriesFromHeader(columnDefinitions: ValuetypeAssignment[], headerRow: string[], context: ExecutionContext): ColumnDefinitionEntry[]
+		# parseAndValidateValue(value: string, valueType: ValueType, context: ExecutionContext): InternalValueRepresentation | undefined
 		}
 		@enduml
 	\end{plantuml}
@@ -697,7 +697,9 @@ LocalFileExtrator, HTTPExtractor
 - doesn't override the blanket implementation provided by \Verb|SQLiteLoaderExecutor|.
 
 \subsubsection{RustSQLiteLoaderExecutor}
-- IDK about architecture here
+- uses external library
+- library offers one function \Verb|loadSQLite|. that can load an arrowIPC file into a sqlite database. (for why see implementation chapter)
+- this function also has parameters to replicate the behavoiur of PolarsSQLiteExecutor (like droptable)
 
 \begin{figure}
 	\begin{plantuml}

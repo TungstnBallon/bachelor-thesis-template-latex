@@ -7,6 +7,9 @@
     - Include
         - `BlockExecutorClass` defines the Blocktype this executor is for
         - `ConstructorClass` guarantees a constructor
+- Implementation:
+    - polarsExpessions:
+        - mention that pl.col and pl.lit are the most used ones and what they do
 - Evaluation:
     - Limitations:
         - could not integrate bach-napi-test into the monorepo
@@ -22,9 +25,6 @@
     - utilize jayvees builtin time evaluation
     - calculate
         - time added per added tabletransformer
-- Appendix:
-    - sbom
-         - table with library name, version, used in (interpreter, rust extension of evaluation tool), source repo
 
 
 - TODO

@@ -275,39 +275,124 @@ function constructSeries(rows, columnEntry, context):
 - colsAndSchema
 - satic so it can be reused
 - returns a list of column names and a map from colame to polarstype
+- reuse code from tableInterpreter
+\begin{listing}
+	\begin{minted}{python}
+function colsAndSchema(context)
+	valueTypeAssignments = context.get('columns')
+	columnDefinitionEntries = TableInterpreter.deriveColumnDefnitionEntriesWithoutHeader(valueTypeAssignments, context)
+	schema = {}
+	columnNames = []
+	for columnDefinition in columnDefinitionEntries do
+		// imported from table-interpreter-executor.ts
+		schema[columnDefinition.columnName] = toPolarsDataTypeWithLogs(columnDefinition.valueType, context.logger)
+		columnNames.push(columnDefinition.columnName)
+	done
+
+	return {
+		columnNames: columnNames,
+		schema: schema,
+	}
+end
+	\end{minted}
+\end{listing}
+
+- csvOptions
+- returns a ReadCSVOptions object, that can be passed to polars' readCSV function.
+- uses colsAndSchema
+- other properties are just taken from context: header, delimiter, enclosing
+- encoding is always utf8, throws error if not
+
+- doExecute
+- create ReadCSVOptions
+- call constructAndValidateTable (echo structure of tableInterpreter)
+
+- constructAndValidateTable
+- get dataFrame from calling \Verb|polars.readCSV(content, options)|
+- call PolarsTable constructor with dataframe and valuetypeprovider
 
 \section{LocalFileToTableIntepreter}
-- no circular dependencies rule prevents code sharing with LocalFileExtractor -> copy logic.
+- "no circular dependencies" rule prevents code sharing with LocalFileExtractor -> copy logic.
+- by which I mean 1. get 'filePath' 2. check filePath does not include '..' (path traversal is restricted)
 - use the static method csvOptions of PolarsTableInterpreterExecutor to reuse the code there and get csv parser options
-- leave all of the actual filereading to polars
+- leave all of the actual filereading to polars.readCSV
 
 
 \section{TableTransformer}
 - again strategy.
-- steps:
-1. check input coluns exist
-2. create transform executor
-3. check input columns match the transform input types.
-3.1 compare the nth input column type to the nth transform input type and check with \Verb|isConvertibleTo|
-3.1 return variableToColumnMap (varname -> columnexpr)
-%maybee TODO: listing
-4. execute the transform with the variabletocolumnmap -> returns polars expr that will perform the transform if applied to a table.
-- wierd naming is to remain similar to the typescript implementation
-5. extend the expression to include a renaming of the new column to \Verb|outputColumn|
-6. apply the expression to the input table and return the resulting table
+- TsTableTransformer contains old behavoir
+- move some helper methods logColumnOverwreiteStatus, checkInputColumnsExists to abstract class.
 
-\subsection{Transforms}
+\subsection{PolarsTableTransformer}
+- doExecute
+- check input columns exist
+- create transform executor (see relevant subsection)
+- use checkInputColumnsMatchTransformInputTypes to get a map from input name to column expression (see section polars expression?)
+- call executeTransform with this map -> returns pl.Expr
+- extend expr to rename the resulting column to the specified name
+- use Expr to add a column to the input table, or overwrite an existing one.
+
+
+- checkInputColumnsMatchTransformInputTypes
+\begin{listing}
+	\begin{minted}{python}
+function checkInputColumnsMatchTransformTypes(inputColumnNames, inputTable, transformInputDetailsList)
+	is = range from 0 to inputColumnNames.length
+	variableToColumnMap = {}
+	for i in is do
+		inputColumName = inputColumnNames[i]
+		inputColumn = inputTable.getColumn(inputColumnName)
+		inputDetails = transformInputDetailsList[i]
+
+		if (
+			!inputColumn.valueType.isConvertibleTo(inputDetails.valueType)
+		) {
+			return Error
+		}
+		variableName = inputDetails.name
+		variableToColumnMap.set(variableName, pl.col(inputColumn.name))
+	done
+	return variableToColumnMap
+	\end{minted}
+\end{listing}
+- pl.col selects the column with the name from a dataframe.
+
+
+\section{Transforms}
 - again strategy.
 - previos tranform execution
 1. pretend new table with input columns
-2. execute expression for each row oth that (pretend) table
+2. execute expression for each row of that (pretend) table
 3. add resulting column (transforms only allow for one result): if outputname is the same as another column that one gets replaced
+- polars expressions are the new way
 
-\subsubsection{Expressions}
+- addvariables to context
+- context contains a map of references and their values
+- add the variableToColumn map is added to context map. operator evaluator will be able to access these mappings
+
+- doExecuteTransform
+\begin{listing}
+	\begin{minted}{lua}
+function doExecuteTransform(variableToColumnName, context)
+	inputDetails = this.getInputDetails()
+	outputDetails = this.getOutputDetails()
+	addInputColumnsToContext(inputDetails, variableToColumnName, context.evaluationContext)
+
+	try {
+		expr = polarsEvaluateExpression(this.getOutputAssignment().expression,
+		context.evaluationContext)
+	} catch (e) {
+		log error
+		return
+	}
+	return expr.cast(outputDetails.valueType.toPolarsDataType())
+end
+	\end{minted}
+\end{listing}
+- the .cast call casts all values in the resulting column to the desired type (if possible)
+
+\subsection{Expressions}
 - polarsEvaluateExpression:
-- 1. free variable -> retrieve from context, if InternalValueRepresentation wrap in pl.lit and return.
-- 2. literal -> wrap in pl.lit and return
-- 3. other -> get evaluator from context / DefaultOperatorRegistry, evaluateExpression, return resulting pl.Expr or undefined
 \begin{figure}
 	\begin{plantuml}
 		@startuml
@@ -347,72 +432,158 @@ function constructSeries(rows, columnEntry, context):
 \end{figure}
 
 
+\subsubsection{OperatorEvaluators}
+\begin{listing}
+	\begin{minted}{typescript}
+class MultiplicationOperatorEvaluator extends DefaultBinaryOperatorEvaluator<
+  number,
+  number,
+  number
+> {
+  constructor() {
+    super('*', NUMBER_TYPEGUARD, NUMBER_TYPEGUARD);
+  }
+  override doEvaluate(leftValue: number, rightValue: number): number {
+    return leftValue * rightValue;
+  }
+  override polarsDoEvaluate(
+    left: PolarsInternal,
+    right: PolarsInternal,
+  ): PolarsInternal {
+    return left.mul(right);
+  }
+}
+	\end{minted}
+
+\end{listing}
 
 
-% TODO:
-% @startuml
-% ->BlockExecutor: execute()
-% BlockExecutor -> AbstractBlockExecutor: execute()
-% AbstractBlockExecutor -> PolarsTableTransformer: doExecute()
-% PolarsTableTransformer -> PolarsTransformExecutor: new PolarsTransformExecutor()
-% PolarsTransformExecutor -> PolarsTableTransformer: PolarsTableTransformer
-% PolarsTableTransformer -> TransformExecutor: executeTransform()
-% TransformExecutor -> PolarsTransformExecutor: doExecuteTransform()
-% PolarsTransformExecutor -> : polarsEvaluateExpression()
-% -> PolarsTransformExecutor: polars.polarsExpr
-% PolarsTransformExecutor -> PolarsTableTr: idk
-% @enduml
+
+
 
 - Operator type calculators were not changed
 - they dont reflect the actual types of the data during runtime anymore.
 - they still prevent the user from doing illegal stuff.
 
 
+\subsubsection{example}
+- imagune a jayvee pipeline containing this tabletransformer \
+\begin{minted}{typescript}
+	transform tr {
+		from x oftype integer;
+		from y oftype integer;
+		to z oftype decimal;
+		z: x * 2 + y;
+	}
+	block Bl oftype TableTransformer {
+		inputColumns: ['a', 'b'];
+		outputColumn: 'c';
+		uses: tr;
+	}
+\end{minted}
+- how he inputTable to Bl is transformed is depicted in this diagram
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		autoactivate on
+		->":PolarsTableTransformerExecutor": execute(inputTable, transform)
+		":PolarsTableTransformerExecutor" -> ":PolarsTransformExecutor": new PolarsTransformExecutor(transform)
+		return PolarsTransformExecutor
+		":PolarsTableTransformerExecutor" -> ":PolarsTransformExecutor": executeTransform({x: pl.col('a'), y:pl.col('b')})
+		":PolarsTransformExecutor" -> ":EvaluationContext": setValueForReference('x', pl.col('a'))
+		return
+		":PolarsTransformExecutor" -> ":EvaluationContext": setValueForReference('y', pl.col('b'))
+		return
+		":PolarsTransformExecutor" -> ":AdditionOperatorEvaluator": x * 2 + y
+		":AdditionOperatorEvaluator" -> ":MultiplicationOperatorEvaluator": x * 2
+		":MultiplicationOperatorEvaluator" -> ":EvaluationContext": x
+		return pl.col('a')
+		":MultiplicationOperatorEvaluator" ->]: evaluateValueLiteral(2)
+		return pl.lit(2)
+		return pl.col('a').mul(pl.lit(2))
+		":AdditionOperatorEvaluator" -> ":EvaluationContext": y
+		return pl.col('b')
+		return pl.col('a').mul(pl.lit(2)).add(pl.col('b'))
+		return pl.col('a').mul(pl.lit(2)).add(pl.col('b')).cast(pl.f64)
+		return \n pl.col('a').mul(pl.lit(2)).add(pl.col('b')).cast(pl.f64).alias('c')
+		@enduml
+	\end{plantuml}
+	\caption{}
+	\label{fig:uml:epr:example}
+\end{figure}
+
+
 
 
 \section{SQLiteLoader}
-- generateDropTableStatement
-- generateCreateTableStatement
-- use sqlvisitor to get column definitions
-- generateInsertTableStatement
-- use `df.rows`
-- map over rows
-- zip values in row with their valuetype obtained -> use sqlvisitor to get sql formatted representation of the value
-- join all values into a string for each row
-- join all rows into a valid sql statement
-- return
-- add polars functionality with \Verb|PolarsSQLiteLoaderExecutor|
+- doExecute
+- retrieve file, table and dropTable properties from context
+- call executeLoad
+
+- executeLoad
+- general implementation for both Ts and Polars.
+- uses generateInsertTableStatement and generateCreateTableStatement from Table class, which have different implementations for polars and ts (see those sections)
+
 - \Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLLoader| don't override the default implementation
 
-\subsection{Rust stuff}
+\subsection{sqlite-loader-rust}
 - we want to evaluate the extensibility of the polars backend
 - create a extenal rust library with typescript interface via napi-package-template: \Verb|sqlite-loader-rust|
-- use the rust version of polars inside the rust library
-- napi functions cannot have dataframe as a parameter %TODO: why
-- export dataframe into an arrow ipc file on disk.
+- napi function cannot have dataframe as a parameter: type is too complex for napi
+- Solution: export dataframe into an arrow ipc file on disk. then
 - call \Verb|loadSqlite|
-- context (including the logger, is lost)
+- negative: context (including the logger, is lost)
 
 \subsubsection{Ecosystem overview}
 - rusqlite: no arrow support, but works well, can write
 - arrow\_adbc: rust implementation is not there yet, it only has a dummy driver (not sqlite or postgres), requires dynamic linking of c libraries,
-- connector\_arrow: built in rust, uses the arrow crate under the hood, supports many backends (postgres, duckdb, etc.), only sqlite implemented because prototype.
+- connector\_arrow: built in rust, uses the arrow crate under the hood, supports many backends (postgres, duckdb, etc.), only sqlite implemented because prototype. WE USE THIS
 
-- rust:
+\subsubsection{impl}
 - in case of unrecoverable error, use napi's errors to throw an error in the typescript code. include messages by library errors.
+- biggest reason for linecount and complexity is error handling
+
+- ipcReader
+- opens a file and wrape it in an arrow file reader
 - use arrow::FileReader to read the ipc file into a BatchRecord iterator, because tables can be comprised of multiple batchrecords
-- use rusqlite library to create a sqlite connection
-- pass connection to connector\_arrow,
-- use \Verb|SQLiteConnection|'s methods \Verb|table_drop| and \Verb|table_create| (get the schema from the first batch)
-- from connection, use \Verb|append| to prepare an appender for the table
-- append all batches
-- finish appender
 
+- pop_first_batch: remove the first batch read from the iterator
 
+- db_connection
+- create a connection to a sqlite database using rusqlite
+- wrap that connection with connector\_arrow's SQLiteConnection type
+- can now write arrow data to this connection
 
+- append: see listing
+\begin{listing}
+	\begin{minted}{lua}
+function append(appender, first_batch, remainder)
+	inserted_rows = 0
+	remainder.prepend(first_batch)
+	for batch in remainder do
+		appender.append(batch)
+		inserted_rows += batch.number_of_rows
+	end
+	return inserted_rows
+end
+	\end{minted}
+\end{listing}
 
+- load\_sqlite
+\begin{listing}
+	\begin{minted}{lua}
+function load_sqlite(ipc_path, table_name, sqlite_path, drop_table)
+	reader = ipc_reader()
+	conn = db_connection(sqlite_path)
 
+	if drop_table then
+		conn.table_drop(table_name)
+	endif
 
-
-
+	schema = reader.schema()
+	appender = conn.append(table_name)
+	inserted_rows = append(appender, reader)
+end
+	\end{minted}
+\end{listing}
 
