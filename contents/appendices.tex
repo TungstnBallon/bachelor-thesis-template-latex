@@ -80,6 +80,56 @@
 	\end{tabular}
 \end{table}
 
+\begin{table}[ht]
+	\caption{Average / Standard deviation for some transforms on 10 repetitions}
+	\label{tab:eval:some}
+	\begin{tabular}{|l|l|l|l|l|l|}
+		\hline
+		lines   & ts                 & pl                 & plob              & plrs               & plobrs            \\
+		\hline
+		56250   & 4495 ms / 88 ms    & 4825 ms / 124 ms   & 2804 ms / 97 ms   & 3144 ms / 128 ms   & 1106 ms / 108 ms  \\
+		112500  & 8283 ms / 187 ms   & 8952 ms / 243 ms   & 4756 ms / 175 ms  & 5479 ms / 198 ms   & 1305 ms / 143 ms  \\
+		225000  & 15346 ms / 563 ms  & 16881 ms / 165 ms  & 8544 ms / 106 ms  & 9894 ms / 111 ms   & 1789 ms / 286 ms  \\
+		450000  & 32467 ms / 1359 ms & 36874 ms / 2415 ms & 16524 ms / 164 ms & 21076 ms / 191 ms  & 2396 ms / 90 ms   \\
+		900000  & 60755 ms / 581 ms  & 67674 ms / 761 ms  & 33375 ms / 389 ms & 37910 ms / 465 ms  & 5722 ms / 1586 ms \\
+		1300000 & 95102 ms / 2985 ms & 99959 ms / 1243 ms & 49007 ms / 576 ms & 57910 ms / 2558 ms & 6252 ms / 1487 ms \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+	\caption{Average / Standard deviation for many transforms on 10 repetitions}
+	\label{tab:eval:many}
+	\begin{tabular}{|l|l|l|l|l|l|}
+		\hline
+		lines  & ts                 & pl                 & plob               & plrs               & plobrs            \\
+		\hline
+		56250  & 5722 ms / 206 ms   & 5421 ms / 158 ms   & 3064 ms / 46 ms    & 3545 ms / 103 ms   & 1178 ms / 22 ms   \\
+		112500 & 11097 ms / 450 ms  & 10348 ms / 401 ms  & 5248 ms / 84 ms    & 5997 ms / 134 ms   & 1383 ms / 36 ms   \\
+		225000 & 18750 ms / 155 ms  & 17914 ms / 889 ms  & 9470 ms / 87 ms    & 10051 ms / 195 ms  & 2365 ms / 255 ms  \\
+		450000 & 38264 ms / 992 ms  & 40054 ms / 3578 ms & 18147 ms / 537 ms  & 24406 ms / 712 ms  & 2627 ms / 111 ms  \\
+		900000 & 81900 ms / 1168 ms & 72515 ms / 2056 ms & 35656 ms / 2845 ms & 38963 ms / 1246 ms & 4518 ms / 1017 ms \\
+		\hline
+	\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+	\caption{The result of the execution time of ts divided by plobrs. Columns 1-3 are the amount of trnasoforms}
+	\label{tab:eval:ts_div_by_plobrs}
+	\begin{tabular}{|l|l|l|l|}
+		\hline
+		lines   & none  & some  & many  \\
+		\hline
+		56250   & 3,60  & 4,06  & 4,86  \\
+		112500  & 5,31  & 6,35  & 8,02  \\
+		225000  & 6,22  & 8,58  & 7,93  \\
+		450000  & 9,34  & 13,55 & 14,57 \\
+		900000  & 10,40 & 10,62 & 18,22 \\
+		1300000 & -     & 15,22 & -     \\
+		1800000 & 11,80 & -     & -     \\
+		\hline
+	\end{tabular}
+\end{table}
 
 
 
@@ -94,19 +144,21 @@
 	\begin{center}
 		\begin{tabular}{|l|l|l|l|}
 			\hline
-			name             & version & used in            & url                                               \\
+			name                             & version & used in            & url                                               \\
 			\hline
-			nodejs-polars    & 0.11.0  & jayvee             & \url{https://www.npmjs.com/package/nodejs-polars} \\
+			nodejs-polars                    & 0.11.0  & jayvee             & \url{https://www.npmjs.com/package/nodejs-polars} \\
 			\hline
-			arrow            & 51      & sqlite-loader-rust & \url{https://crates.io/crates/arrow}              \\
-			connector\_arrow & 0.4.2   & sqlite-loader-rust & \url{https://crates.io/crates/connector_arrow}    \\
-			napi             & 2       & sqlite-loader-rust & \url{https://crates.io/crates/napi}               \\
-			napi-derive      & 2       & sqlite-loader-rust & \url{https://crates.io/crates/napi-derive}        \\
-			napi-build       & 2       & sqlite-loader-rust & \url{https://crates.io/crates/napi-build}         \\
-			rusqlite         & 0.31.0  & sqlite-loader-rust & \url{https://crates.io/crates/rusqlite}           \\
+			arrow                            & 51      & sqlite-loader-rust & \url{https://crates.io/crates/arrow}              \\
+			connector\_arrow                 & 0.4.2   & sqlite-loader-rust & \url{https://crates.io/crates/connector_arrow}    \\
+			napi                             & 2       & sqlite-loader-rust & \url{https://crates.io/crates/napi}               \\
+			napi-derive                      & 2       & sqlite-loader-rust & \url{https://crates.io/crates/napi-derive}        \\
+			napi-build                       & 2       & sqlite-loader-rust & \url{https://crates.io/crates/napi-build}         \\
+			rusqlite                         & 0.31.0  & sqlite-loader-rust & \url{https://crates.io/crates/rusqlite}           \\
 			\hline
-			clap             & 4.5.7   & evaluation tool    & \url{https://crates.io/crates/clap}               \\
-			itertools        & 0.13.0  & evaluation tool    & \url{https://crates.io/crates/itertools}          \\
+			clap                             & 4.5.7   & evaluation tool    & \url{https://crates.io/crates/clap}               \\
+			itertools                        & 0.13.0  & evaluation tool    & \url{https://crates.io/crates/itertools}          \\
+			head                             & 9.5     & evaluation tool    & \url{https://www.gnu.org/software/coreutils/}     \\
+			sqldiff (part of sqlite package) & 3.46.0  & evaluation tool    & \url{https://sqlite.org/sqldiff.html}             \\
 			\hline
 		\end{tabular}
 	\end{center}

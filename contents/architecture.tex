@@ -18,30 +18,28 @@ we shall focus on how to efficiently represent tables in memory.
 Since Jayvee's \Verb|TableTransformer| work on columns and not rows, the advantages of the columnar format outlined in %TODO: ref
 lend themselves well to jayvee.
 Jayvee needs manipulate the data, so data needs to be stored in memory not on disk.
-This leads to the requirement that \emph{tables are represented with a columnar, in-memory data layout}.
+1. This leads to the requirement that \emph{tables are represented with a columnar, in-memory data layout}.
 
 The goal of this thesis is not to create a fully mature implementation of this new format, but rather to prototype an integration and evaluate the results of this migration.
 However to accurately evaluate the changes, the core functionality of jayvee (parse data into table, apply function to columns of that table, export table) needs to be preserved.
-\emph{Core functionality is maintained}.
+2. \emph{Core functionality is maintained}.
 This includes that tables can still be created in the same ways (\Verb|TableIntepreter|) and exported with the same blocks (\Verb|SQLiteLoader|) (\Verb|PostresLoader|).
-\emph{Arithmetic operations work in transforms}.
+3. \emph{Arithmetic operations work in transforms}.
 
-Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typesript.
+4. Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typesript.
 This ensures usability and increases maintainability by for other developers.
 
-To make evaluation easier the new implementation must be choosable with a commandline flag \emph{at runtime}.
+5. To make evaluation easier the new implementation must be choosable with a commandline flag \emph{at runtime}.
 
 \subsection{Non Functional Requirements}
 \label{subsection:NonFunctionalRequirements}
 
-- as little as possible interferance with the typescript stuff
-
 The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
-Therefore, the \emph{time needed to execute Jayvee pipelines should decrease} or \emph{the capabilities of the interpreter must be extended}.
+2. Therefore, the \emph{time needed to execute Jayvee pipelines should decrease} or \emph{the capabilities of the interpreter must be extended}.
 
-The source code is readable for non-rust developers.
-Informative log messages are generated.
-The source code adheres to the project's code style.
+3. The source code is readable for non-rust developers.
+4. Informative log messages are generated.
+5. The source code adheres to the project's code style.
 
 \section{Interpreter Overview}
 \label{section:prev}

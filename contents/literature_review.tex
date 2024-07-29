@@ -2,10 +2,35 @@
 \label{chapter:Literature}
 
 There are some projects working with arrow directly
+
 \autocite{Ahmad2020}
+- process genome data, heavily dependent on I/O
+- create own memory format based on apache arrow
+- applications can communicate and share data in-memory
+- better system resource utilization
+- high cache locality -> less memory access
+- columnar representation outperforms both ramDisk and unixPipes
+- overall execution time speedup of 4.85x for WGS (whole genome sequencing)
+
 \autocite{Peltenburg2021}
+- cpus are at their performance limit for big data -> fpga accellerators
+- develop open source fletcher framework
+- software
+- complex runtime systems
+- hardware unfriendly in memory layouts
+- (de)serilization overhead
+- hardware
+- lack of platform-agnostic open-source tooling
+- high design effort for data sructure specific interfaces and infrastructure
+- present arrow-specific hardware components
+
+
 \autocite{Grossman2022}.
-%TODO: expand
+- create SHMEM-ML: domain specific library for distributed array computations and machine learning model training
+- built on top of apache arrow
+- zero copy data sharing with other libraries
+- target full machine workflow
+-  38 speedup in distributed training performance relative to the industry standard Horovod framework without a regression in model metrics.
 
 Tables are the central way Jayvee represent's data.
 The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
@@ -42,6 +67,31 @@ Arrays may have different types of physical buffers to store data.
 This layout provides higher spatial locality when iterating over column contiguous data entries for better CPU cache performance.
 SIMD (Single instruction, multiple data) vector operations can also benefit from such a layout as vector elements are already aligned properly in memory." \autocite{Ahmad2020}
 
+- language agnostic in memory format for table like data.
+- implementations in many languages exist. %TODO list languages
+- record batches (tables) are made up of arrays (columns).
+- arrays have:
+- data,type
+- sequence of buffers (conrtinuous memory region)
+- lenght
+- null count
+- the schema defines fields (columns), each with a name and a datatype
+- advantages:
+- makes better use of the cache for column based operations
+- cite plaintext above
+- created in 2016
+
+- more types than javascript -> allows more granular control over memory
+- well defined physical layout for each type
+- number:
+- unsigned integer with fixed width
+- signed ""
+- decimal(width, scale percision)
+- floating point with fixed prercision
+- array:
+- fixed-size list
+- list (32-bit offset), largelist (64bit offset)
+
 \begin{figure}
 	\includegraphics[width=\textwidth]{resources/arrow_tab}
 	\caption{Key Concepts of an Arrow Table \autocite{Dremio}}
@@ -58,14 +108,17 @@ At the time of writing there are 48 projects powered by Apache Arrow \autocite{a
 One of those is Polars.
 
 
-\section{Napi}
-- napi allows us to call rust library functions from javascript
-- we use the #[napi] macro to declare a rust function callable by typescript
-- napi then compiles the rust library to .node file, a binary node addon file.
+\section{Napi-rs}
+- napi-rs allows us to compile a rust library to a .node file
+- nodejs can load and use this .node file
 - the types that can be passed to this function is restricted by napi.rs capabilites
 
 
 \section{Polars}
 \label{section:polars}
+
+- implemnents the apache arrow format,
+- adds abstractions on top like dataframes
+- promises 50x the performance
 Polars not only implements the apache arrow format, but adds convenient abstractions like dataframes and series and promises a drastic performance increase.
 
