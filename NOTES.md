@@ -138,5 +138,7 @@ end
 
 HERE
 
-43. visitor pattern erklären?
 44. what to do with speed increase numbers
+
+TODO:
+no-130000

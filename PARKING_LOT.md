@@ -1,5 +1,3 @@
-- Literature Review
-    - napi
 - Architecture:
     - Operator type calculators were not changed
         - they dont reflect the actual types of the data during runtime anymore.

@@ -236,8 +236,8 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
-				title = {no transforms}
-				axis lines = left,
+				title = {no transforms},
+				% axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
 				% xtick={0,56250,112500,225000,450000,900000,1800000},
@@ -248,34 +248,34 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 				mark=triangle*,
 			]
 			coordinates {
-					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1800000,96513)
+					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
 				};
 			\addplot[
 				color=blue,
 				mark=triangle*,
 			]
 			coordinates {
-					(56250,4581)(112500,8323)(225000,16118)(450000,34125)(900000,63728)(1800000,139939)
+					(56250,4581)(112500,8323)(225000,16118)(450000,34125)(900000,63728)(1300000,93559)(1800000,139939)
 				};
 			\addplot[
 				color=brown,
 				mark=triangle*,
 			]
 			coordinates {
-					(56250,2531)(112500,4231)(225000,7739)(450000,14976)(900000,30211)(1800000,64660)
+					(56250,2531)(112500,4231)(225000,7739)(450000,14976)(900000,30211)(1300000,42888)(1800000,64660)
 				};
 			\addplot[
 				color=green,
 				mark=triangle*,
 			]
 			coordinates {
-					(56250,3102)(112500,5390)(225000,10126)(450000,21270)(900000,37705)(1800000,94274)
+					(56250,3102)(112500,5390)(225000,10126)(450000,21270)(900000,37705)(1300000,54562)(1800000,94274)
 				};
 			\addplot[
 				mark=triangle*,
 			]
 			coordinates {
-					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1800000,8184)
+					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
 				};
 
 			\legend{ts,pl,plob,plrs,plobrs}
@@ -287,8 +287,8 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
-				title = {some transforms}
-				axis lines = left,
+				title = {some transforms},
+				% axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
 				% xtick={0,56250,112500,225000,450000,900000,1800000},
@@ -326,7 +326,7 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 				mark=*,
 			]
 			coordinates {
-					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,5722)(1300000,6252)
+					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
 				};
 
 			\legend{ts,pl,plob,plrs,plobrs}
@@ -338,8 +338,8 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
-				title = {many transforms}
-				axis lines = left,
+				title = {many transforms},
+				% axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
 				% xtick={0,56250,112500,225000,450000,900000,1800000},
@@ -393,8 +393,8 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
-				title = {overlaid}
-				axis lines = left,
+				title = {overlaid},
+				% axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
 				% xtick={0,56250,112500,225000,450000,900000,1800000},
@@ -405,7 +405,7 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 				mark=triangle*,
 			]
 			coordinates {
-					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1800000,96513)
+					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
 				};
 			\addlegendentry{ts-no}
 			\addplot[
@@ -428,14 +428,14 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 				mark=triangle*,
 			]
 			coordinates {
-					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1800000,8184)
+					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
 				};
 			\addlegendentry{plobrs-no}
 			\addplot[
 				mark=*,
 			]
 			coordinates {
-					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,5722)(1300000,6252)
+					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
 				};
 			\addlegendentry{plobrs-so}
 			\addplot[
@@ -453,8 +453,8 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
-				title = {overlaid}
-				axis lines = left,
+				title = {overlaid},
+				% axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
 				% xtick={0,56250,112500,225000,450000,900000,1800000},
@@ -465,7 +465,7 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 				mark=triangle*,
 			]
 			coordinates {
-					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1800000,8184)
+					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
 				};
 			\addlegendentry{plobrs-no}
 			\addplot[
@@ -473,7 +473,7 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 				mark=*,
 			]
 			coordinates {
-					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,5722)(1300000,6252)
+					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
 				};
 			\addlegendentry{plobrs-so}
 			\addplot[
@@ -515,6 +515,45 @@ def run_config(interpreter_dir, linecount, transforms, backend):
 - see table
 - the more lines, the bigger the ingrease for plobrs,
 - the more transforms, the bigger the advantage for plobrs
+
+\begin{figure}
+	\begin{tikzpicture}
+		\begin{axis}[
+				title = {speedup},
+				% axis lines = left,
+				xlabel = {lines},
+				ylabel = {ts / plobrs},
+				legend pos=south east,
+			]
+			\addplot[
+				color = red,
+				mark=triangle*,
+			]
+			coordinates {
+					(56250,3.60)(112500,5.31)(225000,6.22)(450000,9.34)(900000,10.40)(1300000,11.35)(1800000,11.80)
+				};
+			\addlegendentry{no}
+			\addplot[
+				color = blue,
+				mark=*,
+			]
+			coordinates {
+					(56250,4.06)(112500,6.35)(225000,8.58)(450000,13.55)(900000,14.06)(1300000,15.22)
+				};
+			\addlegendentry{some}
+			\addplot[
+				mark=square*,
+			]
+			coordinates {
+					(56250,4.86)(112500,8.02)(225000,7.93)(450000,14.57)(900000,18.22)
+				};
+			\addlegendentry{many}
+		\end{axis}
+	\end{tikzpicture}
+	\caption{speedup factors}\label{fig:plot:factor}
+\end{figure}
+
+
 
 
 

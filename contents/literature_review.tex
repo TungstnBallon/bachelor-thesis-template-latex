@@ -4,56 +4,89 @@
 There are some projects working with arrow directly
 
 \autocite{Ahmad2020}
-- process genome data, heavily dependent on I/O
-- create own memory format based on apache arrow
-- applications can communicate and share data in-memory
-- better system resource utilization
-- high cache locality -> less memory access
-- columnar representation outperforms both ramDisk and unixPipes
-- overall execution time speedup of 4.85x for WGS (whole genome sequencing)
+created their own memory format based on apache arrow to process genome data.
+They found that arrow improved the use of the available hardware, and led to fewer cache misses.
+Arrow performed better than both ramDisk and unix pipes.
+The overall execution time was 4.85 times faster with arrow.
+
+% - process genome data, heavily dependent on I/O
+% - create own memory format based on apache arrow
+% - applications can communicate and share data in-memory
+% - better system resource utilization
+% - high cache locality -> less memory access
+% - columnar representation outperforms both ramDisk and unixPipes
+% - overall execution time speedup of 4.85x for WGS (whole genome sequencing)
 
 \autocite{Peltenburg2021}
-- cpus are at their performance limit for big data -> fpga accellerators
-- develop open source fletcher framework
-- software
-- complex runtime systems
-- hardware unfriendly in memory layouts
-- (de)serilization overhead
-- hardware
-- lack of platform-agnostic open-source tooling
-- high design effort for data sructure specific interfaces and infrastructure
-- present arrow-specific hardware components
+developed \emph{Fletchgen} which can generate hardware interfaces designed for arrow workloads.
+
+% - cpus are at their performance limit for big data -> fpga accellerators
+% - develop open source fletcher framework
+% - software
+% - complex runtime systems
+% - hardware unfriendly in memory layouts
+% - (de)serilization overhead
+% - hardware
+% - lack of platform-agnostic open-source tooling
+% - high design effort for data sructure specific interfaces and infrastructure
+% - present arrow-specific hardware components
 
 
-\autocite{Grossman2022}.
-- create SHMEM-ML: domain specific library for distributed array computations and machine learning model training
-- built on top of apache arrow
-- zero copy data sharing with other libraries
-- target full machine workflow
--  38 speedup in distributed training performance relative to the industry standard Horovod framework without a regression in model metrics.
+\autocite{Grossman2022}
+used apache arrow to build \emph{SHMEM-ML}, a machine lerning library.
+Arrow enabled "zero copy data sharing" with other libraries.
+They were able to speed up model training by a factor of 38, compared to the industry average.
 
-Tables are the central way Jayvee represent's data.
-The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
-Hence % TODO: ?
-we shall focus on how to efficiently represent tables in memory.
+% - create SHMEM-ML: domain specific library for distributed array computations and machine learning model training
+% - built on top of apache arrow
+% - zero copy data sharing with other libraries
+% - target full machine workflow
+% -  38 speedup in distributed training performance relative to the industry standard Horovod framework without a regression in model metrics.
 
-\section{Columnar vs. Rows}
+% Tables are the central way Jayvee represent's data.
+% The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
+% Hence % TODO: ?
+% we shall focus on how to efficiently represent tables in memory.
+
+\section{Tabular data memory layout}
 \label{section:column_vs_row}
-How Jayvee lays out data internaly is a crucial factor in metrics like execution speed and memory efficency.
-Many formats for this exist, but all of them are either row or column oriented, of which columnar formats are better suited for read access and analytical operations that operate on columns. \autocite{Floratou2019}
-See \ref{fig:row_v_col}.
-\begin{figure}
-	\begin{center}
-		\includegraphics[width=0.95\textwidth]{resources/columnar}
-	\end{center}
-	\caption{\textbf{Top:} An example table \textbf{Left:} The table in row oriented memory \textbf{Right:} The table in columnar memory}
-	\label{fig:row_v_col}
-\end{figure}
+When working with tabular data, there exists the problem of projecting the two-dimensional data onto a linear layout, either on disk, or in memory.
+The first approach is to save the values of each row one after another. This is referred to as \emph{row oriented} or \emph{row-storage}.
+The other approach is to save the values of each column one after another. This is known as \emph{columnar} or \emph{column-storage}.
+See Figure~\ref{fig:row_v_col} for a visual comparison.
+\autocite{Floratou2019}
+
+
+Since 2013 columnar formats arre
+- row storage is the traditional way
+- columnar storage was first developed for databases (monetdb)
+https://en.wikipedia.org/wiki/MonetDB#cite_note-6
+- 2013: columnar widely accepted and implemented in the db world
+\autocite{Abadi2013}
+
+- advantages:
+- better compression (column specific)
+- less memory usage (only needed stuff is read)
+\autocite{Abadi2013}
+- faster reads
+- better analytical workflows
+\autocite{Floratou2019}
 
 
 \section{Columnar Formats}
 \label{section:columnar}
 Starting around 2011, multiple proposals for a columnar data layour began appearing, resulting in the creation of Apache Parquet and Apache ORC, both disk-based columnar formats.
+
+See \ref{fig:row_v_col}.
+\begin{figure}
+	\begin{center}
+		\includegraphics[width=0.95\textwidth]{resources/columnar}
+	\end{center}
+	\caption{\textbf{Top:} An example table \textbf{Left:} The table in row oriented memory \textbf{Right:} The table in columnar memory \autocite{arrow:overview}}
+	\label{fig:row_v_col}
+\end{figure}
+
+
 
 \section{Apache Arrow}
 \label{section:arrow}
