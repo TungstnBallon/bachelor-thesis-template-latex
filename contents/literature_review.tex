@@ -53,31 +53,8 @@ They were able to speed up model training by a factor of 38, compared to the ind
 When working with tabular data, there exists the problem of projecting the two-dimensional data onto a linear layout, either on disk, or in memory.
 The first approach is to save the values of each row one after another. This is referred to as \emph{row oriented} or \emph{row-storage}.
 The other approach is to save the values of each column one after another. This is known as \emph{columnar} or \emph{column-storage}.
+\autocite{Floratou2019}
 See Figure~\ref{fig:row_v_col} for a visual comparison.
-\autocite{Floratou2019}
-
-
-Since 2013 columnar formats arre
-- row storage is the traditional way
-- columnar storage was first developed for databases (monetdb)
-https://en.wikipedia.org/wiki/MonetDB#cite_note-6
-- 2013: columnar widely accepted and implemented in the db world
-\autocite{Abadi2013}
-
-- advantages:
-- better compression (column specific)
-- less memory usage (only needed stuff is read)
-\autocite{Abadi2013}
-- faster reads
-- better analytical workflows
-\autocite{Floratou2019}
-
-
-\section{Columnar Formats}
-\label{section:columnar}
-Starting around 2011, multiple proposals for a columnar data layour began appearing, resulting in the creation of Apache Parquet and Apache ORC, both disk-based columnar formats.
-
-See \ref{fig:row_v_col}.
 \begin{figure}
 	\begin{center}
 		\includegraphics[width=0.95\textwidth]{resources/columnar}
@@ -86,6 +63,21 @@ See \ref{fig:row_v_col}.
 	\label{fig:row_v_col}
 \end{figure}
 
+Columnar storage formats were initially developed for use in databases (e.g. MonetDB \autocite{Boncz2002}).
+By 2013 these formats had become widely implemented across the industry
+\autocite{Abadi2013}.
+Around 2011 the first research was done into how columnar storage could be made useful for Big Data frameworks.
+Eventually, this work resulted in Apache Parquet and Apache ORC, both disk-based columnar formats.
+\autocite{Floratou2019}
+In 2016, The Apache Foundation initiated \emph{Apache Arrow}, which specifies a columnar storage layout \emph{in memory}.
+\autocite{Ahmad2020}
+
+Columnar storage has advantages over row-oriented storage:
+\begin{itemize}
+	\item column specific compression \autocite{Abadi2013}
+	\item less memory usage \autocite{Abadi2013}
+	\item faster read times \autocite{Floratou2019}
+\end{itemize}
 
 
 \section{Apache Arrow}
@@ -100,30 +92,23 @@ Arrays may have different types of physical buffers to store data.
 This layout provides higher spatial locality when iterating over column contiguous data entries for better CPU cache performance.
 SIMD (Single instruction, multiple data) vector operations can also benefit from such a layout as vector elements are already aligned properly in memory." \autocite{Ahmad2020}
 
-- language agnostic in memory format for table like data.
-- implementations in many languages exist. %TODO list languages
-- record batches (tables) are made up of arrays (columns).
-- arrays have:
-- data,type
-- sequence of buffers (conrtinuous memory region)
-- lenght
-- null count
-- the schema defines fields (columns), each with a name and a datatype
-- advantages:
-- makes better use of the cache for column based operations
-- cite plaintext above
-- created in 2016
+Apache Arrow is often uses synonymously with the memory format it defines.
+This format is \emph{language agostic}, \emph{columnar} and \emph{in memory}.
+It has implementations in many languages (see \ref{subsubsection:arrow:langs} for a list).
 
-- more types than javascript -> allows more granular control over memory
-- well defined physical layout for each type
-- number:
-- unsigned integer with fixed width
-- signed ""
-- decimal(width, scale percision)
-- floating point with fixed prercision
-- array:
-- fixed-size list
-- list (32-bit offset), largelist (64bit offset)
+In the arrow spec, tables are called Record Batches. They are comprised of Arrays which represent columns.
+These arrays are different from JavaScript arrays, as they cannot contain different datatypes.
+The array's actual data is split across a series of buffers, which represent continuous space in memory.
+Record Batches also have Schemas, which contain the tables metadata.
+
+Arrow has a more granular typesystem than javascript. This allows for a more percise control of memory.
+Arrow types can have parameters.
+For example instead of javascripts \Verb|number|, Arrow has (un)signed integers with a bit width parameter,
+decimals with width, scale and precision as parameters, and floating point numbers with a percision parameter.
+The spec also includes a physical memory layout for each type.
+% MAYBE  - fixed-size list - list (32-bit offset), largelist (64bit offset) instead of array
+
+At the time of writing there are 48 projects powered by Apache Arrow \autocite{arrow:projects}.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{resources/arrow_tab}
@@ -136,11 +121,6 @@ SIMD (Single instruction, multiple data) vector operations can also benefit from
 	\label{fig:arrow_com}
 \end{figure}
 
-Apache Arrow has implementations in many languages, including Typescript and Rust \autocite{arrow:status}.
-At the time of writing there are 48 projects powered by Apache Arrow \autocite{arrow:projects}.
-One of those is Polars.
-
-
 \section{Napi-rs}
 - napi-rs allows us to compile a rust library to a .node file
 - nodejs can load and use this .node file
@@ -149,9 +129,9 @@ One of those is Polars.
 
 \section{Polars}
 \label{section:polars}
-
-- implemnents the apache arrow format,
-- adds abstractions on top like dataframes
-- promises 50x the performance
-Polars not only implements the apache arrow format, but adds convenient abstractions like dataframes and series and promises a drastic performance increase.
+Polars is built on top of the Rust implementation of the Arrow specification.
+It incorporates convienient abstractions such as DataFrames and Series.
+Additionaly, it uses napi-rs to provide a JavaScript/TypeScript \ac{API} that preserves the performance of the rust library.
+It promises "up to 50x performance".
+\autocite{polars}
 
