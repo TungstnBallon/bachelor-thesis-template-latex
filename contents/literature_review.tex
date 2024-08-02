@@ -82,15 +82,15 @@ Columnar storage has advantages over row-oriented storage:
 
 \section{Apache Arrow}
 \label{section:arrow}
-"The Apache Arrow project was initiated by the Apache Foundation in 2016.
-This framework provides an open and a common standardized format for different programming languages for reading/writing tabular data in-memory.
-Through language-specific libraries, multiple languages can share data without any copying or serialization." \autocite{Ahmad2020} (see \ref{fig:arrow_com})
-"In the Arrow format, data entries (records) are stored in a table called a RecordBatch.
-Each record field is stored in a separate column of the RecordBatch table in a manner that is as contiguous as possible in memory.
-This is called an Arrow Array which can store data of different types — i.e., int, float, strings, binary, timestamps and lists, but also nested types (such as lists of lists, etc.).
-Arrays may have different types of physical buffers to store data.
-This layout provides higher spatial locality when iterating over column contiguous data entries for better CPU cache performance.
-SIMD (Single instruction, multiple data) vector operations can also benefit from such a layout as vector elements are already aligned properly in memory." \autocite{Ahmad2020}
+% "The Apache Arrow project was initiated by the Apache Foundation in 2016.
+% This framework provides an open and a common standardized format for different programming languages for reading/writing tabular data in-memory.
+% Through language-specific libraries, multiple languages can share data without any copying or serialization." \autocite{Ahmad2020} (see \ref{fig:arrow_com})
+% "In the Arrow format, data entries (records) are stored in a table called a RecordBatch.
+% Each record field is stored in a separate column of the RecordBatch table in a manner that is as contiguous as possible in memory.
+% This is called an Arrow Array which can store data of different types — i.e., int, float, strings, binary, timestamps and lists, but also nested types (such as lists of lists, etc.).
+% Arrays may have different types of physical buffers to store data.
+% This layout provides higher spatial locality when iterating over column contiguous data entries for better CPU cache performance.
+% SIMD (Single instruction, multiple data) vector operations can also benefit from such a layout as vector elements are already aligned properly in memory." \autocite{Ahmad2020}
 
 Apache Arrow is often uses synonymously with the memory format it defines.
 This format is \emph{language agostic}, \emph{columnar} and \emph{in memory}.
@@ -120,11 +120,6 @@ At the time of writing there are 48 projects powered by Apache Arrow \autocite{a
 	\caption{Example how Arrow increases interoperability between proceses \autocite{Ahmad2020}}
 	\label{fig:arrow_com}
 \end{figure}
-
-\section{Napi-rs}
-- napi-rs allows us to compile a rust library to a .node file
-- nodejs can load and use this .node file
-- the types that can be passed to this function is restricted by napi.rs capabilites
 
 
 \section{Polars}

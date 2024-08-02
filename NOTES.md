@@ -135,10 +135,12 @@ end
         - 10
 42. UML diagramme sind brillen
 
-
-HERE
-
 44. what to do with speed increase numbers
 
-TODO:
-no-130000
+HERE
+45. requirements have been evaluated for completeness
+46. new features: NULL is supported: can I reveal this when evaluating requirements and then say: "well I 'failed' the requirement, but this is better"
+47. how to justify, explain requirements
+48. publish sqlite-loader-rust
+49. date when citing websites
+50. `\Verb` breaks the flow of reading?

@@ -2,6 +2,7 @@
 \label{chapter:Implementation}
 
 \section{Type Conversion}
+\label{subsection:TypeConversion}
 - dtype -> vtype: add \Verb|fromPolarsDType| method to \Verb|ValueTypeProvider|. unsupported plds throw an error.
 - unsupported: pl.Categorical, pl.Date, pl.DateTime, pl.List, pl.Null, pl.Struct
 - vtype -> dtype: add \Verb|toPolarsDataType| method to interface \Verb|ValueType|. unsupported vts return undefined.
@@ -28,6 +29,12 @@ To increase clarity, the abstract \Verb|TableColumn| class and its subclasses \V
 
 - \Verb|Table| defines defines abstract methods for its subclasses to implement and directly implements general behaviour in static methods. %TODO?: code snippet here?
 - generateDropTableStatement is a string with the tablename.
+
+\subsubsection{changes compared to old table}
+\label{subssubsection:impl:old_vs_new}
+The \Verb|addColumn| method was replaced with \Verb|withColumn|.
+- \Verb|TsTableInterpreter| still doesn't clone in \Verb|withColumn| to remain consistent.
+- leads to less mutations, so it's better for parallel execution %TODO: citation
 
 
 
@@ -527,6 +534,12 @@ class MultiplicationOperatorEvaluator extends DefaultBinaryOperatorEvaluator<
 - \Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLLoader| don't override the default implementation
 
 \subsection{sqlite-loader-rust}
+
+\subsubsection{Napi-rs}
+- napi-rs allows us to compile a rust library to a .node file
+- nodejs can load and use this .node file
+- the types that can be passed to this function is restricted by napi.rs capabilites
+
 - we want to evaluate the extensibility of the polars backend
 - create a extenal rust library with typescript interface via napi-package-template: \Verb|sqlite-loader-rust|
 - napi function cannot have dataframe as a parameter: type is too complex for napi
