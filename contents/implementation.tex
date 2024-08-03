@@ -80,7 +80,7 @@ It wraps the \Verb|polars.DataFrame| class and uses its methods to implement the
 \subsubsection{TsTable}
 - attributes:
 - number of rows: ensure rectangular shape
-- _columns: map<String, TsTableColumn>: underscore to not intrefere with columns getter
+- \_columns: map<String, TsTableColumn>: underscore to not intrefere with columns getter
 
 - withColumn
 - replaces addColumn: copy instead of mut
@@ -144,6 +144,9 @@ It wraps the \Verb|polars.DataFrame| class and uses its methods to implement the
 
 
 \section{new executors}
+
+\subsection{createBlockExecutor}
+\label{subsection:createBlockExecutor}
 - we insert if statements into getExecutorForBlockype to change what BlockExecutorClass type is being searched for.
 \begin{figure}
 	\begin{plantuml}
@@ -179,6 +182,7 @@ It wraps the \Verb|polars.DataFrame| class and uses its methods to implement the
 
 
 \subsection{TableInterpreter} %TODO
+\label{section:tableinterpreterexecutor}
 - much of the functionality is implemented in static methods in the abstract class,
 - both subclasses can use this functionality
 - other classes that can import TableInterpreter can use it too.
@@ -208,22 +212,25 @@ It wraps the \Verb|polars.DataFrame| class and uses its methods to implement the
 - otherwise same behavior as deriveColumnDefinitionEntriesWithoutHeader
 
 - doExecute
+- retrieve and validate properties: header, columns
+- parse columndefinitionentries, make useful
+- leave table construction to \Verb|constructAndValidateTable|
 - \begin{listing}
 	\begin{minted}{python}
-function doExecute(inputSheet, context):
-	header = context.get("columns")
+def doExecute(inputSheet, context):
+	header = context.get("header")
 	columnDefinitions = context.get("columns")
-	if header then
+	if header:
 		columnEntries = deriveColumnDefinitionEntriesFromHeader(columnDefinitions, inputSheet.header_row)
-	else
+	else:
 		columnEntries = deriveColumnDefinitionEntriesWithoutHeader(columnDefinitions)
-	endif
-		return constructAndValidateTable(
-			inputSheet,
-			header,
-			columnEntries,
-			context
-		)
+
+	return constructAndValidateTable(
+		inputSheet,
+		header,
+		columnEntries,
+		context
+	)
 	\end{minted}
 	\caption{}
 	\label{lst:tableInterpreter:doExecute}
@@ -239,8 +246,11 @@ function doExecute(inputSheet, context):
 - wrapper around ValueType.toPolarsDataType
 - adds logging using Logger class unavailable for toPolarsDataType
 - default is pl.Utf8 (string)
+- \Verb|toPolarsDataTypeWithLogs| is its own mehtod to enable code sharing with other table blocks.
+- can't be in language-server because circular dependency
 
-\subsection{PolarsTableInterpreterExecutor}
+\subsubsection{PolarsTableInterpreterExecutor}
+\label{subsubsection:polarstableinterpreterexecutor}
 - type is 'PolarsTableInterpreter'
 
 - constructAndValidateTable
@@ -271,7 +281,7 @@ function constructSeries(rows, columnEntry, context):
 	\label{lst:polarsTableInterpreter:constructSeries}
 \end{listing}
 
-\subsection{TsTableInterpreter}
+\subsubsection{TsTableInterpreter}
 - many of the TableInterpreter functions used to be here
 - no functionality added or changed
 
@@ -366,7 +376,7 @@ function checkInputColumnsMatchTransformTypes(inputColumnNames, inputTable, tran
 
 
 \section{Transforms}
-- again strategy.
+\label{section:impl:transforms}
 - previos tranform execution
 1. pretend new table with input columns
 2. execute expression for each row of that (pretend) table
@@ -439,7 +449,8 @@ end
 \end{figure}
 
 
-\subsubsection{OperatorEvaluators}
+\subsubsection{Operator evaluators}
+\label{subsubsection:impl:operator_evaluator}
 \begin{listing}
 	\begin{minted}{typescript}
 class MultiplicationOperatorEvaluator extends DefaultBinaryOperatorEvaluator<
@@ -534,6 +545,7 @@ class MultiplicationOperatorEvaluator extends DefaultBinaryOperatorEvaluator<
 - \Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLLoader| don't override the default implementation
 
 \subsection{sqlite-loader-rust}
+\label{subsection:sqlite-loader-rust}
 
 \subsubsection{Napi-rs}
 - napi-rs allows us to compile a rust library to a .node file

@@ -2,9 +2,6 @@
     - Operator type calculators were not changed
         - they dont reflect the actual types of the data during runtime anymore.
         - they still prevent the user from doing illegal stuff.
-    - Include
-        - `BlockExecutorClass` defines the Blocktype this executor is for
-        - `ConstructorClass` guarantees a constructor
 - Implementation:
     - polarsExpessions:
         - mention that pl.col and pl.lit are the most used ones and what they do

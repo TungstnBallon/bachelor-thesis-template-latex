@@ -25,6 +25,10 @@ Others transform their input data, like \Verb|CellWriter| or \Verb|TableTranform
 To accomplish this they use transforms, which are similar to a map function in other programming languages.
 They let the user define multiple inputs with their types (jayvee supports \Verb{text}, \Verb{integer}, \Verb{decimal} and \Verb{boolean}), an output with its type and an expression to transform the inputs into the output.
 
+
+Jayvee uses transforms to compute new values from a sequence of defined inputs, analogous to what a function would to in other programming languages \autocite{jvalue:jayvee:docs:transfrom}.
+The concrete operation, who's result a transform computes, is described by an expression, e.g \Verb|x + 3|.
+
 Expressions support basic arithmetic, boolean algebra and rudimentary string operations like \Verb|uppercase| or \Verb|matches|.
 
 %TODO: picture

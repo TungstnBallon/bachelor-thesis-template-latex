@@ -144,3 +144,4 @@ HERE
 48. publish sqlite-loader-rust
 49. date when citing websites
 50. `\Verb` breaks the flow of reading?
+51. cite: One challenge here is that \Verb|Series| does not have a generic type parameter.
