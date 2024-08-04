@@ -275,7 +275,7 @@ For details on how this conversion mechanism is implemented, see \ref{subsection
 % This includes \Verb|string|, \Verb|number| and \Verb|boolean|.
 %
 % \subsection{Wrong Approach}
-% At first we thought that polars' DataTypes were similar to \Verb|InternalValueRepresenation| and tried to add them to the union type.
+% At first we thought that polars' DataTypes were similar to \Verb|InternalValueRepresentation| and tried to add them to the union type.
 % However pl.String does not contain an actual string it's just a symbol for the string type
 %
 % This happened because we did not understand the Difference between ValueTypes and InternalValueRepresentation
@@ -291,13 +291,16 @@ We can still define functionality for both subclasses using \emph{abstract metho
 Jayvee already has a \Verb|Table| class that implements the \Verb|IOTypeImplementation<IOType.TABLE>| interface.
 We move all of the functionality from \Verb{Table} to \Verb{TsTable} and create a new \emph{abstract} class \Verb|Table|.
 
-\subsection{\Verb{abstract Table}}
+\subsection{abstract Table}
 This class implements the \Verb|IOTypeImplementation<IOType.TABLE>| interface to be allowed as an input / output for blocks.
 It' methods are based on those of the original Table class.
 See \ref{fig:uml:table} for a class diagram.
 
 \subsubsection{Differences between the old Table and the new abstract Table}
-The \Verb|addColumn| method was replaced with \Verb|withColumn|, the concrete differences are explained in \ref{subssubsection:impl:old_vs_new}.
+\Verb|getRow|, \Verb|addRow|, \Verb|dropRow|, \Verb|dropRows| and \Verb|addColumn| are not part of the abstract table.
+They still exist in the \Verb|TsTable| class to preserve original functionality.
+The methods working with rows are not included, because they are not necessary for the Polars based implementation. %TODO: also because working with rows is slow, but I don't know if I need to cite that or not.
+\Verb|addColumn| is replaced in favor of \Verb|withColumn|, the concrete differences are explained in \ref{subssubsection:impl:old_vs_new}.
 Typeguards to distinguish the implementations, \Verb|isPolars| and \Verb|isTypescript|, were added.
 Also, we replaced the \Verb|number_of_rows| proberty with getter method using the \Verb|get| keyword.
 
@@ -311,7 +314,6 @@ Also, we replaced the \Verb|number_of_rows| proberty with getter method using th
 					{abstract} withColumn(column: TableColumn): Table
 					{abstract} hasColumn(name: string): boolean
 					{abstract} getColumn(name: string): TableColumn | undefined
-					{abstract} getRow(id: number): TableRow
 					{abstract} clone(): Table
 					{abstract} acceptVisitor<R>(visitor: IoTypeVisitor<R>): R
 					{abstract} isPolars(): this is PolarsTable
@@ -327,13 +329,13 @@ Also, we replaced the \Verb|number_of_rows| proberty with getter method using th
 \end{figure}
 
 \subsection{PolarsTable}
+\label{subsection:arch:polarstable}
 Polars' \Verb|DataFrame| already has table functionality, like the ability to add/remove/transform columns.
 However, \Verb|DataFrame|'s methods aren't the same as those required by \Verb|Table|.
 To solve this, we create a wrapper class \Verb|PolarsTable|, that extends \Verb|Table| and thereby implements \Verb|IOTypeImplementation<IOType.TABLE>|, allowing \Verb|PolarsTable| to be used as an input / output for block executors.
 \Verb|PolarsTable| extends \Verb|Table|'s abstract methods by calling \Verb|DataFrames| methods, which is a characteristic of the \emph{adapter pattern} \autocite{Dooley2024}.
 In the terminology of the adapter pattern, \Verb|Table| is the target, \Verb|PolarsTable| the adapter and \Verb|DataFrame| the adaptee.
 
-A notable differences between the abstract methods of \Verb|Table| and their overrides in \Verb|PolarsTable| is that, when \Verb|PolarsTable| is
 It is notable that when \Verb|Table| is parameter or return type in an abstract method in \Verb|Table|, the overriding method in \Verb|PolarsTable| replaced that with \Verb|PolarsTable|.
 For example \mintedinline{typescript}{abstract clone(): Table} becomes \mintedinline{typescript}{override clone(): PolarsTable}.
 This is legal %FIXME: maybe better term instead of legal
@@ -369,7 +371,6 @@ See \ref{fig:uml:polarstable} for the class diagram.
 				withColumnFromInternal(expr: polars.Expr): PolarsTable
 				hasColumn(name: string): boolean
 				getColumn(name: string): PolarsTableColumn | undefined
-				getRow(id: number): TableRow
 				clone(): PolarsTable
 				acceptVisitor<R>(visitor: IoTypeVisitor<R>): R
 				isPolars(): this is PolarsTable
@@ -427,10 +428,10 @@ The typeguards \Verb|isPolars()| and \Verb|isTypescript()| were added.
 \subsubsection{PolarsTableColumn}
 \label{subsubsection:polarstablecolumn}
 \Verb|DataFrame|'s \Verb|getColumn| method returns a \Verb|Series|, which means that \Verb|Series| represents a column in Polars.
-To make \Verb|Series| useful, we create a class adapter with the target \Verb|TabelColumn| and the adaptee \Verb|Series|.
+To make \Verb|Series| useful, we create a class adapter with the target \Verb|TableColumn| and the adaptee \Verb|Series|.
 
 One challenge here is that \Verb|Series| does not have a generic type parameter.
-To overcome it, we can either create \Verb|PolarsTableColumn<T extends InternalValueRepresenatation>|, extend \Verb|TableColumn<T>| and work around \Verb|Series|' limitations in the implementation, or, we create \Verb|PolarsTableColumn| without a type parameter too and extend the general \Verb|TableColumn<InternalValueRepresentation>|.
+To overcome it, we can either create \Verb|PolarsTableColumn<T extends InternalValueRepresentation>|, extend \Verb|TableColumn<T>| and work around \Verb|Series|' limitations in the implementation, or, we create \Verb|PolarsTableColumn| without a type parameter too and extend the general \Verb|TableColumn<InternalValueRepresentation>|.
 The former approach is preferable, because it allows us to preserve the generic type parameter of the \Verb|_valueType: ValueType<T>| property (see \ref{fig:uml:polarstablecolumn}).
 To be clear, \Verb|T| does not denote actual the type of the values stored in the column, like it would for \Verb|Array<T>|.
 This detail is left to \Verb|Series|.
@@ -637,8 +638,10 @@ We create an abstract class \Verb|TableInterpreterExecutor| that extends \Verb|A
 For implementation details, see \ref{section:tableinterpreterexecutor}.
 \Verb|TableInterpreter| has two subclasses, \Verb|TsTableInterpreter|, which contains the old behaviour, and the new \Verb|PolarsTableInterpreter|.
 
-This architecture, like the table implementaiton, follows the strategy pattern from \autocite{Dooley2024}.
+This architecture, like the table implementation, follows the strategy pattern from \autocite{Dooley2024}.
 The usual singular strategy interface is split up into \Verb|BlockExecutor|, \Verb|AbstractBlockExecutor| and \Verb|TableInterpreterExecutor|, while the concrete strategy is either \Verb|TsTableInterpreterExecutor| or \Verb|PolarsTableInterpreterExecutor|.
+
+We use static methods to implement behaviour that is useful for other executors as well.
 
 \begin{figure}
 	\begin{plantuml}

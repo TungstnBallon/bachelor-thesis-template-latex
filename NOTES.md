@@ -84,14 +84,14 @@ alt undefined
   <- "operator-evaluator.ts": undefined
 else free variable
   "operator-evaluator.ts" -> EvaluationContext: getValueFor(literal: FreeVariableLiteral)
-  alt is InternalValueRepresenation
+  alt is InternalValueRepresentation
     <- "operator-evaluator.ts": pl.lit(x)
   else
     <- "operator-evaluator.ts": x
   end
 else literal
   "operator-evaluator.ts" -> "operator-evaluator.ts": evaluateValueLiteral(expression)
-  "operator-evaluator.ts" -> "operator-evaluator.ts": lit: InternalValueRepresenation
+  "operator-evaluator.ts" -> "operator-evaluator.ts": lit: InternalValueRepresentation
   alt lit is undefined
     <- "operator-evaluator.ts": undefined
   else
@@ -144,4 +144,8 @@ HERE
 48. publish sqlite-loader-rust
 49. date when citing websites
 50. `\Verb` breaks the flow of reading?
-51. cite: One challenge here is that \Verb|Series| does not have a generic type parameter.
+51. code citation needed?: One challenge here is that \Verb|Series| does not have a generic type parameter.
+52. source for no mutations beeing better for parallel execution?
+53. source for rows being slow with polars?
+54. source for usual way of doing deep clones?
+55. listings with empty descriptions?
