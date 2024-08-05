@@ -3,7 +3,7 @@
 
 There are some projects working with arrow directly
 
-\autocite{Ahmad2020}
+\textcite{Ahmad2020}
 created their own memory format based on apache arrow to process genome data.
 They found that arrow improved the use of the available hardware, and led to fewer cache misses.
 Arrow performed better than both ramDisk and unix pipes.
@@ -17,7 +17,7 @@ The overall execution time was 4.85 times faster with arrow.
 % - columnar representation outperforms both ramDisk and unixPipes
 % - overall execution time speedup of 4.85x for WGS (whole genome sequencing)
 
-\autocite{Peltenburg2021}
+\textcite{Peltenburg2021}
 developed \emph{Fletchgen} which can generate hardware interfaces designed for arrow workloads.
 
 % - cpus are at their performance limit for big data -> fpga accellerators
@@ -32,7 +32,7 @@ developed \emph{Fletchgen} which can generate hardware interfaces designed for a
 % - present arrow-specific hardware components
 
 
-\autocite{Grossman2022}
+\textcite{Grossman2022}
 used apache arrow to build \emph{SHMEM-ML}, a machine lerning library.
 Arrow enabled "zero copy data sharing" with other libraries.
 They were able to speed up model training by a factor of 38, compared to the industry average.
@@ -50,11 +50,14 @@ They were able to speed up model training by a factor of 38, compared to the ind
 
 \section{Tabular data memory layout}
 \label{section:column_vs_row}
-When working with tabular data, there exists the problem of projecting the two-dimensional data onto a linear layout, either on disk, or in memory.
-The first approach is to save the values of each row one after another. This is referred to as \emph{row oriented} or \emph{row-storage}.
-The other approach is to save the values of each column one after another. This is known as \emph{columnar} or \emph{column-storage}.
-\autocite{Floratou2019}
+When working with tabular data, a fundamental challenge arises: how to project the two-dimensional data onto a linear layout, either on disk, or in memory.
+Two primary approaches have been developed to address this challenge.
+The first is to save the values of each row one after another.
+This is referred to as \emph{row-oriented} or \emph{row-storage}.
+The other approach is to save the values of each column one after another.
+This is known as \emph{columnar} or \emph{column-storage}.
 See Figure~\ref{fig:row_v_col} for a visual comparison.
+\autocite{Floratou2019}
 \begin{figure}
 	\begin{center}
 		\includegraphics[width=0.95\textwidth]{resources/columnar}
@@ -69,6 +72,7 @@ By 2013 these formats had become widely implemented across the industry
 Around 2011 the first research was done into how columnar storage could be made useful for Big Data frameworks.
 Eventually, this work resulted in Apache Parquet and Apache ORC, both disk-based columnar formats.
 \autocite{Floratou2019}
+
 In 2016, The Apache Foundation initiated \emph{Apache Arrow}, which specifies a columnar storage layout \emph{in memory}.
 \autocite{Ahmad2020}
 

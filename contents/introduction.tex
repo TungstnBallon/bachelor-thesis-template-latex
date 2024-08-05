@@ -9,53 +9,38 @@ Lowering this barrier of entry is the major motivation beind the JValue Project 
 \section{The Jayvee language}
 \label{section:jv_intro}
 
-Jayvee's goal is to allow everyone to describe ETL pipelines \autocite{jvalue:jayvee}.
-Pipelines are made up of a user defined sequence of blocks, which fall into one of three categories: Extractor, Tranformer or Loader.
+A pipeline is a sequence of executable blocks to perform operations on data.
+These blocks are categorized in extractors, transformers and loaders.
 
-Extractors bring the data into the pipeline and make it available for the other types of blocks.
-They can retrieve data from local files (\Verb|LocalFileExtractor|) and urls (\Verb|HttpExtractor|).
-
-Loaders export data to somewhere outside the pipeline.
-Most common is an sqlite file (\Verb|SQLiteLoader|), but postgres (\Verb|PostgresLoader|) and csv (\Verb|CSVFileLoader|) are also supported.
-
-Between an extractor and a loader the user can define an arbitrary amount of transformer blocks.
-They have one input and one output, both with a specific type like \Verb|TextFile| \Verb|Table|.
-Some transformers change the type of the data, like \Verb|CSVInterpreter| which interprets a text file as a csv sheet or \Verb|TableInterpreter|, who converts a sheet into a table.
-Others transform their input data, like \Verb|CellWriter| or \Verb|TableTranformer|.
-To accomplish this they use transforms, which are similar to a map function in other programming languages.
-They let the user define multiple inputs with their types (jayvee supports \Verb{text}, \Verb{integer}, \Verb{decimal} and \Verb{boolean}), an output with its type and an expression to transform the inputs into the output.
-
-
-Jayvee uses transforms to compute new values from a sequence of defined inputs, analogous to what a function would to in other programming languages \autocite{jvalue:jayvee:docs:transfrom}.
-The concrete operation, who's result a transform computes, is described by an expression, e.g \Verb|x + 3|.
-
-Expressions support basic arithmetic, boolean algebra and rudimentary string operations like \Verb|uppercase| or \Verb|matches|.
-
-%TODO: picture
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		start
-		:LocalFileExtractor;
-		->File;
-		:TextFileInterpreter;
-		->TextFile;
-		:CSVFileInterpreter;
-		->Sheet;
-		:TableInterpreter;
-		->Table;
-		:TableTransformer;
-		->Table;
-		:SQLiteLoader;
-		stop
-		@enduml
-	\end{plantuml}
-	\caption{The Flow of an examplory pipeline in jayvee. Between the blocks is noted the type of the data called IOType}
-	\label{fig:}
+\begin{figure}[h]
+	\begin{center}
+		\begin{plantuml}
+			@startuml
+			(*) -> "Extractor"
+			-> "Transformer"
+			-> "Loader"
+			-> (*)
+			@enduml
+		\end{plantuml}
+	\end{center}
 \end{figure}
 
+\textbf{Extractors} bring the data into the pipeline and make it available for the other types of blocks.
+Jayvee supports retrieving data from local files (\Verb|LocalFileExtractor|) and \ac{URL}s (\Verb|HttpExtractor|).
 
-Optimizing how jayvee represents data in-memory is the goal of this thesis.
+\textbf{Transformers} modify the data between extractor and loader.
+
+\textbf{Loaders} export data to somewhere outside the pipeline.
+Most common is an sqlite file (\Verb|SQLiteLoader|), but postgres (\Verb|PostgresLoader|) and csv (\Verb|CSVFileLoader|) are also supported.
+
+The Jayvee interface of blocks (see %TODO: reference architecture chapter
+) defines one input and one output port.
+The output port can be linked to multiple input ports.
+To be clarified: multplle output ports to one input. %TODO:
+
+A more detailed description of Jayvee's core concepts has been provided by \textcite{jvalue:jayvee:docs:core_concepts}.
+
+Jayvee's goal is to simply allow everyone to describe ETL pipelines \autocite{jvalue:jayvee}.
 
 \newpage
 
@@ -91,5 +76,3 @@ For more convenient creation of latex tables we recommend:
 		\hline
 	\end{tabular}
 \end{table}
-
-I am using an the \ac{FACR} here. The second usage of \ac{FACR} will only display the acronym itself.

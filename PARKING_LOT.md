@@ -1,10 +1,12 @@
 - Architecture:
+    Cite requirement process
     - Operator type calculators were not changed
         - they dont reflect the actual types of the data during runtime anymore.
         - they still prevent the user from doing illegal stuff.
 - Implementation:
     - polarsExpessions:
         - mention that pl.col and pl.lit are the most used ones and what they do
+    - paper im workog
 - Evaluation:
     - Limitations:
         - could not integrate bach-napi-test into the monorepo
@@ -20,6 +22,7 @@
     - utilize jayvees builtin time evaluation
     - calculate
         - time added per added tabletransformer
+    - teste null in integer spalten
 
 
 - TODO

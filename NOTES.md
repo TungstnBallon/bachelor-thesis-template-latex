@@ -137,15 +137,27 @@ end
 
 44. what to do with speed increase numbers
 
-HERE
-45. requirements have been evaluated for completeness
+45. requirements have been evaluated for completeness, ok?
+    - zitat is gut
 46. new features: NULL is supported: can I reveal this when evaluating requirements and then say: "well I 'failed' the requirement, but this is better"
+    - null werte in zukunft rausfiltern
+    - teste null in integer spalten
 47. how to justify, explain requirements
-48. publish sqlite-loader-rust
 49. date when citing websites
+    - no
 50. `\Verb` breaks the flow of reading?
 51. code citation needed?: One challenge here is that \Verb|Series| does not have a generic type parameter.
+    - kann ich sagen.
 52. source for no mutations beeing better for parallel execution?
+    - bei so was allgemeninm ok, muss mir sicher sein
 53. source for rows being slow with polars?
+    - eigene ekenntniss, zerstört column
 54. source for usual way of doing deep clones?
+    - passt normalerweise auch, aufgrund von meiner erfahrung.
 55. listings with empty descriptions?
+56. can multiple inputs into one block? -no
+
+HERE
+48. publish sqlite-loader-rust
+
+

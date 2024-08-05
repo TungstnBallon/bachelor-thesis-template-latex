@@ -71,8 +71,8 @@ It does't have any methods, that aren't getters or wrappers around equivalent \V
 \subsubsection{TsTableColumn}
 All properties are prefixed with an underscore to prevent a naming conflict between the property and their getter / setter.
 
-\Verb|clone| requries a \emph{deep clone} of the \Verb|_values| array.
-The usual way to accomplish this is the global \Verb|structuredClone| function.
+\Verb|clone| requires a \emph{deep clone} of the \Verb|_values| array.
+Bases on our experience, the usual way to accomplish this is the global \Verb|structuredClone| function.
 This approach caused the program to crash at runtime.
 We suspect the cause has to do with limitations of \Verb|structuredClone| described by \textcite{js:docs:structuredClone}.
 This problem was solved by serializing the column to \ac{JSON}, and parsing it again, creating deep copies in the process.
@@ -239,15 +239,15 @@ def constructSeries(rows, columnEntry, context):
 
 \section{FileToTableIntepreter}
 The blocktype definition located at \Verb|libs/language-server/src/stdlib/builtin-block-types/FileToTableInterpreter.jv| defines the following properties:
-FIXME: HERE
-
-
-- didn't exist prior
-- only has a polars implementation
+Since \Verb|FileToTableInterpreter| is a combination of \Verb|TextFileInterpreter|, \Verb|CSVInterpreter| and \Verb|TableInterpreter|, their properties and default values are copied into the definition.
+One property is no longer supported:
+\Verb|TextFileInterpreter|'s \Verb|lineBreak|: splitting lines is handled by Polars, which does not support linebreaks based on a \ac{regex}.
 
 \subsection{FileToTableIntepreterExecutor}
-\Verb|colsAndSchema| returns a list of column names and a map from those column names to a Polars DataType.
-The method reuses as much code from
+\Verb|FileToTableInterpreterExecutor| is implemented in \Verb|libs/extensions/tabular/exec/src/lib/file-to-table-interpreter-executor.ts|.
+
+\Verb|colsAndSchema| returns a list of column names and a map from those column names to a Polars' DataType.
+The method reuses code from \Verb|TableInterpreterExecutor| and \Verb|toPolarsDataTypeWithLogs|.
 - reuse code from tableInterpreter
 \begin{listing}
 	\begin{minted}{python}
@@ -269,19 +269,19 @@ end
 	\end{minted}
 \end{listing}
 
-- csvOptions
-- returns a ReadCSVOptions object, that can be passed to polars' readCSV function.
-- uses colsAndSchema
-- other properties are just taken from context: header, delimiter, enclosing
-- encoding is always utf8, throws error if not
+\Verb|csvOptions| to return a \Verb|ReadCSVOptions| object.
+This object can be passed to Polars' \Verb|readCSV| and contains configuration on how to parse the \ac{CSV}.
+This includes:
+\begin{itemize}
+	\item \emph{schema}, obtained by calling \Verb|colsAndSchema|.
+	\item \emph{header}, \emph{delimiter}, \emph{delimiter} and \emph{enclosing}.
+	\item \emph{encoding}, anything other than UTF-8 emits an error message, because it's not supported by Polars.
+\end{itemize}
 
-- doExecute
-- create ReadCSVOptions
-- call constructAndValidateTable (echo structure of tableInterpreter)
+\Verb|doExecute| calls \Verb|csvOptions| to obtain a \Verb|ReadCSVOptions| object and passes that to \Verb|construcAndValidateTable|.
+This echoes the structure of \Verb|TableInterpreterExecutor| %FIXME maybe architecture?
 
-- constructAndValidateTable
-- get dataFrame from calling \Verb|polars.readCSV(content, options)|
-- call PolarsTable constructor with dataframe and valuetypeprovider
+\Verb|constructAndValidateTable| creates a \Verb|PolarsTable| object by calling \Verb|polars.readCSV| and passing the returned \Verb|DataFrame| to the \Verb|PolarsTable| constructor.
 
 \section{LocalFileToTableIntepreter}
 - "no circular dependencies" rule prevents code sharing with LocalFileExtractor -> copy logic.

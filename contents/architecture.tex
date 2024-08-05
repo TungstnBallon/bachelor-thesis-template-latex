@@ -1,34 +1,32 @@
 \chapter{Architecture}
 \label{chapter:Architecture}
 
-In this chapter we give an overview over the defiened reqirements.
-Then, we describe the new architecture introduced into the jayvee interpreter.
+The objective of this thesis is to optimize Jayvee's internal data representation.
+This necessitates modifying the Jayvee interpreter, the program, that parses Jayvee source files and executes the defined pipelines.
+
+Prior to outlining that program's architecture, we will present an overview of the requirements for our modifications.
 
 \section{Requirements}
 \label{section:Requirements}
 
-We follow the established practice of differentiating between functional and non functional requirements.
-These requirements have been evaluated for completenes, consistency and feasability.
+As a common practice we differentiate between functional and non functional requirements.
+Both types of requirements have been evaluated for completenes, consistency and feasability by us.
 
 \subsection{Functional Requirements}
 \label{subsection:FunctionalRequirements}
 
 \begin{enumerate}
-	\item[FR-1] Tables in Jayvee are represented with a data format fulfilling these requirements:
-	      \begin{description}
-		      \item[standardized] Increases interoperability.
-		      \item[in-memory] Jayvee needs to transform the data, so it must be in memory.
-		      \item[columnar] See \ref{section:column_vs_row} for the advantages of columnar formats over row-oriented ones.
-	      \end{description}
-	\item[FR-2] Execute the electric vehicles example without errors.
-	      The resulting table must be the same as prevoius.
-	      The tests succeeding %FIXME
-	      is explicitly not a requirement.
-	      We aim to create a prototype, not a mature implementation.
-	\item[FR-3]\label{fr:runtime} We must be able to (de)activate the new features at runtime.
-	      This makes comparing the new features easier. %FIXME
-	\item[FR-4] Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typesript.
-	      This ensures usability and increases maintainability by for other developers.
+	\item[FR-1] \textbf{interoperability} Provided by the standardized \emph{Apache Arrow}.
+	\item[FR-2] \textbf{columnar} A columnar format has advantages outlined in \ref{section:column_vs_row}.
+	      % \item[FR-3] \textbf{error free} Execute the electric vehicles example %TODO: link
+	      %       without errors.
+	      % \item{FR-4} \textbf{completeness}
+	\item[FR-3]\label{fr:runtime} \textbf{feature toggle} We must be able to (de)activate the new features at runtime.
+	      This makes comparing the new features easier. %FIXME fachausdruck
+	\item[FR-4] \textbf{compatibility} Execute the electric vehicles example %TODO: link
+	      without errors.
+	      The resulting table must differ from the original result.
+	\item[FR-5] \textbf{modularization} Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typesript.
 \end{enumerate}
 
 % Tables are the central way Jayvee represent's data.
@@ -55,41 +53,63 @@ These requirements have been evaluated for completenes, consistency and feasabil
 \label{subsection:NonFunctionalRequirements}
 
 \begin{enumerate}
-	\item[NFR-1] The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
+	\item[NFR-1] \textbf{performance} The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
 	      We expect this to result in either a decrease in the execution time for jayvee models, or an extension of the Jayvee interpreter's capabilities.
-	\item[NFR-2] The source code is readable for non-rust developers
-	\item[NFR-3] The new code generates log messages consistent to the existing ones.
-	\item[NFR-4] The source code adheres to the project's code style.
+	\item[NFR-2] \textbf{readability} The source code is readable for non-rust developers
+	\item[NFR-3] \textbf{consistent logging} The new code generates log messages consistent to the existing ones.
+	\item[NFR-4] \textbf{codestyle} The source code adheres to the project's code style.
 	      This is enforced by running \Verb|npm run lint|.
 	      In rust code we use the defaults from rustfmt and clippy.
+	\item[NFR-5] \textbf{maturity} We aim to create a prototype, not a mature implementation.
 \end{enumerate}
 
 \section{Interpreter Overview}
 \label{section:prev}
 
-In this section, we will give an overview of how the interpreter executes a Jayvee pipeline.
+% %TODO: architecture
+% \begin{figure}
+% 	\begin{plantuml}
+% 		@startuml
+% 		start
+% 		:LocalFileExtractor;
+% 		->File;
+% 		:TextFileInterpreter;
+% 		->TextFile;
+% 		:CSVFileInterpreter;
+% 		->Sheet;
+% 		:TableInterpreter;
+% 		->Table;
+% 		:TableTransformer;
+% 		->Table;
+% 		:SQLiteLoader;
+% 		stop
+% 		@enduml
+% 	\end{plantuml}
+% 	\caption{The Flow of an examplory pipeline in jayvee. Between the blocks is noted the type of the data called IOType}
+% 	\label{fig:}
+% \end{figure}
 
-Pipeline definitions in jayvee consist of a series of block definitions.
-At runtime, the jayvee interpreter associates each block-definition with a class implementing the \Verb|BlockExecutor| interface.
-These executors all have one input and one output, both of which implement the \Verb|IOTypeImplementation| interface.
-An example for such an implementation is the \Verb|Table| class.
-The interpreter executes these executors in the order specified in the \Verb|.jv| file.
-The output of the previous block executor is always the input for the next.
-% Since the TableTransformer is central to jayvee's functionality, we will explore it further %FIXME
+This section will provide an overview of how the interpreter executes a Jayvee pipeline, illustrated by \ref{fig:uml:overview}.
+How the interpreter parses a Jayvee source file is not relevant for the purpose of this thesis.
 
-One of Jayvee's core features is the transformation of tables using expressions.
-Thus we will put special attention into how this works.
+Once the parsing process is complete, the interpreter obtains a series of pipeline definitions, which consist of block definitions.
+Block definitions include a \emph{blocktype}.
+The interpreter uses this blocktype to find an executor for the block, which is a class that implements the \Verb|BlockExecutor| interface.
+The interpreter then executes these executors in the order specified in the pipeline definition.
+The output of the preceeding block executor is always the input for the subsequent one.
 
-One of the classes implementing \Verb|BockExecutor| is \Verb|TableTransformerExecutor|.
+Inputs and outputs are instances of classes that implement the \Verb|IOTypeImplementation| interface.
+This includes the \Verb|Table| class, which will be used to integrate Apache Arrow into the Jayvee interpreter.
+
+One of Jayvee's core features is the transformation of tables with the \Verb|TableTransformer| blocktype.
+Consequently, we will devote particular attention to this functionality.
+The executor for \Verb|TableTransformerExecutor| is \Verb|TableTransformerExecutor|.
 It creates and executes the \Verb|TransformExecutor|, which evaluates the transform's expression expression for every row of the table and returns the resulting column.
-This column is then added to the input table by \Verb|TableTransformer|
+This column is then added to the input table by \Verb|TableTransformerExecutor|
 
 Expressions are evaluated by the \Verb|evaluateExpression| function.
 Expressions with parameter(s) (unary, binary, ternary) have evaluator classes that implement the \Verb|OperatorEvaluator| interface.
 The \Verb|evaluateExpression| function finds the correct evaluator with the help of the \Verb|OperatorEvaluatorRegistry|.
-
-See \ref{fig:uml:overview} for an overview of this structure.
-
 
 \begin{figure}
 	\begin{plantuml}
@@ -172,7 +192,7 @@ We add an alternative table implemetation, based on the Apache Arrow framework \
 So the interpreter will contain two table implementations at the same time.
 \textcite{Dooley2024} recommend the strategy pattern for this situation, because it will ensure that both implementations share a common interface and, that the different implementations can be chosen dynamically.
 
-We also need to adapt the interpreter to take advantage of the new features introduced by the new table.
+We also adapt the interpreter to take advantage of the new features introduced by the new table.
 But, because the original implementation needs to be preserved here too, the strategy patters is a good approach again.
 
 \begin{figure}
@@ -619,7 +639,7 @@ See \ref{fig:uml:abstractblockexecutor}
 		interface BlockExecutor<I extends IOType, O extends IOType> {
 				<<readonly>> inputType: I
 				<<readonly>> outputType: O
-				execute(input: IOTypeImplementation<I\>, context): Result<IOTypeImplementation<O\>>
+				execute(input: IOTypeImplementation<I\>, context): Result<IOTypeImplementation<O>\>
 			}
 		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType> implements BlockExecutor {
 				AbstractBlockExecutor(inputType, outputType)
