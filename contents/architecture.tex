@@ -714,14 +714,13 @@ Because there is no preexisting implementation of this executor, we do not need 
 		doExecute(file: BinaryFile, context: ExecutionContext): Result<Table>
 		+ {static} colsAndSchema(context: ExecutionContext): { columnNames: string[]; schema: Record<string, PlDType>;}
 		+ {static} csvOptions(context: ExecutionContext): Partial<ReadCsvOptions>
-		+ {static} constructAndValidateTable(content: Buffer, options: Partial<ReadCsvOptions>, context: ExecutionContext): PolarsTable
 		+ {static} deriveColumnDefinitionEntriesFromHeader(columnDefinitions: ValuetypeAssignment[], headerRow: string[], context: ExecutionContext): ColumnDefinitionEntry[]
 		}
 		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType>
 		AbstractBlockExecutor <|-- FileToTableInterpreterExecutor: AbstractBlockExecutor<IOType.FILE, IOType.Table>
 		@enduml
 	\end{plantuml}
-	\caption{The class diagram for \Verb|FileToTableInterpreter|}
+	\caption{The class diagram for \Verb{FileToTableInterpreter}}
 	\label{fig:uml:filetotableinterpreter}
 \end{figure}
 
@@ -741,14 +740,63 @@ the only difference being that the definition file is placed in \Verb|libs/langu
 		+ {static} <<readonly>> type : 'LocalFileToTableExtractor';
 		FileToTableInterpreterExecutor()
 		doExecute(file: BinaryFile, context: ExecutionContext): Result<Table>
-		+ constructAndValidateTable(content: None, options: Partial<ReadCsvOptions>, context: ExecutionContext): PolarsTable
 		}
 		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType>
 		AbstractBlockExecutor <|-- LocalFileToTableInterpreterExecutor: AbstractBlockExecutor<IOType.NONE, IOType.Table>
 		@enduml
 	\end{plantuml}
-	\caption{Class diagram for \Verb|LocalFileToTableInterpreterExtractor|}
+	\caption{Class diagram for \Verb{LocalFileToTableInterpreterExtractor}}
 	\label{fig:uml:localfiletotableinterpreter}
+\end{figure}
+
+\begin{figure}
+	\begin{subfigure}[h]{0.3\linewidth}
+		\begin{plantuml}
+			@startuml
+			start
+			-> None;
+			:LocalFileExtractor;
+			-> File;
+			:TextFileInterpreter;
+			-> TextFile;
+			:CSVFileInterpreter;
+			-> Sheet;
+			:TableInterpreter;
+			-> Table;
+			stop
+			@enduml
+		\end{plantuml}
+		\caption{only original blocks}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[h]{0.3\linewidth}
+		\begin{plantuml}
+			@startuml
+			start
+			-> None;
+			:LocalFileExtractor;
+			-> File;
+			:FileToTableInterpreter;
+			-> Table;
+			stop
+			@enduml
+		\end{plantuml}
+		\caption{\Verb{FileToTableInterpreter}}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[h]{0.3\linewidth}
+		\begin{plantuml}
+			@startuml
+			start
+			-> None;
+			:LocalFileInterpreter;
+			-> Table;
+			stop
+			@enduml
+		\end{plantuml}
+		\caption{\Verb{LocalFileToTableInterpreter}}
+	\end{subfigure}
+	\caption{Jayvee Pipelines using ...}
 \end{figure}
 
 \subsection{TableTransformer}
@@ -813,7 +861,7 @@ The different behaviour results from different overrides of the \Verb|generateCr
 		AbstractBlockExecutor <|-- SQLiteLoaderExecutor: AbstractBlockExecutor<IOType.TABLE, IOType.NONE>
 		@enduml
 	\end{plantuml}
-	\caption{\Verb|SQLiteLoaderExecutor| class diagram}
+	\caption{\Verb{SQLiteLoaderExecutor} class diagram}
 	\label{fig:uml:sqliteloader}
 \end{figure}
 
@@ -871,13 +919,13 @@ Polars expressions are a way to describe a series of operations that result in o
 \begin{listing}
 	\begin{minted}{typescript}
 use { pl } from 'nodejs-polars';
-const dataFrame = ...; // Createion of the dataframe was omitted
+const dataFrame = ...; // Creation of the dataframe was omitted
 const newDataFrame = dataFrame.withColumn(pl.col("a").mul(pl.col("b")))
 	\end{minted}
 	\caption{How to multiply column "a" and "b" of a dataframe}
 	\label{lst:pl_expr_example}
 \end{listing}
-\Verb|PolarsTableTransformerExecutor| can apply the expression returned by the transformexecutor to its input table and compute the new column.
+\Verb|PolarsTableTransformerExecutor| can apply the expression returned by \Verb|PolarsTransformExecutor.executeTransform| to its input table and compute the new column.
 
 A detailed explanation of this process can be found at \ref{section:impl:transforms}.
 
@@ -909,14 +957,26 @@ A detailed explanation of this process can be found at \ref{section:impl:transfo
 
 \section{Expressions}
 \label{section:expressions}
+\textcite{polars:docs:expr} seperate Jayvee expressions into three categories: \emph{literals}, \emph{variables}, \emph{operators}.
+\begin{description}
+	\item[literal] Congrete values, e.g. \Verb|5|, \Verb|"sometext"| or \Verb|true|
+	\item[variable] Represents a value defined in the context of the expression.
+	      Variables are used to refer to columns inside of transfroms.
+	\item[operator] Transforms one to three parameters into a one result.
+\end{description}
 The Jayvee interpreter does not contain a \Verb|ExpressionEvaluator| class, just a function \Verb|evaluateExpression|.
-This makes the previous process of creating an abtract class an subclasses implementing the different behavoiurs obsolete? %FIXME: obsolete
+This function takes the expression and the evaluation context as
+This makes the previous process of creating an abtract class and subclasses implementing the different behaviours obsolete? %FIXME: obsolete
 .
 Instead, we create a new function \Verb|polarsEvaluateExpression| with the same parameters as \Verb|evaluateExpression|.
-However instead of \Verb|InternalValueRepresentation|, this new function return a polars expression.
+However instead of an fully computed result, this new function return a polars expression.
 
 \subsection{Operator evaluators}
-Unary, binary and ternary expressions have evaluators.
+One-parameter operations are unary, two-parameter operations are binary, and three-parameter operations are ternary.
+Operators with one parameter are unary operators, operators with two parameters binary and operators with three ternary.
+Evaluators implement the \Verb|OperatorEvaluator| interface.
+
+Jayvee supports Unary, binary and ternary expressions have evaluators.
 They are found by the interpreter through the operator registry.
 Originally, evaluators calculated a value from a seqence of inputs.
 Now, evaluators need to return polars expressions, while still preserving the origninal functionality for \emph{FR-3}.

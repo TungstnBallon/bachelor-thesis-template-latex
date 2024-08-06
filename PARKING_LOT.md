@@ -23,6 +23,12 @@
     - calculate
         - time added per added tabletransformer
     - teste null in integer spalten
+    - Untershiede ts plobrs MIT BEISPIELEN
+        - manche floating point values
+            - wahrscheinlich wegen number vs f64 (RESEARCH)
+            - immer nur minimale Abweichungen
+        - null in textspalten
+            - ts hat leere strings
 
 
 - TODO

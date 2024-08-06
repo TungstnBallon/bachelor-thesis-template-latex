@@ -278,127 +278,203 @@ This includes:
 	\item \emph{encoding}, anything other than UTF-8 emits an error message, because it's not supported by Polars.
 \end{itemize}
 
-\Verb|doExecute| calls \Verb|csvOptions| to obtain a \Verb|ReadCSVOptions| object and passes that to \Verb|construcAndValidateTable|.
-This echoes the structure of \Verb|TableInterpreterExecutor| %FIXME maybe architecture?
+\Verb|doExecute| calls \Verb|csvOptions| to obtain a \Verb|ReadCSVOptions| object, which is then passed to \Verb|polars.readCSV|.
 
 \Verb|constructAndValidateTable| creates a \Verb|PolarsTable| object by calling \Verb|polars.readCSV| and passing the returned \Verb|DataFrame| to the \Verb|PolarsTable| constructor.
 
 \section{LocalFileToTableIntepreter}
-- "no circular dependencies" rule prevents code sharing with LocalFileExtractor -> copy logic.
-- by which I mean 1. get 'filePath' 2. check filePath does not include '..' (path traversal is restricted)
-- use the static method csvOptions of PolarsTableInterpreterExecutor to reuse the code there and get csv parser options
-- leave all of the actual filereading to polars.readCSV
-
+\Verb|doExecute| checks if the \Verb|filePath| property contains \Verb|'..'| to prevent path traversal upward and remain consistent with \Verb|LocalFileExtractorExecutor|.
 
 \section{TableTransformer}
-- again strategy.
-- TsTableTransformer contains old behavoir
-- move some helper methods logColumnOverwreiteStatus, checkInputColumnsExists to abstract class.
 
 \subsection{PolarsTableTransformer}
-- doExecute
-- check input columns exist
-- create transform executor (see relevant subsection)
-- use checkInputColumnsMatchTransformInputTypes to get a map from input name to column expression (see section polars expression?)
-- call executeTransform with this map -> returns pl.Expr
-- extend expr to rename the resulting column to the specified name
-- use Expr to add a column to the input table, or overwrite an existing one.
-
-
-- checkInputColumnsMatchTransformInputTypes
+In Jayvee, a transforms input variable names may differ from the column names of the input table.
+Additionaly, the input variables may define ValueTypes that are incompatible with the columns of the input table.
+The \Verb|checkInputColumnsMatchTransformInputTypes| method verifies that these ValueTypes are compatible and links each transform input variable name to a Polars column expression.
+When applied to a \Verb|DataFrame| the \Verb|pl.col(name)| expression allows us to transform the values of column \Verb|name| \autocite{polars:docs:expr:col}.
+\ref{lst:polarstabletransformer:check} contains a pseudocode description of this method.
 \begin{listing}
 	\begin{minted}{python}
-function checkInputColumnsMatchTransformTypes(inputColumnNames, inputTable, transformInputDetailsList)
-	is = range from 0 to inputColumnNames.length
-	variableToColumnMap = {}
-	for i in is do
+def checkInputColumnsMatchTransformTypes(inputColumnNames, inputTable, transformInputDetailsList):
+	indexes = range from 0 to inputColumnNames.length
+	variableToColumnMap = {} # Empty map
+	for i in indexes:
 		inputColumName = inputColumnNames[i]
 		inputColumn = inputTable.getColumn(inputColumnName)
 		inputDetails = transformInputDetailsList[i]
 
 		if (
-			!inputColumn.valueType.isConvertibleTo(inputDetails.valueType)
+			not inputColumn.valueType.isConvertibleTo(inputDetails.valueType)
 		) {
 			return Error
 		}
 		variableName = inputDetails.name
 		variableToColumnMap.set(variableName, pl.col(inputColumn.name))
-	done
+
 	return variableToColumnMap
 	\end{minted}
+	\caption{}
+	\label{lst:polarstabletransformer:check}
 \end{listing}
-- pl.col selects the column with the name from a dataframe.
 
-
-\section{Transforms}
-\label{section:impl:transforms}
-- previos tranform execution
-1. pretend new table with input columns
-2. execute expression for each row of that (pretend) table
-3. add resulting column (transforms only allow for one result): if outputname is the same as another column that one gets replaced
-- polars expressions are the new way
-
-- addvariables to context
-- context contains a map of references and their values
-- add the variableToColumn map is added to context map. operator evaluator will be able to access these mappings
-
-- doExecuteTransform
+\Verb|doExecute| is described by pseudocode in \ref{lst:polarstabletransformer:execute}.
 \begin{listing}
-	\begin{minted}{lua}
-function doExecuteTransform(variableToColumnName, context)
+	\begin{minted}{python}
+def doExecute(inputTable, context):
+	inputColumnNames = context.get('inputColumns')
+	outputColumnName = context.get('outputColumn')
+	tranformDefinition = context.get('uses')
+
+	inputTable.hasColumns(inputColumnNames)
+
+	transformExecutor = new TransformExecutor(transformDefinition, context)
+
+	transformInputDetails = transformExecutor.getInputDetails()
+	variablesToColumns =
+		this.checkInputVariablesMatchTransformTypes(
+			inputColumnNames,
+			inputTable,
+			transformInputDetails
+		)
+
+	expression =
+		transformExecutor.executeTransform(
+			variablesToColumns,
+			context
+		)
+
+	# This adds the `alias` operation to the expression.
+	# It will rename the column to `outputColumnName`
+	expression = expression.alias(outputColumnName)
+
+	newTable = inputTable.withColumnFromInternal(expression)
+	return newTable
+	\end{minted}
+	\caption{}
+	\label{lst:polarstabletransformer:execute}
+\end{listing}
+
+
+
+\section{TransformExecutor}
+\label{section:impl:transforms}
+Originally, \Verb|TransformExecutor| would compute the new column by following the algorithm outlined in \ref{lst:old_eval}.
+
+
+\begin{listing}
+	\begin{minted}{python}
+newColumn = []  # Empty list
+for row in inputColumns:
+	...  # add row to evaluation context
+	let value = evaluateExpression(expression, context)
+	newColumn.add(newColumn)
+	...  # remove row from evaluation context
+return newColumn
+	\end{minted}
+	\caption{Pseudocode of the algorithm the interpreter used to execute transforms}
+	\label{lst:old_eval}
+\end{listing}
+
+
+Transform executors are implemented in \Verb|lib/execution/src/lib/transforms/transform-executor.ts|.
+
+As explained in \ref{section:transforms} we will use Polars expressions to execute transforms.
+
+\subsection{PolarsTransformExecutor}
+\Verb|addInputColumnsToContext| adds the polars expressions, that represent the input columns, to the evaluation context.
+The \Verb|EvaluationContext| class contains a map, \Verb|variableValues|, linking variable names to their values of type \Verb{InternalValueRepresentation | pl.Expr}.
+\Verb|pl.Expr| is the type for polars expressions.
+\Verb|addInputColumnsToContext| uses \Verb|EvaluationContext|'s \Verb|setValueForReference| method to add the polars expressions representing the input columns to the evaluation context.
+
+\Verb|executeTransform| is not overwritten by this class, because it only modifies/changes %FIXME pick one
+the context and leaves the other functionality to \Verb|doExecute| (see \ref{lst:polarstransforms:execute}).
+\ref{fig:uml:transform} contains a visualization of the calls between \Verb|PolarsTableTransformerExecutor| and \Verb|PolarsTransformExecutor|.
+\begin{listing}
+	\begin{minted}{python}
+def doExecuteTransform(variableToColumnName, context):
 	inputDetails = this.getInputDetails()
 	outputDetails = this.getOutputDetails()
-	addInputColumnsToContext(inputDetails, variableToColumnName, context.evaluationContext)
+	this.addInputColumnsToContext(
+		inputDetails,
+		variableToColumnName,
+		context.evaluationContext
+	)
 
-	try {
-		expr = polarsEvaluateExpression(this.getOutputAssignment().expression,
-		context.evaluationContext)
-	} catch (e) {
-		log error
+	try:
+		expr = polarsEvaluateExpression(
+			this.getOutputAssignment().expression,
+			context.evaluationContext
+		)
+	except Error:
 		return
-	}
-	return expr.cast(outputDetails.valueType.toPolarsDataType())
+
+	targetPolarsDataType = outputDetails.valueType.toPolarsDataType()
+
+	# This casts the type of the resulting column to the type defined for the output.
+	# If this conversion is not possible, the program crashes %FIXME rethink this
+	expr = expr.cast(targetPolarsDataType)
+
+	return expr
 end
 	\end{minted}
+	\caption{}
+	\label{lst:polarstransforms:execute}
 \end{listing}
-- the .cast call casts all values in the resulting column to the desired type (if possible)
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		autoactivate on
+		->":PolarsTableTransformerExecutor": execute(inputTable, context)
+		":PolarsTableTransformerExecutor" -> ":PolarsTransformExecutor": executeTransform(\ncolumns,\ncontext\n)
+		":PolarsTransformExecutor" ->]: polarsEvaluateExpression(\njayvee expression\n)
+		return expr: pl.Expr
+		return expr.cast(pl.f64)
+		return inputTable.withColumnFromInternal(\nexpr.cast(pl.f64).alias('out')\n)
+		@enduml
+	\end{plantuml}
+	\caption{Sequence diagram of the mehtod calls between \Verb{PolarsTableTransformerExecutor} and \Verb{PolarsTransformExecutor}}
+	\label{fig:uml:transform}
+\end{figure}
 
 \subsection{Expressions}
-- polarsEvaluateExpression:
+\textcite{polars:docs:expr} seperate Jayvee expression into three categories: \emph{literals}, \emph{variables}, \emph{operators}.
+The \Verb|polarsEvaluateExpression| function, located in \Verb|libs/language-server/src/lib/ast/expressions/evaluate-expression.ts|, evaluates Jayvee expressions depending on this category (see \ref{fig:uml:polars_evaluate_expression}).
+
 \begin{figure}
 	\begin{plantuml}
 		@startuml
 		start
-		if (""expr"" is a free variable) then (yes)
-		:retrieve the ""value"" of ""expr"" from context;
-		if (""value"" is ""InternalValueRepresentation"") then (yes)
-		:return ""pl.lit(value)"";
+		if (expr is a variable) then (yes)
+		:retrieve the value of expr from context;
+		if (value has type InternalValueRepresentation) then (yes)
+		:return pl.lit(value);
 		stop
 		else (no)
-		:return ""value"";
+		:return value;
 		stop
 		endif
-		elseif (""expr"" is a valueLiteral) then (yes)
-		:evaluate the ""value"" of ""expr"";
-		if (""value === undefined"") then (true)
-		:return ""undefined"";
+		elseif (expr is a literal) then (yes)
+		:evaluate the value of expr;
+		if (value === undefined) then (true)
+		:return undefined;
 		stop
 		else (false)
-		:return ""pl.lit(value)"";
+		:return pl.lit(value);
 		stop
 		endif
-		else
-		:use the expressions n-ness (unary, binary, tertiary) and its
-		operator to get the fitting evaluator from ""evaluationContext"";
-		:call the ""eval.polarsEvaluate"" method;
-		:return the result of that;
+		else (expr is an operator)
+		:obtain the fitting operator
+		evaluator;
+		:evaluate the Jayvee expression
+		to a polars expression;
+		:return the polars expresion;
 		stop
 		endif
 		@enduml
 	\end{plantuml}
 	\caption{
-		Activity diagram of the \Verb|polarsEvaluateExpression| function.
-		\Verb|expr| is the expression that should be evaluated. %FIXME: caption
+		Activity diagram of the \Verb{polarsEvaluateExpression} function.
+		\Verb{expr} is the expression that should be evaluated. %FIXME: caption
 	}
 	\label{fig:uml:polars_evaluate_expression}
 \end{figure}
@@ -406,6 +482,11 @@ end
 
 \subsubsection{Operator evaluators}
 \label{subsubsection:impl:operator_evaluator}
+Operator Evaluators are used by \Verb|polarsEvaluateExpressions| to transfrom a Jayvee operator into a Polars expression.
+
+- polarsEvaluate
+
+
 \begin{listing}
 	\begin{minted}{typescript}
 class MultiplicationOperatorEvaluator extends DefaultBinaryOperatorEvaluator<
@@ -422,7 +503,7 @@ class MultiplicationOperatorEvaluator extends DefaultBinaryOperatorEvaluator<
   override polarsDoEvaluate(
     left: PolarsInternal,
     right: PolarsInternal,
-  ): PolarsInternal {
+  ): pl.Expr {
     return left.mul(right);
   }
 }
@@ -460,25 +541,18 @@ class MultiplicationOperatorEvaluator extends DefaultBinaryOperatorEvaluator<
 		@startuml
 		autoactivate on
 		->":PolarsTableTransformerExecutor": execute(inputTable, transform)
-		":PolarsTableTransformerExecutor" -> ":PolarsTransformExecutor": new PolarsTransformExecutor(transform)
-		return PolarsTransformExecutor
-		":PolarsTableTransformerExecutor" -> ":PolarsTransformExecutor": executeTransform({x: pl.col('a'), y:pl.col('b')})
-		":PolarsTransformExecutor" -> ":EvaluationContext": setValueForReference('x', pl.col('a'))
+		":PolarsTableTransformerExecutor" -> ":PolarsTransformExecutor": executeTransform({\nx: pl.col('a'),\ny: pl.col('b')\n})
+		":PolarsTransformExecutor" -> ":EvaluationContext": map x to pl.col('a')
 		return
-		":PolarsTransformExecutor" -> ":EvaluationContext": setValueForReference('y', pl.col('b'))
-		return
-		":PolarsTransformExecutor" -> ":AdditionOperatorEvaluator": x * 2 + y
-		":AdditionOperatorEvaluator" -> ":MultiplicationOperatorEvaluator": x * 2
-		":MultiplicationOperatorEvaluator" -> ":EvaluationContext": x
+		":PolarsTransformExecutor" -> ":EvaluationContext": map y to pl.col('b')
+		return		":PolarsTransformExecutor" -> ":AdditionOperatorEvaluator": evaluate x + y
+		":AdditionOperatorEvaluator" -> ":EvaluationContext": get x
 		return pl.col('a')
-		":MultiplicationOperatorEvaluator" ->]: evaluateValueLiteral(2)
-		return pl.lit(2)
-		return pl.col('a').mul(pl.lit(2))
-		":AdditionOperatorEvaluator" -> ":EvaluationContext": y
+		":AdditionOperatorEvaluator" -> ":EvaluationContext": get y
 		return pl.col('b')
-		return pl.col('a').mul(pl.lit(2)).add(pl.col('b'))
-		return pl.col('a').mul(pl.lit(2)).add(pl.col('b')).cast(pl.f64)
-		return \n pl.col('a').mul(pl.lit(2)).add(pl.col('b')).cast(pl.f64).alias('c')
+		return pl.col('a')\n.add(pl.col('b'))
+		return pl.col('a')\n.add(pl.col('b'))\n.cast(pl.f64)
+		return Table with column generated by\npl.col('a')\n.add(pl.col('b'))\n.cast(pl.f64)\n.alias('c')
 		@enduml
 	\end{plantuml}
 	\caption{}
