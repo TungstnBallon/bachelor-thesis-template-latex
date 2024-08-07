@@ -132,6 +132,82 @@
 	\end{tabular}
 \end{table}
 
+\begin{table}
+	\caption{Jayvee operators and the polars expressions they are transformed to.
+		a represents the first parameter, b the second, and c the third}
+	\label{tab:impl:expressions}
+	\begin{tabular}{|l|l|}
+		\hline
+		Jayvee operator    & Polars                             \\
+		\hline
+		\hline
+		a + b              & a.plus(b)                          \\
+		\hline
+		asText a           & a.cast(Text.toPolarsDataType())    \\
+		\hline
+		asDecimal a        & a.cast(Decimal.toPolarsDataType()) \\
+		\hline
+		asInteger a        & a.cast(Integer.toPolarsDataType()) \\
+		\hline
+		asBoolean a        & unsupported                        \\
+		\hline
+		a and b            & a.and(b)                           \\
+		\hline
+		ceil a             & a.ceil()                           \\
+		\hline
+		a / b              & a.div(b)                           \\
+		\hline
+		a == b             & a.eq(b)                            \\
+		\hline
+		floor a            & a.floor()                          \\
+		\hline
+		a >= b             & a.gtEq(b)                          \\
+		\hline
+		a > b              & a.gt(b)                            \\
+		\hline
+		a in b             & a.isIn(b)                          \\
+		\hline
+		a != b             & a.neq(b)                           \\
+		\hline
+		a <= b             & a.ltEq(b)                          \\
+		\hline
+		a < b              & a.lt(b)                            \\
+		\hline
+		lowercase a        & a.str.toLowerCase()                \\
+		\hline
+		a matches b        & unsupported                        \\
+		\hline
+		-a                 & a.mul(-1)                          \\
+		\hline
+		a \% b             & a.modulo(b)                        \\
+		\hline
+		a * b              & a.mul(b)                           \\
+		\hline
+		!a                 & a.not()                            \\
+		\hline
+		a or b             & a.or(b)                            \\
+		\hline
+		+a                 & a                                  \\
+		\hline
+		a pow b            & unsupported                        \\
+		\hline
+		a replace b with c & unsupported                        \\
+		\hline
+		a root b           & unsupported                        \\
+		\hline
+		round a            & a.round(0)                         \\
+		\hline
+		sqrt a             & a.pow(1/2)                         \\
+		\hline
+		a - b              & a.minus(b)                         \\
+		\hline
+		uppercase a        & a.str.toUpperCase()                \\
+		\hline
+		a xor b            & a.and(b.not()).or(a.not().and(b))  \\
+		\hline
+	\end{tabular}
+\end{table}
+
 \section{SBOM}
 \begin{table}
 	\caption{SBOM}\label{tab:sbom}

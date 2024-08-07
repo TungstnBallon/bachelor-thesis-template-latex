@@ -27,6 +27,18 @@ To narrow down the \Verb|any| type we expand the existing typeguards defined in 
 The table implementation is located in \Verb{libs/execution/src/lib/types/io-types/table.ts}.
 To increase clarity, the abstract \Verb|TableColumn| class and its subclasses \Verb|PolarsTableColumn| and \Verb|TsTableColumn| are moved into their own file \Verb|table-column.ts|.
 
+\Verb|generateDropTableStatement| is general enough is not an abstract method, because its output doesn't depend on the table's contents (\ref{lst:table:drop_table}).
+
+\begin{listing}
+	\begin{minted}{typescript}
+static generateDropTableStatement(tableName: string): string {
+	return `DROP TABLE IF EXISTS "${tableName}";`;
+}
+	\end{minted}
+	\caption{The source code of the \Verb{generateDropTableMethod}.}
+	\label{lst:table:drop_table}
+\end{listing}
+
 \subsubsection{changes compared to old table}
 \label{subssubsection:impl:old_vs_new}
 The old \Verb|addColum| method used to modify its table instance to add the column.
@@ -36,6 +48,7 @@ However, the interpreter has to keep using \Verb|addColumn| when working with \V
 - leads to less mutations, so it's better for parallel execution %TODO: citation
 
 \subsection{PolarsTable}
+\label{impl:table:polars}
 As described in \ref{subsection:arch:polarstable}, follows the adapter pattern and \Verb|PolarsTable| wraps \Verb|polars.DataFrame|.
 This leads to several wrapper methods, that call \Verb|DataFrame| methods and return that result:
 \Verb|writeIpc|, \Verb|writeIpcTo|, \Verb|withColumn|, \Verb|withColumnFromInternal|, \Verb|nRows|, \Verb|nColumns|, \Verb|clone| and \Verb|toString|.
@@ -188,7 +201,7 @@ def doExecute(inputSheet, context):
 		context
 	)
 	\end{minted}
-	\caption{Pseudocode for \Verb|TableInterpreter.doExecute|}
+	\caption{Pseudocode for \Verb{TableInterpreter.doExecute}}
 	\label{lst:tableInterpreter:doExecute}
 \end{listing}
 
@@ -248,7 +261,6 @@ One property is no longer supported:
 
 \Verb|colsAndSchema| returns a list of column names and a map from those column names to a Polars' DataType.
 The method reuses code from \Verb|TableInterpreterExecutor| and \Verb|toPolarsDataTypeWithLogs|.
-- reuse code from tableInterpreter
 \begin{listing}
 	\begin{minted}{python}
 def colsAndSchema(context):
@@ -344,7 +356,7 @@ def doExecute(inputTable, context):
 		)
 
 	# This adds the `alias` operation to the expression.
-	# It will rename the column to `outputColumnName`
+	# It will rename the column to the value of outputColumnName
 	expression = expression.alias(outputColumnName)
 
 	newTable = inputTable.withColumnFromInternal(expression)
@@ -358,24 +370,6 @@ def doExecute(inputTable, context):
 
 \section{TransformExecutor}
 \label{section:impl:transforms}
-Originally, \Verb|TransformExecutor| would compute the new column by following the algorithm outlined in \ref{lst:old_eval}.
-
-
-\begin{listing}
-	\begin{minted}{python}
-newColumn = []  # Empty list
-for row in inputColumns:
-	...  # add row to evaluation context
-	let value = evaluateExpression(expression, context)
-	newColumn.add(newColumn)
-	...  # remove row from evaluation context
-return newColumn
-	\end{minted}
-	\caption{Pseudocode of the algorithm the interpreter used to execute transforms}
-	\label{lst:old_eval}
-\end{listing}
-
-
 Transform executors are implemented in \Verb|lib/execution/src/lib/transforms/transform-executor.ts|.
 
 As explained in \ref{section:transforms} we will use Polars expressions to execute transforms.
@@ -401,7 +395,7 @@ def doExecuteTransform(variableToColumnName, context):
 	)
 
 	try:
-		expr = polarsEvaluateExpression(
+		expr = jayveeExpressionToPolars(
 			this.getOutputAssignment().expression,
 			context.evaluationContext
 		)
@@ -426,7 +420,7 @@ end
 		autoactivate on
 		->":PolarsTableTransformerExecutor": execute(inputTable, context)
 		":PolarsTableTransformerExecutor" -> ":PolarsTransformExecutor": executeTransform(\ncolumns,\ncontext\n)
-		":PolarsTransformExecutor" ->]: polarsEvaluateExpression(\njayvee expression\n)
+		":PolarsTransformExecutor" ->]: jayveExpressionToPolars(\njayvee expression\n)
 		return expr: pl.Expr
 		return expr.cast(pl.f64)
 		return inputTable.withColumnFromInternal(\nexpr.cast(pl.f64).alias('out')\n)
@@ -437,8 +431,12 @@ end
 \end{figure}
 
 \subsection{Expressions}
-\textcite{polars:docs:expr} seperate Jayvee expression into three categories: \emph{literals}, \emph{variables}, \emph{operators}.
-The \Verb|polarsEvaluateExpression| function, located in \Verb|libs/language-server/src/lib/ast/expressions/evaluate-expression.ts|, evaluates Jayvee expressions depending on this category (see \ref{fig:uml:polars_evaluate_expression}).
+\label{impl:expressions}
+As explainded in \ref{section:expressions}, Jayvee expression are either literals, variables or operators.
+The \Verb|jayveExpressionToPolars| function, located in \Verb|libs/language-server/src/lib/ast/expressions/evaluate-expression.ts|, evaluates Jayvee expressions depending on this category (see \ref{fig:uml:polars_evaluate_expression}).
+It utilises an instance of \Verb|EvaluationContext| (\ref{fig:uml:eval_context}) to retrieve a variable's value, or to find an operrator's evaluator.
+\Verb|pl.lit| represents a value literal that can be uses as a Polars expression.
+It is useful in statements like \mint{typescript}{pl.lit(10).minus(pl.col("somecolumn"))}.
 
 \begin{figure}
 	\begin{plantuml}
@@ -473,7 +471,7 @@ The \Verb|polarsEvaluateExpression| function, located in \Verb|libs/language-ser
 		@enduml
 	\end{plantuml}
 	\caption{
-		Activity diagram of the \Verb{polarsEvaluateExpression} function.
+		Activity diagram of the \Verb{jayveExpressionToPolars} function.
 		\Verb{expr} is the expression that should be evaluated. %FIXME: caption
 	}
 	\label{fig:uml:polars_evaluate_expression}
@@ -482,59 +480,47 @@ The \Verb|polarsEvaluateExpression| function, located in \Verb|libs/language-ser
 
 \subsubsection{Operator evaluators}
 \label{subsubsection:impl:operator_evaluator}
-Operator Evaluators are used by \Verb|polarsEvaluateExpressions| to transfrom a Jayvee operator into a Polars expression.
+\ref{tab:impl:expressions} contains a table linking every Jayvee operator evaluator with the Polars expression it evaluates to.
+Many Jayvee operators have an equivalent Polars expressions.
 
-- polarsEvaluate
+Polars does not have an \Verb|xor| expression, but the \Verb|and|, \Verb|or| and \Verb|not| expressions can be used to create a logically equivalent expression.
+
+Jayvee's \Verb|sqrt| is transformed to the mathematically equivalent \Verb|pow(1/2)|.
+
+Polars \Verb|round| expression expects the number of digits after the comma as a parameter.
+We pass \Verb|0|, to remain consistent with the TypeScript implementation.
+
+\Verb|root| and \Verb|pow| are unsupported, because Polars' \Verb|pow| expression expects a constant exponant.
+
+\Verb|replace| and \Verb|matches| are unsupported.
+Polars has expressions that allow working with \ac{regex}s, the time frame was to short to figure out a solution.
+%TODO explain that it was too hard to ensure consistency with the typescript implementation
+
+Polars allows users to parse strings, by casting them to a target Polars DataType \autocite{polars:docs:expr:parsing}.
+\Verb|asText|, \Verb|asDecimal| and \Verb|asInteger| convert their respective Jayvee ValueType to obtain this target DataType. \\
+\Verb|asText|, \Verb|asDecimal| and \Verb|asInteger| are implemented this way. \\
+Polars does not allow casting strings to booleans \autocite{polars:docs:expr:parsing}, which means that the \Verb|asBoolean| operator is unsupported.
+%TODO maybe mention that it could be done if I had more time.
 
 
+The sequence diagram \ref{fig:uml:epr:example} depicts how the block \Verb|B1| from \ref{lst:expr:example:pipeline} would execute its transform.
 \begin{listing}
 	\begin{minted}{typescript}
-class MultiplicationOperatorEvaluator extends DefaultBinaryOperatorEvaluator<
-  number,
-  number,
-  number
-> {
-  constructor() {
-    super('*', NUMBER_TYPEGUARD, NUMBER_TYPEGUARD);
-  }
-  override doEvaluate(leftValue: number, rightValue: number): number {
-    return leftValue * rightValue;
-  }
-  override polarsDoEvaluate(
-    left: PolarsInternal,
-    right: PolarsInternal,
-  ): pl.Expr {
-    return left.mul(right);
-  }
+transform tr {
+	from x oftype integer;
+	from y oftype integer;
+	to z oftype decimal;
+	z: x + y;
+}
+block Bl oftype TableTransformer {
+	inputColumns: ['a', 'b'];
+	outputColumn: 'c';
+	uses: tr;
 }
 	\end{minted}
-
+	\caption{A Jayvee snippet defining a TableTransformer and a transform.}
+	\label{lst:expr:example:pipeline}
 \end{listing}
-
-
-
-
-
-- Operator type calculators were not changed
-- they dont reflect the actual types of the data during runtime anymore.
-- they still prevent the user from doing illegal stuff.
-
-
-\subsubsection{example}
-- imagune a jayvee pipeline containing this tabletransformer \
-\begin{minted}{typescript}
-	transform tr {
-		from x oftype integer;
-		from y oftype integer;
-		to z oftype decimal;
-		z: x * 2 + y;
-	}
-	block Bl oftype TableTransformer {
-		inputColumns: ['a', 'b'];
-		outputColumn: 'c';
-		uses: tr;
-	}
-\end{minted}
 - how he inputTable to Bl is transformed is depicted in this diagram
 \begin{figure}
 	\begin{plantuml}
@@ -562,16 +548,16 @@ class MultiplicationOperatorEvaluator extends DefaultBinaryOperatorEvaluator<
 
 
 
-\section{SQLiteLoader}
-- doExecute
-- retrieve file, table and dropTable properties from context
-- call executeLoad
+\section{SQLiteLoaderExecutor}
+\Verb|SQLiteLoaderExecutor| is implemented in \Verb|libs/extensions/rdbms/exec/src/lib/sqlite-loader-executor.ts|.
 
-- executeLoad
-- general implementation for both Ts and Polars.
-- uses generateInsertTableStatement and generateCreateTableStatement from Table class, which have different implementations for polars and ts (see those sections)
+\Verb|doExecute| retrieves and validates the blocks properties: \Verb|file|, \Verb|table| and \Verb|dropTable|, which are passed to the \Verb|executeLoad| method.
 
-- \Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLLoader| don't override the default implementation
+\Verb|executeLoad| provides a general implementation that works for \Verb|TsTable| and \Verb|PolarsTable|, because it uses the abstract \Verb|Table| class' methds to generate \ac{SQL} queries.
+These methods are \Verb|generateDropTableStatement|, \Verb|generateCreateTableStatement| and \Verb|generateInsertValuesStatement|.
+\ref{impl:table:polars} outlines the implementation.
+
+\Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLiteLoaderExecutor| don't override the default implementation.
 
 \subsection{sqlite-loader-rust}
 \label{subsection:sqlite-loader-rust}

@@ -76,41 +76,6 @@ ETL: fachbegriff extract, transform, load.
 30. How to make smaller class diagrams (leave out function parameters)
     - can leave out
     - es ist ein "Ausschnitt", "nix mit der aktuellen thematik" ausgeblendt
-31. call-stack as sequence diagram
-    ```plantuml
-    @startuml
--> "operator-evaluator.ts": polarsEvaluateExpression(expression: Expression)
-alt undefined
-  <- "operator-evaluator.ts": undefined
-else free variable
-  "operator-evaluator.ts" -> EvaluationContext: getValueFor(literal: FreeVariableLiteral)
-  alt is InternalValueRepresentation
-    <- "operator-evaluator.ts": pl.lit(x)
-  else
-    <- "operator-evaluator.ts": x
-  end
-else literal
-  "operator-evaluator.ts" -> "operator-evaluator.ts": evaluateValueLiteral(expression)
-  "operator-evaluator.ts" -> "operator-evaluator.ts": lit: InternalValueRepresentation
-  alt lit is undefined
-    <- "operator-evaluator.ts": undefined
-  else
-    <- "operator-evaluator.ts": pl.lit(lit)
-  end
-  "operator-evaluator.ts" -> "operator-evaluator.ts": getEvaluator(expression)
-  "operator-evaluator.ts" -> EvaluationContext: operatorRegistry
-  alt unary expression
-    EvaluationContext -> OperatorRegistry: unary[operator]
-  else binary expression
-    EvaluationContext -> OperatorRegistry: binary[operator]
-  else ternary expression
-    EvaluationContext -> OperatorRegistry: ternary[operator]
-  end
-    OperatorRegistry -> "operator-evaluator.ts": OperatorEvaluator
-    "operator-evaluator.ts" -> OperatorEvaluator: polarsEvaluate(expression: Expression, evaluationContext: EvaluationContext)
-end
-@enduml
-    ```
 32. pseudo code
     - yes, better than ts
 33. how to cite websites with  no author (arrow.apache.org), or even imprint (jvalue.com)
@@ -159,5 +124,6 @@ end
 
 HERE
 48. publish sqlite-loader-rust
+57. publish napi-ts
 
 

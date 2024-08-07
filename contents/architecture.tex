@@ -361,8 +361,37 @@ For example \mintedinline{typescript}{abstract clone(): Table} becomes \mintedin
 This is legal %FIXME: maybe better term instead of legal
 because \Verb|PolarsTable| is a subclass of \Verb|Table|.
 
-In addition to the abstract methods from \Verb|Table|, \Verb|PolarsTable| also implements methods that take advantage of features not available in the TypeScript implementation.
-\Verb|withColumnFormInternal| returns a new Table with the column resulting from the passed expression added.
+In addition to the abstract methods from \Verb|Table|, \Verb|PolarsTable| also implements methods that take advantage of Polars' features not available to the TypeScript implementation.
+
+\Verb|withColumnFormInternal| returns a new Table with the column resulting from the passed Polars expression added.
+Polars expressions are a way to describe a series of operations, that result in one or more columns, with automatic optimization and parallelization \autocite{polars:docs:expr}.
+\ref{lst:pl_expr_example} contains an example of how Polars expression can be chained.
+\begin{listing}
+	\begin{minted}{typescript}
+use { pl } from 'nodejs-polars';
+const dataFrame = ...; // Creation of the dataframe was omitted
+// When the expression is applied, pl.col selects a column,
+// based on name
+const a = pl.col("a")
+const b  = pl.col("b")
+// When the expression is applied,
+// mul multplies all values from expression a with
+// those from b
+const product = a.mul(b)
+// alias gives the expression a new name
+// When the expression is applied, this renames the column.
+const renamed = product.alias("c");
+// withColumn applies the expression and returns a DataFrame,
+// containing the column computed by the expression.
+const newDataFrame = dataFrame.withColumn(renamed)
+// newDataFrame contains a column "c".
+// "c" contains the values of column "a" multplied with the
+// values from column "b"
+	\end{minted}
+	\caption{How to multiply the values in "a" and "b" of a DataFrame}
+	\label{lst:pl_expr_example}
+\end{listing}
+
 \Verb|writeIpc| and \Verb|writeIpcTo| convert the table to the Arrow \ac{IPC} format, writing either into a Buffer or a File.
 
 One of the negative consequences is that adding a column into the DataFrame is that the column's ValueType is lost, because the Dataframe uses polars' DataTypes.
@@ -373,6 +402,15 @@ Conversion requires a ValueTypeProvider, which is saved as one of PolarsTable's 
 \Verb|PolarsTable| requires a \Verb|ValueTypeProvider|
 to be passed to its contructor. See \ref{subsubsection:polarstablecolumn}.
 See \ref{fig:uml:polarstable} for the class diagram.
+
+\Ver
+Now, we use Polars expressions, a way to describe a series of operations, that result in one or more columns, with automatic optimization and parallelization \autocite{polars:docs:expr}.
+The approach to executing transforms no longer is to compute all the calues of the new column, but to create a Polars expression, and return it to \Verb|PolarsTableTransformerExecutor|.
+As a consequence, we add the new function \Verb|jayveeExpressionToPolars|.
+This function transfroms a Jayvee expression into a Polars Expression.
+\Verb|PolarsTransformExecutor.executeTransform| returns this Polars expression to \Verb|PolarsTableTransformerExecutor|.
+can apply the expression returned by \Verb|PolarsTransformExecutor.executeTransform| to its input table and compute the new column.
+
 
 \begin{figure}
 	\begin{plantuml}
@@ -475,7 +513,7 @@ This detail is left to \Verb|Series|.
 			}
 		@enduml
 	\end{plantuml}
-	\caption{The \Verb|PolarsTableColumn| class diagram}
+	\caption{The \Verb{PolarsTableColumn} class diagram}
 	\label{fig:uml:polarstablecolumn}
 \end{figure}
 
@@ -509,7 +547,7 @@ At one point during development, \Verb|at| was also implemented for \Verb|Polars
 			}
 		@enduml
 	\end{plantuml}
-	\caption{The \Verb|PolarsTableColumn| class diagram}
+	\caption{The \Verb{PolarsTableColumn} class diagram}
 	\label{fig:uml:tstablecolumn}
 \end{figure}
 
@@ -800,12 +838,14 @@ the only difference being that the definition file is placed in \Verb|libs/langu
 \end{figure}
 
 \subsection{TableTransformer}
-Blocks with type \Verb|TableTransformer| are Jayvee's main method of manipulating data.
-This subsection is only concerned with the executor of this blocktype, the architecture of transforms is explained in \ref{section:transforms}, expressions in \ref{section:expressions}.
+% Blocks with type \Verb|TableTransformer| are Jayvee's main method of manipulating data.
+% This subsection is only concerned with the executor of this blocktype, the architecture of transforms is explained in \ref{section:transforms}, expressions in \ref{section:expressions}.
 
-We still follow the strategy pattern, so we create another abstract class \Verb|TableTransformer| (\ref{fig:uml:tabletransformer}) with two subclasses \Verb|TsTableTransformer| and \Verb|PolarsTableTransformer| (\ref{fig:uml:polarstabletransformer}).
-
+We still follow the strategy pattern, so, we create another abstract class \Verb|TableTransformer| (\ref{fig:uml:tabletransformer}) with two subclasses \Verb|TsTableTransformer| and \Verb|PolarsTableTransformer| (\ref{fig:uml:polarstabletransformer}).
 As usual the created abstract class contains some shared behaviour, in this case \Verb|logColumnOverwriteStatus| and \Verb|checkInputColumnsExist|.
+
+Blocks with type \Verb|TableInterpreter| use Jayvee transforms to compute an ouptput column from a series of input columns.
+Jayvee transforms are executed by \Verb|TransformExecutor|s (see \ref{section:transforms}).
 
 \begin{figure}
 	\begin{plantuml}
@@ -828,7 +868,7 @@ As usual the created abstract class contains some shared behaviour, in this case
 		@startuml
 		class PolarsTableTransformerExecutor  {
 		+ {static} <<readonly>> type : 'PolarsTableTransformer';
-		- checkInputColumnsMatchTransformInputTypes(inputColumnNames: string[], inputTable: PolarsTable, transformInputDetailsList: PortDetails[], context: ExecutionContext): Result<Map<string, polars.Expr>>
+		- checkInputColumnsMatchTransformInputTypes(inputColumnNames: string[], inputTable: PolarsTable, transformInputDetailsList: PortDetails[]): Result<Map<string, polars.Expr>>
 		doExecute(inputTable: PolarsTable, context: ExecutionContext): Result<PolarsTable>
 		}
 		@enduml
@@ -838,7 +878,7 @@ As usual the created abstract class contains some shared behaviour, in this case
 \end{figure}
 
 \subsection{SQLiteLoader}
-The SQLiteLoader blocktype loads it's input table into a SQLite database.
+Jayvee blocks with type SQLiteLoader load their input table into a SQLite database.
 Its output IOType is \Verb|None|, so no blocks in the pipeline can come after a block with type SQLiteLoader.
 The abstract \Verb|SQLiteLoaderExecutor| (\ref{fig:uml:sqliteloader}) offers a general implementation, that methods defined in the abstract \Verb|Table| class.
 
@@ -866,7 +906,7 @@ The different behaviour results from different overrides of the \Verb|generateCr
 \end{figure}
 
 \subsubsection{RustSQLiteLoaderExecutor}
-Then there is also \Verb|RustSQLitelLoader| which uses an external library to load the table into sqlite.
+Then there is also \Verb|RustSQLiteLoader|, which uses an external library to load the table into sqlite.
 This library, called \emph{sqlite-loader-rust}, is written in Rust and uses napi-rs to provide a TypeScript \ac{API}.
 Because the library only exists to execute a single task, it only exposes one function \mintinline{typescript}{loadSqlite(ipcPath: string, tableName: string, sqlitePath: string, dropTable: boolean): void}.
 See \ref{subsection:sqlite-loader-rust} for the implementation.
@@ -913,19 +953,24 @@ The \Verb|TableTransfromerExecutor| class creates an instance of a concrete subc
 For \Verb|PolarsTableTransformerExecutor| this is an instance of  \Verb|PolarsTransformExecutor| (\ref{fig:uml:transformexecutor}), for \Verb|TsTableTransformerExecutor| this is \Verb|TsTransformExecutor|.
 % Then, that instance's \Verb|executeTransform| method is called, which returns either the new column or an expression to compute the new column.
 
-Executing \Verb|PolarsTransformExecutor| returns a polars expression.
-Polars expressions are a way to describe a series of operations that result in one or more columns \autocite{polars:docs:expr}.
-\ref{lst:pl_expr_example} is an example of how polars expression can be chained.
+Originally, \Verb|TransformExecutor| would compute the new column by following the algorithm outlined in \ref{lst:old_eval}.
 \begin{listing}
-	\begin{minted}{typescript}
-use { pl } from 'nodejs-polars';
-const dataFrame = ...; // Creation of the dataframe was omitted
-const newDataFrame = dataFrame.withColumn(pl.col("a").mul(pl.col("b")))
+	\begin{minted}{python}
+newColumn = ...  # An empty column
+expression = transform.expression
+for row in inputColumns:
+	...  # add row to evaluation context
+	let value = evaluateExpression(expression, context)
+	newColumn.add(newColumn)
+	...  # remove row from evaluation context
+return newColumn
 	\end{minted}
-	\caption{How to multiply column "a" and "b" of a dataframe}
-	\label{lst:pl_expr_example}
+	\caption{Pseudocode of the algorithm the interpreter used to execute transforms}
+	\label{lst:old_eval}
 \end{listing}
-\Verb|PolarsTableTransformerExecutor| can apply the expression returned by \Verb|PolarsTransformExecutor.executeTransform| to its input table and compute the new column.
+It applies the jayvee expression to each row in the input columns and returns a column.
+The new approach transforms the Jayvee expression into a Polars expression, that the \Verb|PolarsTableTransformer| can apply to its input table.
+So, we add the new function\Verb|jayveeExpressionToPolars| (see \ref{section:expressions}), which is similar to the existing \Verb|evaluateExpression|, but it returns a Polars expression, not a final value.
 
 A detailed explanation of this process can be found at \ref{section:impl:transforms}.
 
@@ -945,8 +990,8 @@ A detailed explanation of this process can be found at \ref{section:impl:transfo
 		# {abstract} doExecuteTransform(input: I, context: ExecutionContext): O | undefined;
 		}
 		class PolarsTransformExecutor  {
-		- {static} addInputColumnsToContext(inputDetailsList: readonly PortDetails[], variableToColumnName: ReadonlyMap<string, PolarsInternal>, evaluationContext: EvaluationContext)
-		# doExecuteTransform(variableToColumnName: Map<string, PolarsInternal>, context: ExecutionContext): PolarsInternal | undefined
+		- {static} addInputColumnsToContext(inputDetailsList: readonly PortDetails[], variableToColumnName: ReadonlyMap<string, pl.Expr>, evaluationContext: EvaluationContext)
+		# doExecuteTransform(variableToColumnName: Map<string, pl.Expr>, context: ExecutionContext): pl.Expr | undefined
 		}
 		TransformExecutor <|-- PolarsTransformExecutor: TransformExecutor<Map<string, PolarsInternal>, PolarsInternal>
 		@enduml
@@ -959,36 +1004,58 @@ A detailed explanation of this process can be found at \ref{section:impl:transfo
 \label{section:expressions}
 \textcite{polars:docs:expr} seperate Jayvee expressions into three categories: \emph{literals}, \emph{variables}, \emph{operators}.
 \begin{description}
-	\item[literal] Congrete values, e.g. \Verb|5|, \Verb|"sometext"| or \Verb|true|
-	\item[variable] Represents a value defined in the context of the expression.
+	\item[literal] Concrete values, e.g. \Verb|5|, \Verb|"sometext"| or \Verb|true|.
+	      Their evaluation does not differ from the original implementation.
+	\item[variable] Represents a value defined in the evaluation context (\ref{fig:uml:eval_context}).
 	      Variables are used to refer to columns inside of transfroms.
-	\item[operator] Transforms one to three parameters into a one result.
+	\item[operator] Transforms one to three Jayvee expressions into one result.
+	      The evaluation context contains a registry of operator evaluators (see \ref{subsection:arch:operator_evaluators})
 \end{description}
-The Jayvee interpreter does not contain a \Verb|ExpressionEvaluator| class, just a function \Verb|evaluateExpression|.
-This function takes the expression and the evaluation context as
-This makes the previous process of creating an abtract class and subclasses implementing the different behaviours obsolete? %FIXME: obsolete
-.
-Instead, we create a new function \Verb|polarsEvaluateExpression| with the same parameters as \Verb|evaluateExpression|.
-However instead of an fully computed result, this new function return a polars expression.
+Jayvee expressions are transformed to Polars expressions using the function \Verb|jayveeExpressionToPolars| (see \ref{impl:expressions}).
+
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		class EvaluationContext {
+				- <<readonly>> variableValues: Map<string, InternalValueRepresentation | pl.Expr>
+				- valueKeywordValue: InternalValueRepresentation | undefined;
+
+				+ <<readonly>> runtimeParameterProvider: RuntimeParameterProvider;
+				+ <<readonly>> operatorRegistry: OperatorEvaluatorRegistry;
+				+ <<readonly>> valueTypeProvider: valueTypeProvider;
+
+				getValueFor(literal: FreeVariableLiteral): InternalValueRepresentation | pl.Expr | undefined
+				setValueForReference(refText: string, value: InternalValueRepresentation | pl.Expr): void
+				deleteValueForReference(refText: string): void
+				getValueForReference(referenceLiteral: ReferenceLiteral): InternalValueRepresentation | pl.Expr | undefined
+
+				hasValueForRuntimeParameter(key: string): boolean
+				getValueForRuntimeParameter<I extends InternalValueRepresentation>(key: string, valueType: ValueType<I\>): I | undefined
+
+				setValueForValueKeyword(value: InternalValueRepresentation)
+				deleteValueForValueKeyword()
+				getValueForValueKeyword(literal: ValueKeywordLiteral, valueTypeProvider: ValueTypeProvider): InternalValueRepresentation | undefined
+			}
+		@enduml
+	\end{plantuml}
+	\caption{\Verb{EvaluationContext} class diagram}.
+	\label{fig:uml:eval_context}
+\end{figure}
 
 \subsection{Operator evaluators}
-One-parameter operations are unary, two-parameter operations are binary, and three-parameter operations are ternary.
-Operators with one parameter are unary operators, operators with two parameters binary and operators with three ternary.
+\label{subsection:arch:operator_evaluators}
 Evaluators implement the \Verb|OperatorEvaluator| interface.
 
-Jayvee supports Unary, binary and ternary expressions have evaluators.
-They are found by the interpreter through the operator registry.
-Originally, evaluators calculated a value from a seqence of inputs.
-Now, evaluators need to return polars expressions, while still preserving the origninal functionality for \emph{FR-3}.
+We create a new interface \Verb|PolarsOperatorEvaluator|, that defines one method, \Verb|polarsEvaluate| and extends the existing \Verb|OperatorEvaluator|.
+As a consequence, all classes that implement \Verb|PolarsOperatorEvaluator| are also required to implements the properties defined by \Verb|OperatorEvaluator|.
+This guarantees that the existing typescript implemntation remains avaliable.
 
-We create a new interface \Verb|PolarsOperatorEvaluator|, that extends the existing \Verb|OperatorEvaluator|.
-This interface defines one method \Verb|polarsEvaluate|.
-Then we make all classes, that previously implemented \Verb|OperatorEvaluator| interface, implement \Verb|PolarsOperatorEvaluator| (see \ref{subsubsection:impl:operator_evaluator}).
+All classes, that previously implemented \Verb|OperatorEvaluator| interface, now implement \Verb|PolarsOperatorEvaluator| (see \ref{subsubsection:impl:operator_evaluator}).
 
-We concoiusly did not follow the strategy pattern approach here.
-Jayvee currently has 33 evaluator operators.
-The strategy pattern requires two additional classs per evaluator, one for the abstract class and one for the polars implementation.
-This would raise the amount of evaluators to 99.
+We deliberately did not follow the strategy pattern approach here.
+Jayvee currently has ~32 evaluator operators. %FIXME: decide whether to be imprecise or not. I counted 32
+The strategy pattern requires two additional classes per evaluator, one for the abstract class and one for the polars implementation.
+This would increase the number of evaluator classes to 96.
 We considered implementing one additional method the simpler option.
 
 \ref{fig:uml:evaluators} visualizes the inheritance structure for operator evaluators.

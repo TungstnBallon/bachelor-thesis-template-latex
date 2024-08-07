@@ -1,3 +1,5 @@
+- Literature review:
+    - nodejs-Polars is sparse, so we will MAYBE: DECIDE reference the python documentation.
 - Architecture:
     Cite requirement process
     - Operator type calculators were not changed
@@ -29,8 +31,10 @@
             - immer nur minimale Abweichungen
         - null in textspalten
             - ts hat leere strings
+    - string operators were not inlcuded because time.
 
 
 - TODO
     - how to cite images
     - give credit to napi-package-template
+    - fix `\Verb` and uml diagram spacing
