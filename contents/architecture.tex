@@ -61,6 +61,7 @@ Both types of requirements have been evaluated for completenes, consistency and 
 	      This is enforced by running \Verb|npm run lint|.
 	      In rust code we use the defaults from rustfmt and clippy.
 	\item[NFR-5] \textbf{maturity} We aim to create a prototype, not a mature implementation.
+	\item[NFR-6] \textbf{extensibility} This prototype must extend the capabilities of polars / arrow %TODO rephrase
 \end{enumerate}
 
 \section{Interpreter Overview}
@@ -877,16 +878,18 @@ Jayvee transforms are executed by \Verb|TransformExecutor|s (see \ref{section:tr
 	\label{fig:uml:polarstabletransformer}
 \end{figure}
 
-\subsection{SQLiteLoader}
+\subsection{SQLiteLoaderExecutor}
 Jayvee blocks with type SQLiteLoader load their input table into a SQLite database.
 Its output IOType is \Verb|None|, so no blocks in the pipeline can come after a block with type SQLiteLoader.
-The abstract \Verb|SQLiteLoaderExecutor| (\ref{fig:uml:sqliteloader}) offers a general implementation, that methods defined in the abstract \Verb|Table| class.
+The abstract \Verb|SQLiteLoaderExecutor| (\ref{fig:uml:sqliteloader}) offers a general implementation, utilising methods defined in the abstract \Verb|Table| class.
+This approach includes serializing all of the data contained in the input table into a \ac{SQL} query with type string.
+We consider this to be a non-optimal representation of the data and improve it in \ref{arch:sqlite:rust}.
 
 \Verb|SQLiteLoaderExecutor| has three subclasses:
-Both \Verb|TsSQLiteLoaderExecutor| and \Verb|PolarSQLiteLoaderExecutor| don't override any methods from their superclass.
+\Verb|TsSQLiteLoaderExecutor| doesn't override the superclass' methods to preserve the original TypeScript implementation.
+\Verb|PolarSQLiteLoaderExecutor| doesn't override the superclass' methods, because Polars' nodejs \ac{API} does not offer any database functionality at the time of writing. %FIXME make sure you can write `at the time of writing`.
 The different behaviour results from different overrides of the \Verb|generateCreateTableStatement| and \Verb|generateInsertValuesStatement| in the \Verb|PolarsTable| and \Verb|TsTable| classes.
 
-\subsubsection{abstract SQLiteLoader}
 \begin{figure}
 	\begin{plantuml}
 		@startuml
@@ -906,12 +909,32 @@ The different behaviour results from different overrides of the \Verb|generateCr
 \end{figure}
 
 \subsubsection{RustSQLiteLoaderExecutor}
-Then there is also \Verb|RustSQLiteLoader|, which uses an external library to load the table into sqlite.
-This library, called \emph{sqlite-loader-rust}, is written in Rust and uses napi-rs to provide a TypeScript \ac{API}.
-Because the library only exists to execute a single task, it only exposes one function \mintinline{typescript}{loadSqlite(ipcPath: string, tableName: string, sqlitePath: string, dropTable: boolean): void}.
-See \ref{subsection:sqlite-loader-rust} for the implementation.
+\label{arch:sqlite:rust}
+\Verb|RustSQLiteLoaderExecutor| avoids serializing the input table's data into a \ac{SQL} query string, by relying on an external library, \Verb|sqlite-loader-lib|.
+using generating \ac{SQL} statements.
 
-\ref{fig:uml:sqliteloaderexecutor:combined} contains diagram of all classes connected to loading the \ac{SQL}.
+\subsubsection{sqlite-loader-lib}
+Polars' core functionality is written in Rust, which \textcite{polars} describe as allowing "for high performance with fine grained control over memory".
+For this reason, we choose Rust to implement sqlite-loader-lib.
+
+Polars uses NAPI-RS \autocite{polars:src:napi}, which compiles a Rust library to a nodejs addon \autocite{napi}.
+WIth this, the Jayvee interpeter, written in TypeScript, can use functions from a library written in Rust.
+
+The \Verb|RustSQLiteLoaderExecutor|'s role is to save its input table into an Arrow \ac{IPC} file on disk, because passing the \Verb|PolarsTable| object to sqlite-loader-lib through a function parameter is %FIXME decide if it is too complex or if it seems too complex, orif it just isnt supported
+too complex for NAPI-RS.
+
+Because the library only exists to execute a single task, it only exposes one function \mint{typescript}{loadSqlite(ipcPath: string, tableName: string, sqlitePath: string, dropTable: boolean): void}.
+Its parameters are the path of the Arrow \ac{IPC} file and the properties of the \Verb|SQLiteLoader| block.
+
+Polars' Rust implementation doesn't offer database export either. %TODO At the time of writing
+As a consequence, \Verb|sqlite-loader-lib| uses a seperate library to to interface with an sqlite database.
+This library, known as Connector Arrow, enables the writing of Arrow record batches into a SQLite database table \autocite{connector-arrow}.
+Connector Arrow relies on the rusqlite library to support SQLite databases \autocite{connector-arrow}.
+
+See \ref{subsection:sqlite-loader-lib} for the implementation.
+
+
+\ref{fig:uml:sqliteloaderexecutor:combined} contains diagram of all classes connected to loading the table into SQLite.
 
 \begin{figure}
 	\begin{plantuml}

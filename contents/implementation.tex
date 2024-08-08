@@ -559,60 +559,98 @@ These methods are \Verb|generateDropTableStatement|, \Verb|generateCreateTableSt
 
 \Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLiteLoaderExecutor| don't override the default implementation.
 
-\subsection{sqlite-loader-rust}
-\label{subsection:sqlite-loader-rust}
+\Verb|RustSQLiteLoaderExecutor| overrides \Verb|executeLoad|.
+Its implementation writes the table to \Verb|dataframe.arrow| (the .arrow extension is recommended by the Arrow specification \autocite{arrow:spec}), using \Verb|PolarsTable|'s \Verb|writeIpcTo| method.
+Then it calls the \Verb|loadSQLite| function implemented in \Verb|sqlite-loader-lib|.
 
-\subsubsection{Napi-rs}
-- napi-rs allows us to compile a rust library to a .node file
-- nodejs can load and use this .node file
-- the types that can be passed to this function is restricted by napi.rs capabilites
 
-- we want to evaluate the extensibility of the polars backend
-- create a extenal rust library with typescript interface via napi-package-template: \Verb|sqlite-loader-rust|
-- napi function cannot have dataframe as a parameter: type is too complex for napi
-- Solution: export dataframe into an arrow ipc file on disk. then
-- call \Verb|loadSqlite|
-- negative: context (including the logger, is lost)
 
-\subsubsection{Ecosystem overview}
-- rusqlite: no arrow support, but works well, can write
-- arrow\_adbc: rust implementation is not there yet, it only has a dummy driver (not sqlite or postgres), requires dynamic linking of c libraries,
-- connector\_arrow: built in rust, uses the arrow crate under the hood, supports many backends (postgres, duckdb, etc.), only sqlite implemented because prototype. WE USE THIS
+\subsection{sqlite-loader-lib}
+\label{subsection:sqlite-loader-lib}
+\Verb|sqlite-loader-lib| is implemented in a new directory outside of the Jayvee repository.
+When attempting to implement \Verb|sqlite-loader-lib| inside the Jayvee repository, we encountered build issues. %TODO explain
 
-\subsubsection{impl}
-- in case of unrecoverable error, use napi's errors to throw an error in the typescript code. include messages by library errors.
-- biggest reason for linecount and complexity is error handling
+NAPI-RS' package template \autocite{napi:template} provides simple setup instructions for a library built with NAPI-RS.
+\Verb|src/lib.rs| contains the functionality.
+To compile the library, the \ac{CLI} command:
+\mint{bash}{npm run build}
+is executed.
 
-- ipcReader
-- opens a file and wrape it in an arrow file reader
-- use arrow::FileReader to read the ipc file into a BatchRecord iterator, because tables can be comprised of multiple batchrecords
+As described in \ref{arch:sqlite:rust}, \Verb|sqlite-loader-lib| only exposes the function \Verb|loadSqlite| (see \ref{fig:uml:loadSqlite}).
+Due to the experimental nature of this library, we do not implement complex error recovery.
+\begin{figure}
+	\begin{plantuml}
+		@startuml
+		start
+		:Open the Arrow IPC file;
+		note
+		Ensures the table data is
+		available on disk.
+		end note
+		:Open a connection to
+		the sqlite database;
+		if (The dropTable block property is true)
+		:Drop the table from
+		the database;
+		endif
+		:Create the table in
+		the database;
+		:Prepare the database connection
+		for appending to the table;
+		while (The Arrow IPC file is not read completely)
+		:Read an Arrow record batch from
+		the Arrow IPC file;
+		:Append record batch to the table;
+		:update the number of inserted lines;
+		endwhile
+		:Log number of inserted lines;
+		stop
+		@enduml
+	\end{plantuml}
+	\caption(An activity diagram of the \Verb{loadSqlite})
+	\label{fig:uml:loadSqlite}
+\end{figure}
 
-- pop_first_batch: remove the first batch read from the iterator
+\Verb|ipc_reader| opens an Arrow \Verb|IPC| file and passes it to an Arrow \Verb|FileReader|.
 
-- db_connection
-- create a connection to a sqlite database using rusqlite
-- wrap that connection with connector\_arrow's SQLiteConnection type
-- can now write arrow data to this connection
+\Verb|db_connection| obtains a SQLite database connection from creating a SQLite database file.
+This connection is passed do connector\_arrow's SQLiteConnection type.
 
-- append: see listing
+\Verb|sqlite-loader-lib| is made available to the Jayvee interpreter by the \ac{CLI} command
+\mint{bash}{npm install --save <PATH TO sqlite-loader-lib>}
+
 \begin{listing}
-	\begin{minted}{lua}
-function append(appender, first_batch, remainder)
+	\begin{minted}{python}
+def ipc_reader(ipc_path):
+	file = file_open(ipc_path)
+	return FileReader(file)
+	\end{minted}
+\end{listing}
+
+\begin{listing}
+	\begin{minted}{python}
+def db_connection(sqlite_path):
+	sqlite_connection = new_rusqlite_connection(sqlite_path)
+	connector_arrow_connection = SQLiteConnection(sqlite_connection)
+	return connector_arrow_connection
+	\end{minted}
+\end{listing}
+
+\begin{listing}
+	\begin{minted}{python}
+def append(appender, batches):
 	inserted_rows = 0
-	remainder.prepend(first_batch)
-	for batch in remainder do
+	for batch in batches:
 		appender.append(batch)
 		inserted_rows += batch.number_of_rows
-	end
 	return inserted_rows
 end
 	\end{minted}
 \end{listing}
 
-- load\_sqlite
 \begin{listing}
-	\begin{minted}{lua}
-function load_sqlite(ipc_path, table_name, sqlite_path, drop_table)
+	\begin{minted}{python}
+def load_sqlite(ipc_path, table_name, sqlite_path, drop_table):
 	reader = ipc_reader()
 	conn = db_connection(sqlite_path)
 
@@ -626,4 +664,5 @@ function load_sqlite(ipc_path, table_name, sqlite_path, drop_table)
 end
 	\end{minted}
 \end{listing}
+
 

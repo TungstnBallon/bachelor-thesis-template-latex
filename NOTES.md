@@ -125,5 +125,6 @@ ETL: fachbegriff extract, transform, load.
 HERE
 48. publish sqlite-loader-rust
 57. publish napi-ts
+58. polars doesn't have db functionality AT THE TIME OF WRITING?
 
 

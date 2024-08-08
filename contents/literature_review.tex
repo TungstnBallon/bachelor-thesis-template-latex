@@ -100,10 +100,11 @@ Apache Arrow is often uses synonymously with the memory format it defines.
 This format is \emph{language agostic}, \emph{columnar} and \emph{in memory}.
 It has implementations in many languages (see \ref{subsubsection:arrow:langs} for a list).
 
-In the arrow spec, tables are called Record Batches. They are comprised of Arrays which represent columns.
-These arrays are different from JavaScript arrays, as they cannot contain different datatypes.
-The array's actual data is split across a series of buffers, which represent continuous space in memory.
-Record Batches also have Schemas, which contain the tables metadata.
+In the Arrow specification \autocite{arrow:spec}, a table is called record batch.
+They are comprised of Arrow arrays which represent columns.
+These Arrow arrays are different from JavaScript arrays, as they cannot contain different datatypes.
+An Arrow array's actual data is split across a series of Arrow buffers, which represent continuous space in memory.
+Arrow record batches also have Arrow schemas, which contain the batch's metadata.
 
 Arrow has a more granular typesystem than javascript. This allows for a more percise control of memory.
 Arrow types can have parameters.
@@ -111,6 +112,8 @@ For example instead of javascripts \Verb|number|, Arrow has (un)signed integers 
 decimals with width, scale and precision as parameters, and floating point numbers with a percision parameter.
 The spec also includes a physical memory layout for each type.
 % MAYBE  - fixed-size list - list (32-bit offset), largelist (64bit offset) instead of array
+
+The Arrow specification also defines an \ac{IPC} file format, that allows saving Arrow record batches on disk.
 
 At the time of writing there are 48 projects powered by Apache Arrow \autocite{arrow:projects}.
 

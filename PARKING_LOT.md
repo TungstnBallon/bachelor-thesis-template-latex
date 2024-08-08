@@ -9,6 +9,7 @@
     - polarsExpessions:
         - mention that pl.col and pl.lit are the most used ones and what they do
     - paper im workog
+    - added sqlite-loader-lib to external field in package.json to solve build issues
 - Evaluation:
     - Limitations:
         - could not integrate bach-napi-test into the monorepo
@@ -32,6 +33,8 @@
         - null in textspalten
             - ts hat leere strings
     - string operators were not inlcuded because time.
+- Bibliography
+    - add title to urls
 
 
 - TODO
