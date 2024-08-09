@@ -208,6 +208,34 @@
 	\end{tabular}
 \end{table}
 
+\begin{table}
+	\caption{Jayvee interpreter crashes}
+	\label{tab:crashes}
+	\begin{center}
+		\begin{tabular}{|l|l|l|}
+			\hline
+			configuration & biggest working file ($±25\ac{MB}$) & Error message                                           \\
+			\hline
+			ts-no         & $1 900 000$ $475\ac{MB}$            & Invalid string lenght.                                  \\
+			ts-so         & $1 300 000$ $325\ac{MB}$            & JavaScrip heap overflow.                                \\
+			ts-ma         & $900 000$ $225\ac{MB}$              & JavaScrip heap overflow.                                \\
+			\hline
+			pl-no         & $1 800 000$ $450\ac{MB}$            & JavaScrip heap overflow.                                \\
+			pl-so         & $1 800 000$ $450\ac{MB}$            & JavaScrip heap overflow.                                \\
+			pl-ma         & $1 700 000$ $425\ac{MB}$            & Invalid string length.                                  \\
+			\hline
+			plob-no       & $1 900 000$      $475\ac{MB}$       & Invalid string lenght.                                  \\
+			plob-so       & $1 700 000$   $425\ac{MB}$          & Invalid string length.                                  \\
+			plob-ma       & $1 700 000$   $425\ac{MB}$          & Invalid string length.                                  \\
+			\hline
+			plrs          & $2 000 000$    $500\ac{MB}$         & Cannot make a string longer than 0x1fffffe8 characters. \\
+			\hline
+			plobrs        & all $2.5\ac{GB}$ were processed     & -                                                       \\
+			\hline
+		\end{tabular}
+	\end{center}
+\end{table}
+
 \section{SBOM}
 \begin{table}
 	\caption{SBOM}\label{tab:sbom}

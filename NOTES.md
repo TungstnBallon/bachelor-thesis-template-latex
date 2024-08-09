@@ -123,8 +123,13 @@ ETL: fachbegriff extract, transform, load.
 56. can multiple inputs into one block? -no
 
 HERE
-48. publish sqlite-loader-rust
+48. publish sqlite-loader-rust and evaluation tool?
 57. publish napi-ts
 58. polars doesn't have db functionality AT THE TIME OF WRITING?
+59. muss latex compilen?
+60. can I try to guess why floats are different, or why the Invalid string lenght error happens
+Based on our knowledge of the interpreter, this error originiates from a nodejs limit on the maximum length of a string.
+61. is 25 mb margin of error small enough for max filesize.
+62. axis should always start at 0?
 
 

@@ -1,13 +1,12 @@
 - Literature review:
     - nodejs-Polars is sparse, so we will MAYBE: DECIDE reference the python documentation.
 - Architecture:
-    Cite requirement process
+    - explain IOType to use it elsewhere.
+    - Cite requirement process
     - Operator type calculators were not changed
         - they dont reflect the actual types of the data during runtime anymore.
         - they still prevent the user from doing illegal stuff.
 - Implementation:
-    - polarsExpessions:
-        - mention that pl.col and pl.lit are the most used ones and what they do
     - paper im workog
     - added sqlite-loader-lib to external field in package.json to solve build issues
 - Evaluation:
@@ -18,13 +17,6 @@
         - some floating point values might differ because
             - my implementation uses f64, node uses number with idk how many bits
             - with the conversion to ipc, it might also change things
-    - 10 runs for every config
-    - manually write down times of each block into a table
-    - 5 steps for the lines
-    - do stuff like variance
-    - utilize jayvees builtin time evaluation
-    - calculate
-        - time added per added tabletransformer
     - teste null in integer spalten
     - Untershiede ts plobrs MIT BEISPIELEN
         - manche floating point values

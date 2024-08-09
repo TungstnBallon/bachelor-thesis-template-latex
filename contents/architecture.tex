@@ -764,6 +764,7 @@ Because there is no preexisting implementation of this executor, we do not need 
 \end{figure}
 
 \subsection{LocalFileToTableExtractor}
+\label{arch:execs:localfiletotableextractor}
 The \Verb|LocalFileToTableExtractor| blocktype combines \Verb|LocalFileExtractor| and \Verb|FileToTableInterpreter|.
 This removes another layer of indirection for parsing csv data, letting polars handle as much of the process as possible.
 
