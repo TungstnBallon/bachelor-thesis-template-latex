@@ -38,6 +38,7 @@ We define the following optimization configurations.
 	%FIXME double enabled.
 	\item[ts] TypeScript.
 	      The baseline for the evaluateion.
+	      The terms "ts backend" and "baseline" are used interchangably.
 	\item[pl] Polars.
 	      % Enabled by starting the Jayvee interpreter with the \Verb|--use-polars| \ac{CLI} flag.
 	      Enables the Polars implementations of tables, columns, block executors and transforms.
@@ -50,6 +51,7 @@ We define the following optimization configurations.
 	\item{plobrs} Polars-One-Block-Rusqlite.
 	      % Enabled by using the \Verb|LocalFileToTableExtractor| block and the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
 	      Enables pl, plus \Verb|LocalFileToTableExtractor|, plus \Verb|RustSQLiteLoaderExecutor|.
+	      This represents the best case scenario HERE!!!!!!!!!!!
 \end{description}
 
 We create three pipelines with the following amount of transforms
@@ -58,6 +60,9 @@ We create three pipelines with the following amount of transforms
 	\item[some] There are four transforms in the pipeline.
 	\item[many] There are eight transforms in the pipeline.
 \end{description}
+
+In the remainder of this chapter, the term "some transforms" refers to the pipeline with four transforms.
+Similarly, the term "many transforms" the a pipeline with eight transforms.
 
 We set six values for the amount of input rows: %FIXME: 1300000 is missing
 $56250$, $112500$, $225000$, $4500000$, $900000$ ,$1800000$
@@ -352,35 +357,51 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 
 
 \section{Execution Duration}
-In this section will compare the execution durations of the configurations defined in \ref{section:parameters}.
+In this section will compare the execution duration of the configurations defined in \ref{section:parameters}.
+We group the configurations based on the number of transforms in the executed pipeline.
 
-\subsection{No transforms vs some transforms vs many transforms}
+\ref{fig:plot_no_transforms}, \ref{fig:plot_so_transforms}, \ref{fig:plot_ma_transforms}  illustrate the average execution time for each backend.
+The precise numbers can be found in \ref{app:eval:transforms}.
 
-\subsubsection{No transforms}
-\label{eval:num:none}
+\begin{description}
+	\item[pl] It is somewhat unexpected, that the pl backend performs worse than the ts baseline twice.
+	      To investigate this, the debug outputs of both these configurations (\ref{tab:cmp:sqlite}) were compared.
+	      It was observed, that the duration of the block \Verb|LiquorLoader| approximately doubled when the backend pl was enabled.
+	      We determined this to be the cause of the worse performance.
 
-\ref{fig:plot_no_transforms} shows the average execution time for each backend, \ref{tab:eval:none} contains the concrete values.
+	      We observed, that with no transforms, ts was $1,33$ times slower than the the baseline ts.
+	      With some transforms, this factor decreased to $1,09$.
+	      With many transforms pl was $1,07$ times faster than the baseline ts.
+	      This trend suggests, that the Polars implementation of table transforms is superior to the original TypeScript one.
 
-It is evident, that, the majority of backends, with the exception of pl, are faster, compared the baseline ts.
-plobrs is the most expedient backend for all tested input sizes.
-Furthermore, the mean slope of the ts backend is $12$ times larger than that of the plobrs backend.
-% We also observe, that the plrs optimization is, on average, $1,64$ times faster, that the backend pl.
+	\item[plob] The plob backend performs better than the baseline on all tested pipelines and inputs.
+	      This indicates, that the blocktype \Verb|LocalFileToTableExtractor| (\ref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing blocktypes. %TODO link diaram
 
-It is somewhat unexpected, that the pl backend has the longest runtime.
-The pl backend was observed to be $1,33$ times slower than the the baseline ts backend.
-To investigate this, the debug outputs of one run, of both these configurations (\ref{tab:cmp:sqlite}) were compared.
-It was observed, that the duration of the block \Verb|LiquorLoader| approximately doubled when the backend pl was enabled.
-This was considered to be the cause. %
+	\item[plrs] The plrs backend also performs better than the baseline on all tested pipelines and inputs.
+	      This is compelling evidence, that the combination of the executor \Verb|RustSQLiteLoaderExecutor| and the library \Verb|sqlite-loader-lib| is surperior to the original implementation.
+	      Plrs is also faster than pl, $1,64$ times on average. %FIXME remove
+
+	\item[plobrs] The plobrs combines the optimisations from the plob and plrs backends, thereby achieving the highest processing speed.
+	      % Furthermore, the mean slope of the ts backend is $12$ times larger than that of the plobrs backend. %FIXME remove
+
+	      \ref{fig:plot:factor} shows the factor, by which plobrs is faster than the baseline.
+	      The three curves are monotonously rising, which evidences the assertion, that as the number of rows increases, the plobrs backend's processing speed compared to ts increases.
+	      Furthermore, it can be observed, that the curve representing a pipeline with many transforms, lies above the curve representing some transforms, which itself lies above the curve representing
+	      no transforms.
+	      This evidence substantiates the claim, that the greater the number of transforms in a pipeline, the faster the plobrs backend is in comparison to the ts baseline.
+\end{description}
+
+Due to the fact, that the plob, plrs, and plobrs backends have been demonstrated to be faster than the ts baseline in all tested circumstances, we conclude that they are successful optimizations.
+The pl backend can only be considered an optimization, if the pipeline has sufficient transforms.
 
 
 
-All backends, execpt pl, are considered to be successful optimisations for a pipeline with no transforms.
 
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
-				title = {Runtime with no transforms},
-				xlabel = {lines},
+				title = {no transforms},
+				xlabel = {rows},
 				ylabel = {time in ms},
 				legend pos=north west,
 			]
@@ -424,36 +445,15 @@ All backends, execpt pl, are considered to be successful optimisations for a pip
 			\legend{ts,pl,plob,plrs,plobrs}
 		\end{axis}
 	\end{tikzpicture}
-	\caption{plot no transforms}\label{fig:plot_no_transforms}
+	\caption{The execution durations for a pipeline with no transforms}
+	\label{fig:plot_no_transforms}
 \end{figure}
-
-\subsubsection{Some transforms}
-\ref{fig:plot_so_transforms} illustrates the results for a pipeline with some transforms.
-The precise values are listed in \ref{tab:eval:some}.
-
-The results for a pipeline with some transforms are, on the whole, consistent with those presented in \ref{eval:num:none}.
-
-However, the average execution duration for the pl backend is closer to that of the ts baseline, with ts being $1,09$ times as fast as pl., compared to $1,33$ in \ref{eval:num:none}
-We attribute this decrease to the inclusion of transforms in the evaluation pipeline.
-Consequently, the block executor \Verb|PolarsTableTransformerExecutor| is evaluated to be faster than the \Verb|TsTableTansformerExecutor|.
-It is anticipated, that the pl backend will, for a pipeline with a large enough number of transforms, be faster than the ts baseline.
-
-
-\subsubsection{many transforms}
-- trend continues, now pl is faster, except once
-- the rest remains the same
-
-- TODO: adding transforms increased the runtime by a factor of x
-
-
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
 				title = {some transforms},
-				% axis lines = left,
-				xlabel = {lines},
+				xlabel = {rows},
 				ylabel = {time in ms},
-				% xtick={0,56250,112500,225000,450000,900000,1800000},
 				legend pos=north west,
 			]
 			\addplot[
@@ -494,17 +494,15 @@ It is anticipated, that the pl backend will, for a pipeline with a large enough 
 			\legend{ts,pl,plob,plrs,plobrs}
 		\end{axis}
 	\end{tikzpicture}
-	\caption{plot some transforms}\label{fig:plot_so_transforms}
+	\caption{The execution durations for a pipeline with some transforms}
+	\label{fig:plot_so_transforms}
 \end{figure}
-
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
 				title = {many transforms},
-				% axis lines = left,
-				xlabel = {lines},
+				xlabel = {rows},
 				ylabel = {time in ms},
-				% xtick={0,56250,112500,225000,450000,900000,1800000},
 				legend pos=north west,
 			]
 			\addplot[
@@ -549,17 +547,18 @@ It is anticipated, that the pl backend will, for a pipeline with a large enough 
 			\legend{ts,pl,plob,plrs,plobrs}
 		\end{axis}
 	\end{tikzpicture}
-	\caption{plot many transforms}\label{fig:plot_ma_transforms}
+	\caption{The execution durations for a pipeline with many transforms}
+	\label{fig:plot_ma_transforms}
 \end{figure}
+
+
 
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
 				title = {overlaid},
-				% axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
-				% xtick={0,56250,112500,225000,450000,900000,1800000},
 				legend pos=north west,
 			]
 			\addplot[
@@ -609,13 +608,14 @@ It is anticipated, that the pl backend will, for a pipeline with a large enough 
 			\addlegendentry{plobrs-ma}
 		\end{axis}
 	\end{tikzpicture}
-	\caption{plot transforms}\label{fig:plot:ts_vs_plobrs}
+	\caption{The execution duration of the ts and plobrs backends}
+	\label{fig:plot:ts_vs_plobrs}
 \end{figure}
 
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
-				title = {overlaid},
+				title = {plobrs},
 				% axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
@@ -647,16 +647,10 @@ It is anticipated, that the pl backend will, for a pipeline with a large enough 
 			\addlegendentry{plobrs-ma}
 		\end{axis}
 	\end{tikzpicture}
-	\caption{plot transforms}\label{fig:plot:plobrs}
+	\caption{plot }\label{fig:plot:plobrs}
 \end{figure}
 
 
-
-\subsection{ts vs plobrs}
-- calculate ts \/ plobrs
-- see table
-- the more lines, the bigger the ingrease for plobrs,
-- the more transforms, the bigger the advantage for plobrs
 
 \begin{figure}
 	\begin{tikzpicture}

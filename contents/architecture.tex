@@ -712,7 +712,7 @@ The \Verb|LocalFileToTableExtractor| blocktype combines \Verb|LocalFileExtractor
 This removes another layer of indirection for parsing csv data, letting polars handle as much of the process as possible.
 
 The process of adding the blocktype to jayvee is the same as described in \ref{subsection:FileToTableInterpreter},
-the only difference being that the definition file is placed in \Verb|libs/language-server/src/stdlib/builtin-block-types/LocalFileToTableInterpreterExecutor.jv|.
+the only difference being that the definition file is placed in \Verb|libs/language-server/src/stdlib/builtin-block-types/LocalFileToTableExtractorExecutor.jv|.
 \ref{fig:uml:localfiletotableinterpreter} contains the executor's class diagram.
 
 \begin{figure}
@@ -725,10 +725,10 @@ the only difference being that the definition file is placed in \Verb|libs/langu
 		doExecute(file: BinaryFile, context: ExecutionContext): Result<Table>
 		}
 		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType>
-		AbstractBlockExecutor <|-- LocalFileToTableInterpreterExecutor: AbstractBlockExecutor<IOType.NONE, IOType.Table>
+		AbstractBlockExecutor <|-- LocalFileToTableExtractorExecutor: AbstractBlockExecutor<IOType.NONE, IOType.Table>
 		@enduml
 	\end{plantuml}
-	\caption{Class diagram for \Verb{LocalFileToTableInterpreterExtractor}}
+	\caption{Class diagram for \Verb{LocalFileToTableExtractorExecutor}}
 	\label{fig:uml:localfiletotableinterpreter}
 \end{figure}
 
@@ -777,7 +777,7 @@ the only difference being that the definition file is placed in \Verb|libs/langu
 			stop
 			@enduml
 		\end{plantuml}
-		\caption{\Verb{LocalFileToTableInterpreter}}
+		\caption{\Verb{LocalFileToTableExtractor}}
 	\end{subfigure}
 	\caption{Jayvee Pipelines using ...}
 \end{figure}
