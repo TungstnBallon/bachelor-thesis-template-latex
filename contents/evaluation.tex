@@ -38,18 +38,17 @@ We define the following optimization configurations.
 	%FIXME double enabled.
 	\item[ts] TypeScript.
 	      The baseline for the evaluateion.
-	      It is intended to be as close as possible to the original implementation. %FIXME It is intended?
 	\item[pl] Polars.
-	      Enabled by starting the Jayvee interpreter with the \Verb|--use-polars| \ac{CLI} flag.
+	      % Enabled by starting the Jayvee interpreter with the \Verb|--use-polars| \ac{CLI} flag.
 	      Enables the Polars implementations of tables, columns, block executors and transforms.
 	\item[plob] Polars-One-Block.
-	      Enabled by using the \Verb|LocalFileToTableExtractor| block (see \ref{arch:execs:localfiletotableextractor}) inside a pipeline and the \Verb|--use-polars| \ac{CLI} flag.
-	      Enables pl, plus the \Verb|LocalFileToTableExtractor| block.
+	      % Enabled by using the \Verb|LocalFileToTableExtractor| block (see \ref{arch:execs:localfiletotableextractor}) inside a pipeline and the \Verb|--use-polars| \ac{CLI} flag.
+	      Enables pl, plus the \Verb|LocalFileToTableExtractor| block (see \ref{arch:execs:localfiletotableextractor}).
 	\item[plrs] Polars-Rusqlite.
-	      Enabled by the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
-	      Enables pl, plus the \Verb|RustSQLiteLoaderExecutor| executor using the \Verb|sqlite-loader-lib| library.
+	      % Enabled by the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
+	      Enables pl, plus the \Verb|RustSQLiteLoaderExecutor| executor and the the \Verb|sqlite-loader-lib| library (see \ref{arch:sqlite:rust}).
 	\item{plobrs} Polars-One-Block-Rusqlite.
-	      Enabled by using the \Verb|LocalFileToTableExtractor| block and the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
+	      % Enabled by using the \Verb|LocalFileToTableExtractor| block and the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
 	      Enables pl, plus \Verb|LocalFileToTableExtractor|, plus \Verb|RustSQLiteLoaderExecutor|.
 \end{description}
 
@@ -177,7 +176,6 @@ def run_config(interpreter_dir, rowcount, transforms, backend):
 \end{listing}
 
 \subsection{Evaluation Pipelines}
-
 This subsection describes the Jayvee pipelines that get executed during the evaluation.
 
 In total, there are six different pipelines, each with its own file.
@@ -290,7 +288,10 @@ During the evaluation process, we encountered Jayvee interpreter crashes.
 We observed, that reducing the size of the input file appeared to prevent these crashes.
 We subsequently narrowed down the exact limit to a range of $100 000$ lines, or $25\ac{MB}$.
 This limit depends on the enabled optimizations and the amount of transforms in the pipeline.
+
 \ref{tab:crashes} contains a table of maximum file sizes for each configuration and a snippet of the crash's error message.
+Because the biggest data input ($1 800 000$ rows) exceeds the limits for pipelines with some or many transforms, we introduce a seventh data input with $1 300 000$ rows.
+The configurations with many transforms will only process data inputs with $900 000$ rows or lower.
 
 Based on our knowledge of the interpreter, the "Invalid string lenght" error originates from a nodejs limit on the maximum length of a string. %FIXME make sure this is ok
 The observation, that the error occurs during the loading of the table into the SQLite database, suggests, that the string limit may be exceeded during the generation of the \ac{SQL} queries.
@@ -347,18 +348,40 @@ The error message "Cannot make a string longer than 0x1fffffe8 characters." is e
 	\label{fig:plot:filesize}
 \end{figure}
 
-Considering these resuts, we conclude, that enabling optimizations increases the amount of data the Jayvee interpreter is able to process.
+Considering these resuts, we conclude, that enabling optimizations increases the amount of data, that the Jayvee interpreter is able to process.
 
 
-\section{the numbers}
+\section{Execution Duration}
+In this section will compare the execution durations of the configurations defined in \ref{section:parameters}.
+
+\subsection{No transforms vs some transforms vs many transforms}
+
+\subsubsection{No transforms}
+\label{eval:num:none}
+
+\ref{fig:plot_no_transforms} shows the average execution time for each backend, \ref{tab:eval:none} contains the concrete values.
+
+It is evident, that, the majority of backends, with the exception of pl, are faster, compared the baseline ts.
+plobrs is the most expedient backend for all tested input sizes.
+Furthermore, the mean slope of the ts backend is $12$ times larger than that of the plobrs backend.
+% We also observe, that the plrs optimization is, on average, $1,64$ times faster, that the backend pl.
+
+It is somewhat unexpected, that the pl backend has the longest runtime.
+The pl backend was observed to be $1,33$ times slower than the the baseline ts backend.
+To investigate this, the debug outputs of one run, of both these configurations (\ref{tab:cmp:sqlite}) were compared.
+It was observed, that the duration of the block \Verb|LiquorLoader| approximately doubled when the backend pl was enabled.
+This was considered to be the cause. %
+
+
+
+All backends, execpt pl, are considered to be successful optimisations for a pipeline with no transforms.
+
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
-				title = {no transforms},
-				% axis lines = left,
+				title = {Runtime with no transforms},
 				xlabel = {lines},
 				ylabel = {time in ms},
-				% xtick={0,56250,112500,225000,450000,900000,1800000},
 				legend pos=north west,
 			]
 			\addplot[
@@ -367,6 +390,7 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 			]
 			coordinates {
 					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
+					% ts slopes: 0,051982222 0,044432, 0,059995556 0,047473333 0,043474 0,055424: avg: 0,050463519
 				};
 			\addplot[
 				color=blue,
@@ -387,13 +411,14 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 				mark=triangle*,
 			]
 			coordinates {
-					(56250,3102)(112500,5390)(225000,10126)(450000,21270)(900000,37705)(1300000,54562)(1800000,94274)
+					(56250,3102)(112500,5390)(225000,10126)(450000,21270)(900000,37705)(1300000,54562)(1800000,74755)
 				};
 			\addplot[
 				mark=triangle*,
 			]
 			coordinates {
 					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
+					%pl slopes: 0,003306667+0,006355556+0,003573333+0,003968889+0,003068+0,004248: 0,004086741
 				};
 
 			\legend{ts,pl,plob,plrs,plobrs}
@@ -401,6 +426,25 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 	\end{tikzpicture}
 	\caption{plot no transforms}\label{fig:plot_no_transforms}
 \end{figure}
+
+\subsubsection{Some transforms}
+\ref{fig:plot_so_transforms} illustrates the results for a pipeline with some transforms.
+The precise values are listed in \ref{tab:eval:some}.
+
+The results for a pipeline with some transforms are, on the whole, consistent with those presented in \ref{eval:num:none}.
+
+However, the average execution duration for the pl backend is closer to that of the ts baseline, with ts being $1,09$ times as fast as pl., compared to $1,33$ in \ref{eval:num:none}
+We attribute this decrease to the inclusion of transforms in the evaluation pipeline.
+Consequently, the block executor \Verb|PolarsTableTransformerExecutor| is evaluated to be faster than the \Verb|TsTableTansformerExecutor|.
+It is anticipated, that the pl backend will, for a pipeline with a large enough number of transforms, be faster than the ts baseline.
+
+
+\subsubsection{many transforms}
+- trend continues, now pl is faster, except once
+- the rest remains the same
+
+- TODO: adding transforms increased the runtime by a factor of x
+
 
 \begin{figure}
 	\begin{tikzpicture}
@@ -476,7 +520,7 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 			]
 			coordinates {
 
-					(56250,5421)(112500,10348)(225000,17914)(450000,40054)(900000,72515)
+					(56250,5421)(112500,10348)(225000,17914)(450000,35151)(900000,72515)
 
 				};
 			\addplot[
@@ -499,7 +543,7 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 				mark=square*,
 			]
 			coordinates {
-					(56250,1178)(112500,1383)(225000,2365)(450000,2627)(900000,4518)
+					(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
 				};
 
 			\legend{ts,pl,plob,plrs,plobrs}
@@ -560,7 +604,7 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 				mark=square*,
 			]
 			coordinates {
-					(56250,1178)(112500,1383)(225000,2365)(450000,2627)(900000,4518)
+					(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
 				};
 			\addlegendentry{plobrs-ma}
 		\end{axis}
@@ -598,7 +642,7 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 				mark=square*,
 			]
 			coordinates {
-					(56250,1178)(112500,1383)(225000,2365)(450000,2627)(900000,4518)
+					(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
 				};
 			\addlegendentry{plobrs-ma}
 		\end{axis}
@@ -607,26 +651,6 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 \end{figure}
 
 
-
-\subsection{no transforms vs some transforms vs many transforms}
-\subsubsection{no transforms}
-- pl is slowest, because:
-- no transforms yet, so no speedup from there
-- from comparing the debug output of two example runs we can see that PolarsSQLiteLoaderExecutor is slower than TsSQLiteLoaderExecutor %TODO: provide numbers
-- the one block optimization yields better results than the rust sqlite loader implementation
-- plobrs is the best
-
-\subsubsection{some transforms}
-- ts is still better than pl but it' close now
-- same the introduction of transforms made it closer
-- prediction: many transforms will make pl faster
-- other than that the same result
-
-\subsubsection{many transforms}
-- trend continues, now pl is faster, except once
-- the rest remains the same
-
-- TODO: adding transforms increased the runtime by a factor of x
 
 \subsection{ts vs plobrs}
 - calculate ts \/ plobrs
@@ -663,7 +687,7 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 				mark=square*,
 			]
 			coordinates {
-					(56250,4.86)(112500,8.02)(225000,7.93)(450000,14.57)(900000,18.22)
+					(56250,4.86)(112500,8.02)(225000,11.24)(450000,14.57)(900000,18.22)
 				};
 			\addlegendentry{many}
 		\end{axis}

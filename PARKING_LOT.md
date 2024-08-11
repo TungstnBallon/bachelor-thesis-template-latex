@@ -33,3 +33,4 @@
     - how to cite images
     - give credit to napi-package-template
     - fix `\Verb` and uml diagram spacing
+    - parentheses to functions

@@ -4,66 +4,6 @@
 The objective of this thesis is to optimize Jayvee's internal data representation.
 This necessitates modifying the Jayvee interpreter, the program, that parses Jayvee source files and executes the defined pipelines.
 
-Prior to outlining that program's architecture, we will present an overview of the requirements for our modifications.
-
-\section{Requirements}
-\label{section:Requirements}
-
-As a common practice we differentiate between functional and non functional requirements.
-Both types of requirements have been evaluated for completenes, consistency and feasability by us.
-
-\subsection{Functional Requirements}
-\label{subsection:FunctionalRequirements}
-
-\begin{enumerate}
-	\item[FR-1] \textbf{interoperability} Provided by the standardized \emph{Apache Arrow}.
-	\item[FR-2] \textbf{columnar} A columnar format has advantages outlined in \ref{section:column_vs_row}.
-	      % \item[FR-3] \textbf{error free} Execute the electric vehicles example %TODO: link
-	      %       without errors.
-	      % \item{FR-4} \textbf{completeness}
-	\item[FR-3]\label{fr:runtime} \textbf{feature toggle} We must be able to (de)activate the new features at runtime.
-	      This makes comparing the new features easier. %FIXME fachausdruck
-	\item[FR-4] \textbf{compatibility} Execute the electric vehicles example %TODO: link
-	      without errors.
-	      The resulting table must differ from the original result.
-	\item[FR-5] \textbf{modularization} Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typesript.
-\end{enumerate}
-
-% Tables are the central way Jayvee represent's data.
-% The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
-% Hence % TODO: ?
-% we shall focus on how to efficiently represent tables in memory.
-% Since Jayvee's \Verb|TableTransformer| work on columns and not rows, the advantages of the columnar format outlined in %TODO: ref
-% lend themselves well to jayvee.
-% Jayvee needs manipulate the data, so data needs to be stored in memory not on disk.
-% 1. This leads to the requirement that \emph{tables are represented with a columnar, in-memory data layout}.
-%
-% The goal of this thesis is not to create a fully mature implementation of this new format, but rather to prototype an integration and evaluate the results of this migration.
-% However to accurately evaluate the changes, the core functionality of jayvee (parse data into table, apply function to columns of that table, export table) needs to be preserved.
-% 2. \emph{Core functionality is maintained}.
-% This includes that tables can still be created in the same ways (\Verb|TableIntepreter|) and exported with the same blocks (\Verb|SQLiteLoader|) (\Verb|PostresLoader|).
-% 3. \emph{Arithmetic operations work in transforms}.
-
-% 4. Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typesript.
-% This ensures usability and increases maintainability by for other developers.
-
-% 5. To make evaluation easier the new implementation must be choosable with a commandline flag \emph{at runtime}.
-
-\subsection{Non Functional Requirements}
-\label{subsection:NonFunctionalRequirements}
-
-\begin{enumerate}
-	\item[NFR-1] \textbf{performance} The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
-	      We expect this to result in either a decrease in the execution time for jayvee models, or an extension of the Jayvee interpreter's capabilities.
-	\item[NFR-2] \textbf{readability} The source code is readable for non-rust developers
-	\item[NFR-3] \textbf{consistent logging} The new code generates log messages consistent to the existing ones.
-	\item[NFR-4] \textbf{codestyle} The source code adheres to the project's code style.
-	      This is enforced by running \Verb|npm run lint|.
-	      In rust code we use the defaults from rustfmt and clippy.
-	\item[NFR-5] \textbf{maturity} We aim to create a prototype, not a mature implementation.
-	\item[NFR-6] \textbf{extensibility} This prototype must extend the capabilities of polars / arrow %TODO rephrase
-\end{enumerate}
-
 \section{Interpreter Overview}
 \label{section:prev}
 
@@ -276,7 +216,7 @@ For these reasons, we choose to build the new table implementaiton on top of pol
 \section{Type conversion}
 \label{section:type_conversion}
 Jayvee has a concept called ValueType, that represent Jayvee types, e.g. text, boolean or decimal.
-They are useful because Jayvee types don't map directly to TypeScript types.
+They are useful, because Jayvee types don't map directly to TypeScript types.
 For example, when a value inside a table has the JavaScript type \Verb|number|, a ValueType is used to remember whether it's meant to be a Jayvee \Verb|integer| or Jayvee \Verb|decimal|.
 
 Polars has the same system, except it's called DataType.
@@ -286,7 +226,10 @@ DataTypes are not compatible with ValueTypes, which leaves us with two possible 
 	      We decided against this approach, because it forces the polars implementation at compile time, which breaks \ref{fr:runtime}.
 	\item \emph{Convert} between ValueTypes and DataTypes when needed.
 	      The TypesScript implementation can ignore this and keep using ValueTypes as before.
+	      Because of the \emph{feature toggle} requirement, we choose the this apporach.
 \end{enumerate}
+
+
 
 For details on how this conversion mechanism is implemented, see \ref{subsection:TypeConversion}.
 
@@ -304,6 +247,8 @@ For details on how this conversion mechanism is implemented, see \ref{subsection
 
 \section{Creating a Table implementation based on Polars}
 \label{section:new_table}
+
+%TODO mention feature flag requirement
 
 The usual application of the strategy pattern would create an interface \autocite{Dooley2024} that both the old and the new table classes implement.
 Instead, we utilise an abstract class, to allow for code-sharing between the table subclasses.
@@ -333,7 +278,6 @@ Also, we replaced the \Verb|number_of_rows| proberty with getter method using th
 					{abstract} <<getter>>  nColumns(): number
 					{abstract} <<getter>> columns(): ReadonlyArray<TableColumn>
 					{abstract} withColumn(column: TableColumn): Table
-					{abstract} hasColumn(name: string): boolean
 					{abstract} getColumn(name: string): TableColumn | undefined
 					{abstract} clone(): Table
 					{abstract} acceptVisitor<R>(visitor: IoTypeVisitor<R>): R
@@ -428,7 +372,6 @@ can apply the expression returned by \Verb|PolarsTransformExecutor.executeTransf
 				generateCreateTableStatement(tableName: string): string
 				withColumn(column: PolarsTableColumn): PolarsTable
 				withColumnFromInternal(expr: polars.Expr): PolarsTable
-				hasColumn(name: string): boolean
 				getColumn(name: string): PolarsTableColumn | undefined
 				clone(): PolarsTable
 				acceptVisitor<R>(visitor: IoTypeVisitor<R>): R
