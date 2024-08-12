@@ -1,7 +1,7 @@
 \chapter{Requirements}
 \label{section:Requirements}
 
-As a common practice we differentiate between functional and non functional requirements.
+We differentiate between functional and non functional requirements \autocite{Herrmann2022}.
 Both types of requirements have been evaluated for completenes, consistency and feasability by us.
 
 \section{Functional Requirements}
@@ -13,12 +13,14 @@ Both types of requirements have been evaluated for completenes, consistency and 
 	      % \item[FR-3] \textbf{error free} Execute the electric vehicles example %TODO: link
 	      %       without errors.
 	      % \item{FR-4} \textbf{completeness}
-	\item[FR-3]\label{fr:runtime} \textbf{feature toggle} We must be able to (de)activate the new features at runtime.
+	\item[FR-3]\textbf{feature toggle} We must be able to (de)activate the new features at runtime.
 	      This makes comparing the new features easier. %FIXME fachausdruck
 	\item[FR-4] \textbf{compatibility} Execute the electric vehicles example %TODO: link
 	      without errors.
-	      The resulting table must differ from the original result.
-	\item[FR-5] \textbf{modularization} Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typesript.
+	      The \Verb|.sqlite| files produced by the different implementations must be identical.
+	\item[FR-5] \textbf{modularization} Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typescript.
+	\item[FR-6] \textbf{extensibility} The functionality of the chosed data representation must be extensible.
+	      % This prototype must extend the capabilities of polars / arrow %TODO rephrase
 \end{enumerate}
 
 % Tables are the central way Jayvee represent's data.
@@ -47,12 +49,11 @@ Both types of requirements have been evaluated for completenes, consistency and 
 \begin{enumerate}
 	\item[NFR-1] \textbf{performance} The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
 	      We expect this to result in either a decrease in the execution time for jayvee models, or an extension of the Jayvee interpreter's capabilities.
-	\item[NFR-2] \textbf{readability} The source code is readable for non-rust developers
-	\item[NFR-3] \textbf{consistent logging} The new code generates log messages consistent to the existing ones.
-	\item[NFR-4] \textbf{codestyle} The source code adheres to the project's code style.
+	      % \item[NFR-2] \textbf{readability} The source code is readable for non-rust developers
+	      % \item[NFR-2] \textbf{consistent logging} The new code generates log messages consistent to the existing ones.
+	\item[NFR-2] \textbf{codestyle} The source code adheres to the project's code style.
 	      This is enforced by running \Verb|npm run lint|.
 	      In rust code we use the defaults from rustfmt and clippy.
-	\item[NFR-5] \textbf{maturity} We aim to create a prototype, not a mature implementation.
-	\item[NFR-6] \textbf{extensibility} This prototype must extend the capabilities of polars / arrow %TODO rephrase
+	\item[NFR-3] \textbf{maturity} We aim to create a prototype, not a mature implementation.
 \end{enumerate}
 

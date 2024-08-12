@@ -223,7 +223,7 @@ Polars has the same system, except it's called DataType.
 DataTypes are not compatible with ValueTypes, which leaves us with two possible approaches.
 \begin{enumerate}
 	\item \emph{Replace} ValueTypes with DataTypes.
-	      We decided against this approach, because it forces the polars implementation at compile time, which breaks \ref{fr:runtime}.
+	      We decided against this approach, because it forces the polars implementation at compile time, which breaks the feature toggle requirement.
 	\item \emph{Convert} between ValueTypes and DataTypes when needed.
 	      The TypesScript implementation can ignore this and keep using ValueTypes as before.
 	      Because of the \emph{feature toggle} requirement, we choose the this apporach.
