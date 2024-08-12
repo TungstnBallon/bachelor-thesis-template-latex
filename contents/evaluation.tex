@@ -409,6 +409,8 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 				title = {no transforms},
 				xlabel = {rows},
 				ylabel = {time in ms},
+				ymin=0, ymax=150000,
+				xmin=0, xmax=1800000,
 				legend pos=north west,
 			]
 			\addplot[
@@ -460,6 +462,8 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 				title = {some transforms},
 				xlabel = {rows},
 				ylabel = {time in ms},
+				xmin=0, xmax=1800000,
+				ymin=0, ymax=150000,
 				legend pos=north west,
 			]
 			\addplot[
@@ -509,6 +513,8 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 				title = {many transforms},
 				xlabel = {rows},
 				ylabel = {time in ms},
+				xmin=0, xmax=1800000,
+				ymin=0, ymax=150000,
 				legend pos=north west,
 			]
 			\addplot[
@@ -701,7 +707,7 @@ The backends pl, plob, plrs and plobrs yield tables that differ from those produ
 floating point numbers and rows with \Verb|NULL|.
 
 \subsection{Floating point values}
-During the evaluation process, it was observed, that seemingly random floating-point numbers in the final tables exhibited slight discrepancies.
+During the evaluation process, it was observed, that seemingly random floating-point numbers in the final tables exhibited slight discrepancies mutiple digits after the comma.
 To investigate this phenomenon, a pipeline with some transforms and an input of $900 000$ rows, was executed, once with the ts backend and once with the pl backend.
 The pl backend was selected, because it includes the least amount of changes compared to the baseline.
 
@@ -710,7 +716,7 @@ Additionally, it was observed, that the differing values were confined to column
 This led to the conclusion that there are discrepancies in the floating point operations implemented by TypeScript and Polars.
 However, the underlying cause and potential solution to this discrepancy remain uncertain.
 
-\subsection{Rows including \Verb|NULL|}
+\subsection{Rows including \Verb{NULL}}
 The original TypeScript implementation either discards rows containing \Verb|NULL|, or replaces them with an empty string.
 This is inconsistent with the new implementation, which allows for \Verb|NULL| values in tables.
 While this issue has not been resolved due to the time constraints of this thesis, but we are optimistic that it can be addressed in the future.
@@ -727,7 +733,6 @@ While this issue has not been resolved due to the time constraints of this thesi
 	\item[FR-4] \textbf{compatibility} The electric vehicles example completes without errors.
 	      The tables produced by the new implementations are not consistent with the old implementation.
 	      Consequiently, this requrement remains unfulfilled.
-	      \end{itemize}
 	\item[FR-5] \textbf{modularization} The Rust library \Verb|sqlite-loader-lib| is usable from TypeScript through NAPI-RS.
 	\item[FR-6] \textbf{extensibility} \Verb|RustSQLiteLoaderExecutor|, using \Verb|sqlite-loader-lib|, exports a DataFrame into an SQLite database.
 	      This functionality is not yet implemented in Polars.

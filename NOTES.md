@@ -122,15 +122,24 @@ ETL: fachbegriff extract, transform, load.
 55. listings with empty descriptions?
 56. can multiple inputs into one block? -no
 
-HERE
+rust-welt: component oder package diagram
+
+
+fürs code abgeben `git pack`
+faubox zum hochladen des datensatzes
+
 48. publish sqlite-loader-rust and evaluation tool?
-57. publish napi-ts
-58. polars doesn't have db functionality AT THE TIME OF WRITING?
+- als branches
 59. muss latex compilen?
+- no
 60. can I try to guess why floats are different, or why the Invalid string lenght error happens
 Based on our knowledge of the interpreter, this error originiates from a nodejs limit on the maximum length of a string.
 61. is 25 mb margin of error small enough for max filesize.
 62. axis should always start at 0?
-63. linking between requirements and architivture vs requirements and implementation.
+generell nein, die transform diagramme schon
+63. linking between requirements and architecture vs requirements and implementation.
+
+remove unneeded plots/diagrams
+center plots
 
 
