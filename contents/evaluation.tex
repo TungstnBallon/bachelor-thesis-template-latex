@@ -156,6 +156,10 @@ For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| 
 
 The path of the \ac{CSV} data source, as well as the path of the destination database, are passed to the Jayvee interpreter via runtime parameters \autocite{jvalue:jayvee:docs:runtime}.
 
+%NOTE
+We considered it simplest do construct and execute a series of shell commands, simpler than using 3rd-party libraries. scince running the interpreter has to be a shell command anyway.
+
+
 \autoref{lst:run_config} outlines the whole process.
 
 \begin{listing}

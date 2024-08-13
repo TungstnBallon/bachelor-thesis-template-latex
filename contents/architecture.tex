@@ -262,13 +262,19 @@ This class implements the \Verb|IOTypeImplementation<IOType.TABLE>| interface to
 Its methods are based on those of the original Table class.
 See \autoref{fig:uml:table} for a class diagram.
 
-\subsubsection{Differences between the old Table and the new abstract Table}
+\subsubsection{Differences between the old class Table and the new abstract class Table}
 \Verb|getRow|, \Verb|addRow|, \Verb|dropRow|, \Verb|dropRows| and \Verb|addColumn| are not part of the abstract table.
-They still exist in the \Verb|TsTable| class to preserve original functionality.
-The methods working with rows are not included, because they are not necessary for the Polars based implementation. %TODO: also because working with rows is slow, but I don't know if I need to cite that or not.
-\Verb|addColumn| is replaced in favor of \Verb|withColumn|, the concrete differences are explained in \autoref{subssubsection:impl:old_vs_new}.
-Typeguards to distinguish the implementations, \Verb|isPolars| and \Verb|isTypescript|, were added.
-Also, we replaced the \Verb|number_of_rows| property with getter method using the \Verb|get| keyword.
+Operations, that work with rows, will not benefit from the columnar data representation.
+They still exist in the \Verb|TsTable| class to satisfy the \emph{compatibility} requirement.
+
+In order to meet the requirement \emph{feature toggle}, it is necessary to distinguish the concrete table implementation.
+To this end, we have implemented the typeguards \Verb|isPolars()| and \Verb|isTypescript()|.
+
+Given the difficulties in executing operations with side effects in parallel \autocite{Gordon2012}, it is preferable to clone tables rather than mutate them.
+To satisfy the compatibility requirement, a new method, \Verb|withColumn(...)| is created to implement this behavior.
+The method \Verb|TsTable.addColumn(...)| preserves the old behaviour.
+
+Because of the fact, that the Polars and TypeScript implementations of the method \Verb|generateDropTableStatement| are identical, we implement it as a non abstract method in \Verb|Table|.
 
 \begin{figure}
 	\begin{plantuml}
@@ -301,12 +307,10 @@ To solve this, we create a wrapper class \Verb|PolarsTable|, that extends \Verb|
 \Verb|PolarsTable| extends \Verb|Table|'s abstract methods by calling \Verb|DataFrames| methods, which is a characteristic of the \emph{adapter pattern} \autocite{Dooley2024}.
 In the terminology of the adapter pattern, \Verb|Table| is the target, \Verb|PolarsTable| the adapter and \Verb|DataFrame| the adaptee.
 
-It is notable that when \Verb|Table| is parameter or return type in an abstract method in \Verb|Table|, the overriding method in \Verb|PolarsTable| replaced that with \Verb|PolarsTable|.
-For example \mintinline{typescript}{abstract clone(): Table} becomes \mintinline{typescript}{override clone(): PolarsTable}.
-This is legal %FIXME: maybe better term instead of legal
-because \Verb|PolarsTable| is a subclass of \Verb|Table|.
+It is notable, that when \Verb|Table| is parameter or return type in an abstract method in \Verb|Table|, the overriding method in \Verb|PolarsTable| replaced that with \Verb|PolarsTable|.
+For example, \mint{typescript}{abstract clone(): Table} becomes \mint{typescript}{override clone(): PolarsTable}.
 
-In addition to the abstract methods from \Verb|Table|, \Verb|PolarsTable| also implements methods that take advantage of Polars' features not available to the TypeScript implementation.
+In addition to the abstract methods from \Verb|Table|, \Verb|PolarsTable| also implements methods that take advantage of Polars' features unavailable to the TypeScript implementation.
 
 \Verb|withColumnFromInternal| returns a new Table with the column resulting from the passed Polars expression added.
 Polars expressions are a way to describe a series of operations, that result in one or more columns, with automatic optimization and parallelization \autocite{polars:docs:expr}.
@@ -344,11 +348,11 @@ This is problematic, because TableColumn expects a ValueType for it's constructo
 The solution is to convert the polars DataType of a column to a ValueType using the conversion mechanism in \autoref{subsection:TypeConversion}.
 Conversion requires a ValueTypeProvider, which is saved as one of PolarsTable's properties.
 
-\Verb|PolarsTable| requires a \Verb|ValueTypeProvider|
-to be passed to its contructor. See \autoref{subsubsection:polarstablecolumn}.
-See \autoref{fig:uml:polarstable} for the class diagram.
+\Verb|PolarsTable| requires a \Verb|ValueTypeProvider| to be passed to its contructor (see \autoref{subsubsection:polarstablecolumn}).
+Refer to \autoref{fig:uml:polarstable} for the class diagram.
 
-Now, we use Polars expressions, a way to describe a series of operations, that result in one or more columns, with automatic optimization and parallelization \autocite{polars:docs:expr}.
+Polars expressions are a way of describing a series of operations, that result in one or more columns.
+The facilitate automatic optimization and parallelization \autocite{polars:docs:expr}.
 The approach to executing transforms no longer is to compute all the calues of the new column, but to create a Polars expression, and return it to \Verb|PolarsTableTransformerExecutor|.
 As a consequence, we add the new function \Verb|jayveeExpressionToPolars|.
 This function transfroms a Jayvee expression into a Polars Expression.
@@ -387,7 +391,7 @@ can apply the expression returned by \Verb|PolarsTransformExecutor.executeTransf
 \end{figure}
 
 \subsection{Implementing Columns}
-Analogous to \Verb|Table| we create an abstract class \Verb|TableColumn| that has two subclasses, \Verb|TsTableColumn| and \Verb|PolarsTableColumn|
+Analogous to \Verb|Table|, we create an abstract class \Verb|TableColumn| that has two subclasses, \Verb|TsTableColumn| and \Verb|PolarsTableColumn|
 
 \subsubsection{\Verb{abstract TableColumn}}
 Compared to the old \Verb|TableColumn| (\autoref{fig:uml:old_tablecolumn}), the new abtract class no longer defines how the values of the column are saved.

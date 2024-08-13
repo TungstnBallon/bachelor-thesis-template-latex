@@ -404,3 +404,37 @@
 	date = {2024-03},
 	urldate = {2024-08-09},
 }
+@article{Gordon2012,
+	author = {Colin S. Gordon and Mathew J. Parkinson and Jared Parsons and
+	          Aleks Bromfield and Joe Duffy},
+	title = {Uniqueness and reference immutability for safe parallelism},
+	date = {2021-10},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	volume = {47},
+	number = {10},
+	issn = {0362-1340},
+	url = {https://doi.org/10.1145/2398857.2384619},
+	doi = {10.1145/2398857.2384619},
+	abstract = {A key challenge for concurrent programming is that
+	            side-effects (memory operations) in one thread can affect the
+	            behavior of another thread. In this paper, we present a type
+	            system to restrict the updates to memory to prevent these
+	            unintended side-effects. We provide a novel combination of
+	            immutable and unique (isolated) types that ensures safe
+	            parallelism (race freedom and deterministic execution). The
+	            type system includes support for polymorphism over type
+	            qualifiers, and can easily create cycles of immutable
+	            objects. Key to the system's flexibility is the ability to
+	            recover immutable or externally unique references after
+	            violating uniqueness without any explicit alias tracking. Our
+	            type system models a prototype extension to C# that is in
+	            active use by a Microsoft team. We describe their experiences
+	            building large systems with this extension. We prove the
+	            soundness of the type system by an embedding into a program
+	            logic.},
+	journal = {SIGPLAN Not.},
+	pages = {21–40},
+	numpages = {20},
+	keywords = {views, type systems, reference immutability, concurrency},
+}

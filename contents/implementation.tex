@@ -19,6 +19,7 @@ The class \Verb|ValueTypeProvider|, located in \Verb|primitive-value-type-provid
 	\end{minted}
 \end{center}
 It uses the method \Verb|DataType.equals(...)| instead of \Verb|===| for a more accurate comparison of DataTypes.
+- uses if instead of switchcase to make it clear that this is equals instead of ===
 The Polars type system is more granular than that of Jayvee, which results in the occurrence of DataTypes, that yield the same ValueType.
 For instance, both \Verb|polars.Float32| and \Verb|polars.Float64| return \Verb|Decimal|.
 
@@ -44,36 +45,31 @@ To narrow down the returned type \Verb|any|, we expand the existing typeguards, 
 The overview of existing classes and their relations is given in \autoref{section:new_table}.
 In this section, we describe the new table implementation and the changes to the orignal one:
 
+To reduce the code in the source file, \Verb|table.ts| and the modularization requirement, we move the abstract class \Verb|TableColumn| and its subclasses \Verb|PolarsTableColumn| and \Verb|TsTableColumn| into a new file, \Verb|table-column.ts|.
+
+\subsubsection{Wrapping methods}
+The following \Verb|PolarsTable| methods wrap methods of the Polars' class \Verb|DataFrame|:
 \begin{itemize}
-	\item To reduce the code in the source file, \Verb|table.ts| and the modularization requirement, we move the abstract class \Verb|TableColumn| and its subclasses \Verb|PolarsTableColumn| and \Verb|TsTableColumn| into a new file, \Verb|table-column.ts|.
-	\item Because of the fact, that the Polars and TypeScript implementations of the method \Verb|generateDropTableStatement| are identical, we implement it as a non abstract method in \Verb|Table|.
-	\item Because cloning an object instead of mutating is hypothetically improving the performance in a future parallel execution environment, %TODO citation
-	      columns are now added to a clone of the table.
-	      Because of the compbatibility requirement, we create a new method, \Verb|withColumn(...)|, that implements this behavior, and preserve the old \Verb|addColumn(...)|.
-	\item Because of the columnar and compatibility requirements, we move the existing methods handling rows into the class \Verb|TsTable|.
-	\item Because of the requirement feature toggle, we need to distinguish the concrete table implementation.
-	      So, we implemented the typeguards \Verb|isPolars()| and \Verb|isTypescript()|.
-	\item Because of the performance requirement, we introduce the methods \Verb|writeIpc(...)| and \Verb|writeIpcTo(...)|.
-	\item Because of the architectural decision to use Polars, %TODO ref
-	      we introduce the method \Verb|withColumnFromInternal(...)|.
-	\item Because of the architectural decision to use Polars, we implement the following methods, which wrap methods of Polars' class \Verb|Dataframe|:
-	      \begin{itemize}
-		      \item \Verb|writeIpc(...)|, \Verb|writeIpcTo(...)|
-		      \item \Verb|withColumn(...)|, \Verb|withColumnFromInternal(...)|
-		      \item \Verb|nRows()|, \Verb|nColumns()|
-		      \item \Verb|clone()|
-		      \item \Verb|toString()|
-		      \item \Verb|getTypes()|
-	      \end{itemize}
-	      Besides these wrapping methods, it is necessarry to implement the following additional methods to remain compatible with the original implementation (compatibility requirement):
-	      \begin{itemize}
-		      \item \Verb|generateInsertValuesStatement(...)|, \Verb|generateCreateTableStatement(...)|
-		      \item \Verb|columns()|, \Verb|getColumn(...)|
-	      \end{itemize}
+	\item \Verb|writeIpc(...)|, \Verb|writeIpcTo(...)|
+	\item \Verb|withColumn(...)|, \Verb|withColumnFromInternal(...)|
+	\item \Verb|nRows()|, \Verb|nColumns()|
+	\item \Verb|clone()|
+	\item \Verb|toString()|
+\end{itemize}
+
+
+\subsubsection{Non wrapping methods}
+Besides these wrapping methods, it is necessarry for \Verb|PolarsTable| to implement the following additional methods to remain compatible with the original implementation:
+\begin{itemize}
+	\item \Verb|getTypes()|
+	\item \Verb|generateInsertValuesStatement(...)|, \Verb|generateCreateTableStatement(...)|
+	\item \Verb|columns()|, \Verb|getColumn(...)|
 \end{itemize}
 
 \subsection{Implementation details}
 \label{impl:table:details}
+
+%TODO not done here yet
 
 \Verb|PolarsTable.clone()| does \emph{not} clone the attribute \Verb|PolarsTable.valueTypeProvider|, because it should be treated as a Singleton.
 From \Verb|primitive-value-type-provider.ts|:
@@ -92,28 +88,30 @@ Because \ac{SQL} insert values statements expect rows of data, the method \Verb|
 The methods \Verb{PolarsTable.columns()} and \Verb|PolarsTable.getColumn(...)| return object(s) of the class \Verb|PolarsTableColumn|.
 The construction of this uses the conversion method from \autoref{impl:types:dtov} using the class \Verb|PolarsTables|'s attribute, \Verb|valueTypeProvider|
 
+
+
+
+
 \section{TableColumn}
 
-
 \subsection{PolarsTableColumn}
-Some attribute names are prefixed with an underscore to prevent namin conflicts between the attribute and its getter / setter.
+Some attribute names are prefixed with an underscore to prevent naming conflicts between the attribute and its getter / setter.
 
 \Verb|PolarsTableColumn| is a thin wrapper around \Verb|polars.Series|.
-It does't have any methods, that aren't getters or wrappers around equivalent \Verb|Series| methods.
+It does't have any methods, that aren't getters, setters or wrappers around equivalent \Verb|Series| methods or attributes.
 However, the method \Verb|PolarsTableColumn.clone()| excludes the attribute \Verb|PolarsTableColumn.valueType|. %TODO explanation
 
 \subsubsection{TsTableColumn}
 All properties are prefixed with an underscore to prevent a naming conflict between the property and their getter / setter.
 
-\Verb|TsTableColumn.clone()| requires a \emph{deep clone} of the attribute \Verb|_values|.
+\Verb|TsTableColumn.clone()| produces a \emph{deep clone} of the attribute \Verb|_values|.
 Based on our experience, the usual way to accomplish this is the global \Verb|structuredClone| function.
-This approach caused the program to crash at runtime.
+This approach caused the interpreter to crash at runtime.
 We suspect the cause has to do with limitations of \Verb|structuredClone| described by \textcite{js:docs:structuredClone}.
-This problem was solved by serializing the column to \ac{JSON}, and parsing it again, creating deep copies in the process.
-The typegards from \autoref{subsection:TypeConversion} were used to regain the type infromation lost by this process.
+This issue was addressed by serializing the column to \ac{JSON}, and subsequently parsing it, thereby creating deep copies.
+To retrieve the type information lost during this process, the typeguards described in \autoref{subsection:TypeConversion} were utilized.
 
-
-\section{New executors} %FIXME
+\section{New block executors}
 \subsection{Selecting the correct block executor} %FIXME
 \label{subsection:createBlockExecutor}
 The method \Verb|getExecutorForBlockType(...)| in \Verb|extension.ts| is modified, to look for a different blocktype than its parameter specifies.
@@ -147,7 +145,7 @@ Refer to \autoref{fig:uml:getExecutorForBlockType} for a diagram.
 		stop
 		@enduml
 	\end{plantuml}
-	\caption{How we pick the correct block executor}
+	\caption{How the correct block executor is selected at runtime.}
 	\label{fig:uml:getExecutorForBlockType}
 \end{figure}
 
@@ -163,8 +161,8 @@ toPolarsDataTypeWithLogs(valueType: ValueType, logger: Logger): polars.DataType
 	\end{minted}
 \end{center}
 The function's purpose is, to convert Polars DataTypes into Jayvee ValueTypes.
-It was determined, that this function should convert unsupported ValueTypes to the default value of \Verb|pl.Utf8|.
-This results in the column with the unsupported ValueType being included in the table as unparsed strings.
+It was determined, that unsupportrd ValueTypes should be included in the table as unparsed strings, while still logging an error.
+To this end, the function converts unsupported ValueTypes to the default value of \Verb|pl.Utf8|.
 
 \begin{listing}
 	\begin{minted}{python}
@@ -204,38 +202,40 @@ def toPolarsDataTypeWithLogs(valueType, logger):
 % - if name isn't in the header row the column is ignored
 % - otherwise same behavior as deriveColumnDefinitionEntriesWithoutHeader
 
-\Verb|doExecute| merely preprocesses the block's properties, leaving the concrete algorithm to \Verb|TableInterpreterExecutor|'s subclasses (\autoref{lst:tableInterpreter:doExecute}).
-\begin{listing}
-	\begin{minted}{python}
-def doExecute(inputSheet, context):
-	header = context.get("header")
-	columnDefinitions = context.get("columns")
-	if header:
-		columnEntries = deriveColumnDefinitionEntriesFromHeader(columnDefinitions, inputSheet.header_row)
-	else:
-		columnEntries = deriveColumnDefinitionEntriesWithoutHeader(columnDefinitions)
-
-	return constructAndValidateTable(
-		inputSheet,
-		header,
-		columnEntries,
-		context
-	)
-	\end{minted}
-	\caption{Pseudocode for \Verb{TableInterpreter.doExecute}}
-	\label{lst:tableInterpreter:doExecute}
-\end{listing}
+\Verb|doExecute| merely preprocesses the block's properties, leaving the concrete algorithm to \Verb|TableInterpreterExecutor|'s subclasses
+%FIXME(\autoref{lst:tableInterpreter:doExecute})
+.
+% \begin{listing}
+% 	\begin{minted}{python}
+% def doExecute(inputSheet, context):
+% 	header = context.get("header")
+% 	columnDefinitions = context.get("columns")
+% 	if header:
+% 		columnEntries = deriveColumnDefinitionEntriesFromHeader(columnDefinitions, inputSheet.header_row)
+% 	else:
+% 		columnEntries = deriveColumnDefinitionEntriesWithoutHeader(columnDefinitions)
+%
+% 	return constructAndValidateTable(
+% 		inputSheet,
+% 		header,
+% 		columnEntries,
+% 		context
+% 	)
+% 	\end{minted}
+% 	\caption{Pseudocode for \Verb{TableInterpreter.doExecute}}
+% 	\label{lst:tableInterpreter:doExecute}
+% \end{listing}
 
 \subsubsection{PolarsTableInterpreterExecutor}
 \label{subsubsection:polarstableinterpreterexecutor}
 The static attribute \Verb|type| is set to \Verb|'PolarsTableInterpreter'|.
 The method \Verb|getExecutorForBlockType(...)| compares this attribute to the blocktype from the jayvee source file.
-Because we manipulated the selection process in \autoref{subsection:createBlockExecutor}, the interpreter is looking for \Verb|PolarsTableInterpreter| instead of \Verb|TableInterpreter| if the \Verb|--use-polars| \ac{CLI} flag is set.
+As a consequence of the alterations made to the block executor selection process in \autoref{subsection:createBlockExecutor}, the interpreter is now searching for the \Verb|PolarsTableInterpreter| instead of \Verb|TableInterpreter| if the \Verb|--use-polars| command line interface \ac{CLI} flag is enabled.
 
 We outline the behavior of \Verb|constructAndValidateTable| (\autoref{lst:polarsTableInterpreter:constructTable}) and \Verb|constructSeries| (\autoref{lst:polarsTableInterpreter:constructSeries}) pseudocode examples in the respective listings.
 
 The method \Verb|constructAndValidateTable(...)| skips the first row of the input Sheet, if the block property \Verb|header| is set to \Verb|true|.
-The ternary if statement allows \Verb|rows| to be declared as a constant.
+The use of the ternary if statement is justified by the fact that, it allows \Verb|rows| to be declared as a constant.
 
 \begin{listing}
 	\begin{minted}{python}
@@ -271,9 +271,9 @@ def constructSeries(rows, columnEntry, context):
 	\label{lst:polarsTableInterpreter:constructSeries}
 \end{listing}
 
-% \subsubsection{TsTableInterpreter}
-% - many of the TableInterpreter functions used to be here
-% - no functionality added or changed
+\subsubsection{TsTableInterpreter}
+- IMPORTANT: has to keep using the method \Verb|addColumn| to remain compatribility requirement.
+- many of the TableInterpreter functions used to be here
 
 \section{FileToTableIntepreter}
 The blocktype definition located at \Verb|FileToTableInterpreter.jv| defines the following properties:
