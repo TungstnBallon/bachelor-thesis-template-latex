@@ -3,7 +3,8 @@
 
 In this chapter, we explain the implementation of the architecture described in \ref{chapter:Architecture}.
 
-In general, we used methods such as \Verb|map(...)| over for loops because they are, in our expierience, less error prone, and allow for cleaner code.
+In general, we prefer methods, such as \Verb|map(...)| over for loops because they are, in our experience, less error prone, and result in more readable code.
+In instances where this thesis makes reference to filenames, the file path can be found in \autoref{tab:src}.
 
 \section{Type Conversion}
 \label{subsection:TypeConversion}
@@ -17,13 +18,12 @@ The class \Verb|ValueTypeProvider|, located in \Verb|primitive-value-type-provid
 fromPolarsDType(dtype: polars.DataType): ValueType
 	\end{minted}
 \end{center}
-It uses the method \Verb|DataType.equals(\dots)| instead of \Verb|===| for a more accurate comparison of DataTypes.
+It uses the method \Verb|DataType.equals(...)| instead of \Verb|===| for a more accurate comparison of DataTypes.
 The Polars type system is more granular than that of Jayvee, which results in the occurrence of DataTypes, that yield the same ValueType.
 For instance, both \Verb|polars.Float32| and \Verb|polars.Float64| return \Verb|Decimal|.
 
 \subsection{Conversion from ValueType to DataType}
 The interface \Verb|ValueType|, located in \Verb|value-type.ts|, defines this method:
-The method
 \begin{center}
 	\begin{minted}{typescript}
 toPolarsDataType(): polars.DataType | undefined
@@ -35,7 +35,7 @@ The classes representing ValueTypes, that are not supported by Polars, implement
 \subsection{InternalValueRepresentation}
 In many cases, the return type of Polars methods, that return concrete values, is \Verb|any|.
 However, the Jayvee interpreter expects such a value to have the type \Verb|InternalValueRepresentation|.
-To narrow down the return type, \Verb|any|, we expand the existing typeguards, implemented in \Verb|typeguards.ts|, to handle inputs with the type \Verb|unknown|.
+To narrow down the returned type \Verb|any|, we expand the existing typeguards, implemented in \Verb|typeguards.ts|, to handle inputs with the type \Verb|unknown|.
 \ref{tab:internalvaluerepresentation} contains a of internal types and the mechanism their typeguard uses.
 
 
