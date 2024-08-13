@@ -2,9 +2,9 @@
 \label{chapter:Implementation}
 
 In this chapter, we explain the implementation of the architecture described in \autoref{chapter:Architecture}.
+In instances where this thesis makes reference to filenames, the corresponding path can be found in \autoref{tab:src}.
 
-In general, we prefer methods, such as \Verb|map(...)| over for loops because they are, in our experience, less error prone, and result in more readable code.
-In instances where this thesis makes reference to filenames, the file path can be found in \autoref{tab:src}.
+In general, we prefer methods, such as \Verb|map(...)|, over for loops, because they are, in our experience, less error prone and result in more readable code.
 
 \section{Type Conversion}
 \label{subsection:TypeConversion}
@@ -12,10 +12,10 @@ As described in \autoref{section:type_conversion}, we implement a conversion mec
 
 \subsection{Conversion from DataType to ValueType}
 \label{impl:types:dtov}
-The class \Verb|ValueTypeProvider|, located in \Verb|primitive-value-type-provider.ts| implements this method:
+The class \Verb|ValueTypeProvider|, located in \Verb|primitive-value-type-provider.ts|, implements this method:
 \begin{center}
 	\begin{minted}{typescript}
-fromPolarsDType(dtype: polars.DataType): ValueType
+	fromPolarsDType(dtype: polars.DataType): ValueType
 	\end{minted}
 \end{center}
 It uses the method \Verb|DataType.equals(...)| instead of \Verb|===| for a more accurate comparison of DataTypes.
@@ -26,7 +26,7 @@ For instance, both \Verb|polars.Float32| and \Verb|polars.Float64| return \Verb|
 The interface \Verb|ValueType|, located in \Verb|value-type.ts|, defines this method:
 \begin{center}
 	\begin{minted}{typescript}
-toPolarsDataType(): polars.DataType | undefined
+	toPolarsDataType(): polars.DataType | undefined
 	\end{minted}
 \end{center}
 is defined in the interface \Verb|ValueType| interface.
@@ -36,18 +36,17 @@ The classes representing ValueTypes, that are not supported by Polars, implement
 In many cases, the return type of Polars methods, that return concrete values, is \Verb|any|.
 However, the Jayvee interpreter expects such a value to have the type \Verb|InternalValueRepresentation|.
 To narrow down the returned type \Verb|any|, we expand the existing typeguards, implemented in \Verb|typeguards.ts|, to handle inputs with the type \Verb|unknown|.
-\autoref{tab:internalvaluerepresentation} contains a of internal types and the mechanism their typeguard uses.
+\autoref{tab:internalvaluerepresentation} contains a list of internal types and the mechanism their typeguard uses.
 
 
 \section{Table}
 \label{arch:table}
-The overview of existing classes and their relations is given in \autoref{section:new_table}. \\
+The overview of existing classes and their relations is given in \autoref{section:new_table}.
 In this section, we describe the new table implementation and the changes to the orignal one:
 
 \begin{itemize}
-	\item To reduce the code in the source file, \Verb|table.ts| (\autoref{tab:src}) %TODO explain source file links in general
-	      and the modularization requirement, we move the abstract class \Verb|TableColumn| and its subclasses \Verb|PolarsTableColumn| and \Verb|TsTableColumn| into a new file, \Verb|table-column.ts|.
-	\item Because of the modularization requirement and the fact, that the Polars and TypeScript implementations of the method \Verb|generateDropTableStatement| are identical, we implement it as a non abstract method in \Verb|Table|. %FIXME "non abstract" wording
+	\item To reduce the code in the source file, \Verb|table.ts| and the modularization requirement, we move the abstract class \Verb|TableColumn| and its subclasses \Verb|PolarsTableColumn| and \Verb|TsTableColumn| into a new file, \Verb|table-column.ts|.
+	\item Because of the fact, that the Polars and TypeScript implementations of the method \Verb|generateDropTableStatement| are identical, we implement it as a non abstract method in \Verb|Table|.
 	\item Because cloning an object instead of mutating is hypothetically improving the performance in a future parallel execution environment, %TODO citation
 	      columns are now added to a clone of the table.
 	      Because of the compbatibility requirement, we create a new method, \Verb|withColumn(...)|, that implements this behavior, and preserve the old \Verb|addColumn(...)|.
