@@ -47,6 +47,8 @@ They were able to speed up model training by a factor of 38, compared to the ind
 % The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
 
 
+some change
+
 \section{Tabular data memory layout}
 \label{section:column_vs_row}
 When working with tabular data, a fundamental challenge arises: how to project the two-dimensional data onto a linear layout, either on disk, or in memory.
@@ -55,7 +57,7 @@ The first is to save the values of each row one after another.
 This is referred to as \emph{row-oriented} or \emph{row-storage}.
 The other approach is to save the values of each column one after another.
 This is known as \emph{columnar} or \emph{column-storage}.
-See Figure~\ref{fig:row_v_col} for a visual comparison.
+See Figure~\autoref{fig:row_v_col} for a visual comparison.
 \autocite{Floratou2019}
 \begin{figure}
 	\begin{center}
@@ -87,7 +89,7 @@ Columnar storage has advantages over row-oriented storage:
 \label{section:arrow}
 % "The Apache Arrow project was initiated by the Apache Foundation in 2016.
 % This framework provides an open and a common standardized format for different programming languages for reading/writing tabular data in-memory.
-% Through language-specific libraries, multiple languages can share data without any copying or serialization." \autocite{Ahmad2020} (see \ref{fig:arrow_com})
+% Through language-specific libraries, multiple languages can share data without any copying or serialization." \autocite{Ahmad2020} (see \autoref{fig:arrow_com})
 % "In the Arrow format, data entries (records) are stored in a table called a RecordBatch.
 % Each record field is stored in a separate column of the RecordBatch table in a manner that is as contiguous as possible in memory.
 % This is called an Arrow Array which can store data of different types — i.e., int, float, strings, binary, timestamps and lists, but also nested types (such as lists of lists, etc.).
@@ -97,7 +99,7 @@ Columnar storage has advantages over row-oriented storage:
 
 Apache Arrow is often uses synonymously with the memory format it defines.
 This format is \emph{language agostic}, \emph{columnar} and \emph{in memory}.
-It has implementations in many languages (see \ref{subsubsection:arrow:langs} for a list).
+It has implementations in many languages (see \autoref{subsubsection:arrow:langs} for a list).
 
 In the Arrow specification \autocite{arrow:spec}, a table is called record batch.
 They are comprised of Arrow arrays which represent columns.

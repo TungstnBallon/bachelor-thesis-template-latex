@@ -30,7 +30,7 @@ This necessitates modifying the Jayvee interpreter, the program, that parses Jay
 % 	\label{fig:}
 % \end{figure}
 
-This section will provide an overview of how the interpreter executes a Jayvee pipeline, illustrated by \ref{fig:uml:overview}.
+This section will provide an overview of how the interpreter executes a Jayvee pipeline, illustrated by \autoref{fig:uml:overview}.
 How the interpreter parses a Jayvee source file is not relevant for the purpose of this thesis.
 
 Once the parsing process is complete, the interpreter obtains a series of pipeline definitions, which consist of block definitions.
@@ -129,7 +129,7 @@ The \Verb|evaluateExpression| function finds the correct evaluator with the help
 
 \section{General Idea}
 \label{section:General Idea}
-We add an alternative table implemetation, based on the Apache Arrow framework \ref{section:arrow}, to the interpreter.
+We add an alternative table implemetation, based on the Apache Arrow framework \autoref{section:arrow}, to the interpreter.
 So the interpreter will contain two table implementations at the same time.
 \textcite{Dooley2024} recommend the strategy pattern for this situation, because it will ensure that both implementations share a common interface and, that the different implementations can be chosen dynamically.
 
@@ -231,7 +231,7 @@ DataTypes are not compatible with ValueTypes, which leaves us with two possible 
 
 
 
-For details on how this conversion mechanism is implemented, see \ref{subsection:TypeConversion}.
+For details on how this conversion mechanism is implemented, see \autoref{subsection:TypeConversion}.
 
 % Jayvee also defines a union type \Verb|InternalValueRepresentation| which aggregates %FIXME: aggregate
 % all TypeScript types allowed in jayvee.
@@ -260,13 +260,13 @@ We move all of the functionality from \Verb{Table} to \Verb{TsTable} and create 
 \subsection{abstract Table}
 This class implements the \Verb|IOTypeImplementation<IOType.TABLE>| interface to be allowed as an input / output for blocks.
 Its methods are based on those of the original Table class.
-See \ref{fig:uml:table} for a class diagram.
+See \autoref{fig:uml:table} for a class diagram.
 
 \subsubsection{Differences between the old Table and the new abstract Table}
 \Verb|getRow|, \Verb|addRow|, \Verb|dropRow|, \Verb|dropRows| and \Verb|addColumn| are not part of the abstract table.
 They still exist in the \Verb|TsTable| class to preserve original functionality.
 The methods working with rows are not included, because they are not necessary for the Polars based implementation. %TODO: also because working with rows is slow, but I don't know if I need to cite that or not.
-\Verb|addColumn| is replaced in favor of \Verb|withColumn|, the concrete differences are explained in \ref{subssubsection:impl:old_vs_new}.
+\Verb|addColumn| is replaced in favor of \Verb|withColumn|, the concrete differences are explained in \autoref{subssubsection:impl:old_vs_new}.
 Typeguards to distinguish the implementations, \Verb|isPolars| and \Verb|isTypescript|, were added.
 Also, we replaced the \Verb|number_of_rows| property with getter method using the \Verb|get| keyword.
 
@@ -310,7 +310,7 @@ In addition to the abstract methods from \Verb|Table|, \Verb|PolarsTable| also i
 
 \Verb|withColumnFromInternal| returns a new Table with the column resulting from the passed Polars expression added.
 Polars expressions are a way to describe a series of operations, that result in one or more columns, with automatic optimization and parallelization \autocite{polars:docs:expr}.
-\ref{lst:pl_expr_example} contains an example of how Polars expression can be chained.
+\autoref{lst:pl_expr_example} contains an example of how Polars expression can be chained.
 \begin{listing}
 	\begin{minted}{typescript}
 use { pl } from 'nodejs-polars';
@@ -341,14 +341,13 @@ const newDataFrame = dataFrame.withColumn(renamed)
 
 One of the negative consequences is that adding a column into the DataFrame is that the column's ValueType is lost, because the Dataframe uses polars' DataTypes.
 This is problematic, because TableColumn expects a ValueType for it's constructor.
-The solution is to convert the polars DataType of a column to a ValueType using the conversion mechanism in \ref{subsection:TypeConversion}.
+The solution is to convert the polars DataType of a column to a ValueType using the conversion mechanism in \autoref{subsection:TypeConversion}.
 Conversion requires a ValueTypeProvider, which is saved as one of PolarsTable's properties.
 
 \Verb|PolarsTable| requires a \Verb|ValueTypeProvider|
-to be passed to its contructor. See \ref{subsubsection:polarstablecolumn}.
-See \ref{fig:uml:polarstable} for the class diagram.
+to be passed to its contructor. See \autoref{subsubsection:polarstablecolumn}.
+See \autoref{fig:uml:polarstable} for the class diagram.
 
-\Ver
 Now, we use Polars expressions, a way to describe a series of operations, that result in one or more columns, with automatic optimization and parallelization \autocite{polars:docs:expr}.
 The approach to executing transforms no longer is to compute all the calues of the new column, but to create a Polars expression, and return it to \Verb|PolarsTableTransformerExecutor|.
 As a consequence, we add the new function \Verb|jayveeExpressionToPolars|.
@@ -391,7 +390,7 @@ can apply the expression returned by \Verb|PolarsTransformExecutor.executeTransf
 Analogous to \Verb|Table| we create an abstract class \Verb|TableColumn| that has two subclasses, \Verb|TsTableColumn| and \Verb|PolarsTableColumn|
 
 \subsubsection{\Verb{abstract TableColumn}}
-Compared to the old \Verb|TableColumn| (\ref{fig:uml:old_tablecolumn}), the new abtract class no longer defines how the values of the column are saved.
+Compared to the old \Verb|TableColumn| (\autoref{fig:uml:old_tablecolumn}), the new abtract class no longer defines how the values of the column are saved.
 It used to be a TypeScript array, but now this decision is left to the subclasses of \Verb|TableColumn|.
 We utilise a generic type parameter, to remain close to the original implementation and to be more specific on the return type of \Verb|valueType()|.
 The typeguards \Verb|isPolars()| and \Verb|isTypescript()| were added.
@@ -405,7 +404,7 @@ The typeguards \Verb|isPolars()| and \Verb|isTypescript()| were added.
 			}
 		@enduml
 	\end{plantuml}
-	\caption{The class diagram of the old \Verb|TableColumn|}
+	\caption{The class diagram of the old \Verb{TableColumn}}
 	\label{fig:uml:old_tablecolumn}
 \end{figure}
 
@@ -423,7 +422,7 @@ The typeguards \Verb|isPolars()| and \Verb|isTypescript()| were added.
 			}
 		@enduml
 	\end{plantuml}
-	\caption{The \Verb|TableColumn| class diagram}
+	\caption{The \Verb{TableColumn} class diagram}
 	\label{fig:uml:tablecolumn}
 \end{figure}
 
@@ -434,7 +433,7 @@ To make \Verb|Series| useful, we create a class adapter with the target \Verb|Ta
 
 One challenge here is that \Verb|Series| does not have a generic type parameter.
 To overcome it, we can either create \Verb|PolarsTableColumn<T extends InternalValueRepresentation>|, extend \Verb|TableColumn<T>| and work around \Verb|Series|' limitations in the implementation, or, we create \Verb|PolarsTableColumn| without a type parameter too and extend the general \Verb|TableColumn<InternalValueRepresentation>|.
-The former approach is preferable, because it allows us to preserve the generic type parameter of the \Verb|_valueType: ValueType<T>| property (see \ref{fig:uml:polarstablecolumn}).
+The former approach is preferable, because it allows us to preserve the generic type parameter of the \Verb|_valueType: ValueType<T>| property (see \autoref{fig:uml:polarstablecolumn}).
 To be clear, \Verb|T| does not denote actual the type of the values stored in the column, like it would for \Verb|Array<T>|.
 This detail is left to \Verb|Series|.
 \Verb|T| specifies what type the column's values would be if it were implemented in typescript, which is used to narrow down the type of \Verb|_valueType|.
@@ -538,10 +537,10 @@ At one point during development, \Verb|at| was also implemented for \Verb|Polars
 \end{figure}
 
 \section{Adapting and creating Blocktypes}
-The executors for Jayvee blocks are organized in extensions that extend the abstract class \Verb|JayveeExecExtension| (see \ref{fig:uml:jayveeexecextension}).
+The executors for Jayvee blocks are organized in extensions that extend the abstract class \Verb|JayveeExecExtension| (see \autoref{fig:uml:jayveeexecextension}).
 The Jayvee interpreter uses \Verb|createBlockExecutor| to get an implementation of the \Verb|BlockExecutor| interface.
 This is the method that chooses either the existing block executors or the new block executors that are described in this section.
-For details on the implementation of this method, see \ref{subsection:createBlockExecutor}.
+For details on the implementation of this method, see \autoref{subsection:createBlockExecutor}.
 
 \begin{figure}
 	\begin{plantuml}
@@ -612,7 +611,7 @@ For details on the implementation of this method, see \ref{subsection:createBloc
 The only class implementing \Verb|BlockExecutor| is the abstract class \Verb|AbstractBlockExecutor|.
 It exists as an intermediary between \Verb|BlockExecutor| and the concrete classes implementing it.
 Classes extending \Verb|AbstractBlockExecutor|, instead of implementing \Verb|BlockExecutor|, benefit from its general implementation of \Verb|execute|, that leaves the execution behaviour to \Verb|doExecute|.
-See \ref{fig:uml:abstractblockexecutor}
+See \autoref{fig:uml:abstractblockexecutor}
 
 \begin{figure}
 	\begin{plantuml}
@@ -629,14 +628,14 @@ See \ref{fig:uml:abstractblockexecutor}
 			}
 		@enduml
 	\end{plantuml}
-	\caption{\Verb|AbstractBlockExecuotor|'s  class diagram.}
+	\caption{\Verb{AbstractBlockExecuotor}'s  class diagram.}
 	\label{fig:uml:abstractblockexecutor}
 \end{figure}
 
 \subsection{TableInterpreter}
 The \Verb|TableInterpreter| blocktype converts a Sheet, Jayvee's representation for \ac{CSV} data, into a Table.
-We create an abstract class \Verb|TableInterpreterExecutor| that extends \Verb|AbstractTableInterpreter<IOType.SHEET, IOType.Table>| (\ref{fig:uml:tableinterpreter}).
-For implementation details, see \ref{section:tableinterpreterexecutor}.
+We create an abstract class \Verb|TableInterpreterExecutor| that extends \Verb|AbstractTableInterpreter<IOType.SHEET, IOType.Table>| (\autoref{fig:uml:tableinterpreter}).
+For implementation details, see \autoref{section:tableinterpreterexecutor}.
 \Verb|TableInterpreter| has two subclasses, \Verb|TsTableInterpreter|, which contains the old behaviour, and the new \Verb|PolarsTableInterpreter|.
 
 This architecture, like the table implementation, follows the strategy pattern from \autocite{Dooley2024}.
@@ -666,7 +665,7 @@ We use static methods to implement behaviour that is useful for other executors 
 		}
 		@enduml
 	\end{plantuml}
-	\caption{Class diagram of the \Verb|TableInterpreterExecutor|}
+	\caption{Class diagram of the \Verb{TableInterpreterExecutor}}
 	\label{fig:uml:tableinterpreter}
 \end{figure}
 
@@ -681,7 +680,7 @@ This block can recieve \Verb|BinaryFile| from multiple blocktypes, including \Ve
 To add this blocktype to the Jayvee language, it's definition is put in \Verb|libs/language-server/src/stdlib/builtin-block-types/FileToTableInterpreter.jv|.
 Running the command \Verb|npm run generate| creates the necessary files for this blocktype to be used in the Jayvee interpreter.
 
-We also create an executor for the new blocktype (\ref {fig:uml:filetotableinterpreter}).
+We also create an executor for the new blocktype (\autoref {fig:uml:filetotableinterpreter}).
 All methods except \Verb|doExecute| are static, making them reusable by other executors. In practice, the only executor using these is \Verb|LocalFileToTableExtractorExecutor|.
 Because there is no preexisting implementation of this executor, we do not need an additional abstract class and can extend \Verb|AbstractBlockExecutor| directly.
 
@@ -710,9 +709,9 @@ Because there is no preexisting implementation of this executor, we do not need 
 The \Verb|LocalFileToTableExtractor| blocktype combines \Verb|LocalFileExtractor| and \Verb|FileToTableInterpreter|.
 This removes another layer of indirection for parsing csv data, letting polars handle as much of the process as possible.
 
-The process of adding the blocktype to jayvee is the same as described in \ref{subsection:FileToTableInterpreter},
+The process of adding the blocktype to jayvee is the same as described in \autoref{subsection:FileToTableInterpreter},
 the only difference being that the definition file is placed in \Verb|libs/language-server/src/stdlib/builtin-block-types/LocalFileToTableExtractorExecutor.jv|.
-\ref{fig:uml:localfiletotableinterpreter} contains the executor's class diagram.
+\autoref{fig:uml:localfiletotableinterpreter} contains the executor's class diagram.
 
 \begin{figure}
 	\begin{plantuml}
@@ -783,13 +782,13 @@ the only difference being that the definition file is placed in \Verb|libs/langu
 
 \subsection{TableTransformer}
 % Blocks with type \Verb|TableTransformer| are Jayvee's main method of manipulating data.
-% This subsection is only concerned with the executor of this blocktype, the architecture of transforms is explained in \ref{section:transforms}, expressions in \ref{section:expressions}.
+% This subsection is only concerned with the executor of this blocktype, the architecture of transforms is explained in \autoref{section:transforms}, expressions in \autoref{section:expressions}.
 
-We still follow the strategy pattern, so, we create another abstract class \Verb|TableTransformer| (\ref{fig:uml:tabletransformer}) with two subclasses \Verb|TsTableTransformer| and \Verb|PolarsTableTransformer| (\ref{fig:uml:polarstabletransformer}).
+We still follow the strategy pattern, so, we create another abstract class \Verb|TableTransformer| (\autoref{fig:uml:tabletransformer}) with two subclasses \Verb|TsTableTransformer| and \Verb|PolarsTableTransformer| (\autoref{fig:uml:polarstabletransformer}).
 As usual the created abstract class contains some shared behaviour, in this case \Verb|logColumnOverwriteStatus| and \Verb|checkInputColumnsExist|.
 
 Blocks with type \Verb|TableInterpreter| use Jayvee transforms to compute an ouptput column from a series of input columns.
-Jayvee transforms are executed by \Verb|TransformExecutor|s (see \ref{section:transforms}).
+Jayvee transforms are executed by \Verb|TransformExecutor|s (see \autoref{section:transforms}).
 
 \begin{figure}
 	\begin{plantuml}
@@ -824,9 +823,9 @@ Jayvee transforms are executed by \Verb|TransformExecutor|s (see \ref{section:tr
 \subsection{SQLiteLoaderExecutor}
 Jayvee blocks with type SQLiteLoader load their input table into a SQLite database.
 Its output IOType is \Verb|None|, so no blocks in the pipeline can come after a block with type SQLiteLoader.
-The abstract \Verb|SQLiteLoaderExecutor| (\ref{fig:uml:sqliteloader}) offers a general implementation, utilising methods defined in the abstract \Verb|Table| class.
+The abstract \Verb|SQLiteLoaderExecutor| (\autoref{fig:uml:sqliteloader}) offers a general implementation, utilising methods defined in the abstract \Verb|Table| class.
 This approach includes serializing all of the data contained in the input table into a \ac{SQL} query with type string.
-We consider this to be a non-optimal representation of the data and improve it in \ref{arch:sqlite:rust}.
+We consider this to be a non-optimal representation of the data and improve it in \autoref{arch:sqlite:rust}.
 
 \Verb|SQLiteLoaderExecutor| has three subclasses:
 \Verb|TsSQLiteLoaderExecutor| doesn't override the superclass' methods to preserve the original TypeScript implementation.
@@ -859,7 +858,7 @@ using generating \ac{SQL} statements.
 \subsubsection{sqlite-loader-lib}
 Polars' core functionality is written in Rust, which \textcite{polars} describe as allowing "for high performance with fine grained control over memory".
 For this reason, we choose Rust to implement sqlite-loader-lib.
-\ref{fig:uml:rust_components}
+\autoref{fig:uml:rust_components}
 
 \begin{figure}
 	\begin{plantuml}
@@ -896,10 +895,10 @@ As a consequence, \Verb|sqlite-loader-lib| uses a seperate library to to interfa
 This library, known as Connector Arrow, enables the writing of Arrow record batches into a SQLite database table \autocite{connector-arrow}.
 Connector Arrow relies on the rusqlite library to support SQLite databases \autocite{connector-arrow}.
 
-See \ref{subsection:sqlite-loader-lib} for the implementation.
+See \autoref{subsection:sqlite-loader-lib} for the implementation.
 
 
-\ref{fig:uml:sqliteloaderexecutor:combined} contains diagram of all classes connected to loading the table into SQLite.
+\autoref{fig:uml:sqliteloaderexecutor:combined} contains diagram of all classes connected to loading the table into SQLite.
 
 \begin{figure}
 	\begin{plantuml}
@@ -938,10 +937,10 @@ See \ref{subsection:sqlite-loader-lib} for the implementation.
 \section{Transforms}
 \label{section:transforms}
 The \Verb|TableTransfromerExecutor| class creates an instance of a concrete subclass of \Verb|TransformExecutor| to compute a new column for it's input table.
-For \Verb|PolarsTableTransformerExecutor| this is an instance of  \Verb|PolarsTransformExecutor| (\ref{fig:uml:transformexecutor}), for \Verb|TsTableTransformerExecutor| this is \Verb|TsTransformExecutor|.
+For \Verb|PolarsTableTransformerExecutor| this is an instance of  \Verb|PolarsTransformExecutor| (\autoref{fig:uml:transformexecutor}), for \Verb|TsTableTransformerExecutor| this is \Verb|TsTransformExecutor|.
 % Then, that instance's \Verb|executeTransform| method is called, which returns either the new column or an expression to compute the new column.
 
-Originally, \Verb|TransformExecutor| would compute the new column by following the algorithm outlined in \ref{lst:old_eval}.
+Originally, \Verb|TransformExecutor| would compute the new column by following the algorithm outlined in \autoref{lst:old_eval}.
 \begin{listing}
 	\begin{minted}{python}
 newColumn = ...  # An empty column
@@ -958,9 +957,9 @@ return newColumn
 \end{listing}
 It applies the jayvee expression to each row in the input columns and returns a column.
 The new approach transforms the Jayvee expression into a Polars expression, that the \Verb|PolarsTableTransformer| can apply to its input table.
-So, we add the new function\Verb|jayveeExpressionToPolars| (see \ref{section:expressions}), which is similar to the existing \Verb|evaluateExpression|, but it returns a Polars expression, not a final value.
+So, we add the new function\Verb|jayveeExpressionToPolars| (see \autoref{section:expressions}), which is similar to the existing \Verb|evaluateExpression|, but it returns a Polars expression, not a final value.
 
-A detailed explanation of this process can be found at \ref{section:impl:transforms}.
+A detailed explanation of this process can be found at \autoref{section:impl:transforms}.
 
 \begin{figure}
 	\begin{plantuml}
@@ -984,7 +983,7 @@ A detailed explanation of this process can be found at \ref{section:impl:transfo
 		TransformExecutor <|-- PolarsTransformExecutor: TransformExecutor<Map<string, PolarsInternal>, PolarsInternal>
 		@enduml
 	\end{plantuml}
-	\caption{\Verb|PolarsTransformExecutor| class diagram.}
+	\caption{\Verb{PolarsTransformExecutor} class diagram.}
 	\label{fig:uml:transformexecutor}
 \end{figure}
 
@@ -994,12 +993,12 @@ A detailed explanation of this process can be found at \ref{section:impl:transfo
 \begin{description}
 	\item[literal] Concrete values, e.g. \Verb|5|, \Verb|"sometext"| or \Verb|true|.
 	      Their evaluation does not differ from the original implementation.
-	\item[variable] Represents a value defined in the evaluation context (\ref{fig:uml:eval_context}).
+	\item[variable] Represents a value defined in the evaluation context (\autoref{fig:uml:eval_context}).
 	      Variables are used to refer to columns inside of transfroms.
 	\item[operator] Transforms one to three Jayvee expressions into one result.
-	      The evaluation context contains a registry of operator evaluators (see \ref{subsection:arch:operator_evaluators})
+	      The evaluation context contains a registry of operator evaluators (see \autoref{subsection:arch:operator_evaluators})
 \end{description}
-Jayvee expressions are transformed to Polars expressions using the function \Verb|jayveeExpressionToPolars| (see \ref{impl:expressions}).
+Jayvee expressions are transformed to Polars expressions using the function \Verb|jayveeExpressionToPolars| (see \autoref{impl:expressions}).
 
 \begin{figure}
 	\begin{plantuml}
@@ -1038,7 +1037,7 @@ We create a new interface \Verb|PolarsOperatorEvaluator|, that defines one metho
 As a consequence, all classes that implement \Verb|PolarsOperatorEvaluator| are also required to implements the properties defined by \Verb|OperatorEvaluator|.
 This guarantees that the existing typescript implemntation remains avaliable.
 
-All classes, that previously implemented \Verb|OperatorEvaluator| interface, now implement \Verb|PolarsOperatorEvaluator| (see \ref{subsubsection:impl:operator_evaluator}).
+All classes, that previously implemented \Verb|OperatorEvaluator| interface, now implement \Verb|PolarsOperatorEvaluator| (see \autoref{subsubsection:impl:operator_evaluator}).
 
 We deliberately did not follow the strategy pattern approach here.
 Jayvee currently has ~32 evaluator operators. %FIXME: decide whether to be imprecise or not. I counted 32
@@ -1046,7 +1045,7 @@ The strategy pattern requires two additional classes per evaluator, one for the 
 This would increase the number of evaluator classes to 96.
 We considered implementing one additional method the simpler option.
 
-\ref{fig:uml:evaluators} visualizes the inheritance structure for operator evaluators.
+\autoref{fig:uml:evaluators} visualizes the inheritance structure for operator evaluators.
 
 \begin{figure}
 	\begin{plantuml}
@@ -1115,6 +1114,6 @@ We considered implementing one additional method the simpler option.
 		DefaultOperatorEvaluatorRegistry "1" -- "1" RoundOperatorEvaluator: "'round'"
 		@enduml
 	\end{plantuml}
-	\caption{Assuming the only operations were \Verb|round| and \Verb|plus|, this is how the Evaluators would be structured}
+	\caption{Assuming the only operations were \Verb{round} and \Verb{plus}, this is how the evaluators would be structured}
 	\label{fig:uml:evaluators}
 \end{figure}

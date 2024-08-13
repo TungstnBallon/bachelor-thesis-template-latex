@@ -13,7 +13,7 @@ Jayvee pipelines require a data input with the following requirements
 \begin{description}
 	\item[\ac{CSV} format] The dataset has to be available in a csv format, because the interpreter can only create tables from csv data.
 	\item[openness] The dataset must have a licence conformant with the Open Definition \autocite{opendefinition}.
-	      \textcite{opendefinition:licences} provides a list of recommended and conformant licenses.
+	      \textcite{opendefinition:licenses} provides a list of recommended and conformant licenses.
 \end{description}
 
 
@@ -42,11 +42,11 @@ We define the following backends:
 	      % Enabled by starting the Jayvee interpreter with the \Verb|--use-polars| \ac{CLI} flag.
 	      Enables the Polars implementations of tables, columns, block executors and transforms.
 	\item[plob] Polars-One-Block.
-	      % Enabled by using the \Verb|LocalFileToTableExtractor| block (see \ref{arch:execs:localfiletotableextractor}) inside a pipeline and the \Verb|--use-polars| \ac{CLI} flag.
-	      Enables pl, plus the \Verb|LocalFileToTableExtractor| block (see \ref{arch:execs:localfiletotableextractor}).
+	      % Enabled by using the \Verb|LocalFileToTableExtractor| block (see \autoref{arch:execs:localfiletotableextractor}) inside a pipeline and the \Verb|--use-polars| \ac{CLI} flag.
+	      Enables pl, plus the \Verb|LocalFileToTableExtractor| block (see \autoref{arch:execs:localfiletotableextractor}).
 	\item[plrs] Polars-Rusqlite.
 	      % Enabled by the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
-	      Enables pl, plus the \Verb|RustSQLiteLoaderExecutor| executor and the the \Verb|sqlite-loader-lib| library (see \ref{arch:sqlite:rust}).
+	      Enables pl, plus the \Verb|RustSQLiteLoaderExecutor| executor and the the \Verb|sqlite-loader-lib| library (see \autoref{arch:sqlite:rust}).
 	\item{plobrs} Polars-One-Block-Rusqlite.
 	      % Enabled by using the \Verb|LocalFileToTableExtractor| block and the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
 	      Enables pl, plus \Verb|LocalFileToTableExtractor|, plus \Verb|RustSQLiteLoaderExecutor|.
@@ -74,7 +74,7 @@ A configuration picks one value from each category.
 
 
 \section{The evaluation tool}
-In order to automate the execution of the jayvee interpreter with the correct configurations, a \ac{CLI} program is created, the evaluation tool (see \ref{fig:uml:evalation-tool}).
+In order to automate the execution of the jayvee interpreter with the correct configurations, a \ac{CLI} program is created, the evaluation tool (see \autoref{fig:uml:evalation-tool}).
 The tool creates a list of all possible configurations and runs each of them 10 times, saving the execution duration.
 It also uses \Verb|sqldiff| \ac{CLI} program \autocite{sqldiff}, to verify that the created databases are identical.
 The timing of the execution duration includes code written by \textcite{so:benchmark}.
@@ -117,7 +117,7 @@ generates a \ac{CSV} file with the requisite number of rows.
 
 Given that there are three distinct numbers of transform amounts, three separate Jayvee source files are created.
 For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| block is required, resulting in a total of six.
-\ref{fig:uml:pick-jv-model} outlines the process by which the evaluation tool selects the correct source file.
+\autoref{fig:uml:pick-jv-model} outlines the process by which the evaluation tool selects the correct source file.
 \begin{figure}
 	\begin{plantuml}
 		@startuml
@@ -156,7 +156,7 @@ For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| 
 
 The path of the \ac{CSV} data source, as well as the path of the destination database, are passed to the Jayvee interpreter via runtime parameters \autocite{jvalue:jayvee:docs:runtime}.
 
-\ref{lst:run_config} outlines the whole process.
+\autoref{lst:run_config} outlines the whole process.
 
 \begin{listing}
 	\begin{minted}{python}
@@ -188,8 +188,8 @@ This subsection describes the Jayvee pipelines that get executed during the eval
 
 In total, there are six different pipelines, each with its own file.
 The pipelines differ in two ways: how they extract the data from the data file and how many transforms are in the pipeline.
-The former way is visualized in \ref{fig:uml:pipelines:backends},
-the latter in \ref{fig:uml:pipelines:transforms}.
+The former way is visualized in \autoref{fig:uml:pipelines:backends},
+the latter in \autoref{fig:uml:pipelines:transforms}.
 \begin{figure}
 	\begin{subfigure}[h]{0.45\linewidth}
 		\begin{plantuml}
@@ -298,7 +298,7 @@ We observed, that reducing the size of the input file appeared to prevent these 
 We subsequently narrowed down the exact limit to a range of $100 000$ lines, or $25\ac{MB}$.
 This limit depends on the enabled optimizations and the amount of transforms in the pipeline.
 
-\ref{tab:crashes} contains a table of maximum file sizes for each configuration and a snippet of the crash's error message.
+\autoref{tab:crashes} contains a table of maximum file sizes for each configuration and a snippet of the crash's error message.
 Because the biggest data input ($1 800 000$ rows) exceeds the limits for pipelines with some or many transforms, we introduce a seventh data input with $1 300 000$ rows.
 The configurations with many transforms will only process data inputs with $900 000$ rows or lower.
 
@@ -362,15 +362,15 @@ Considering these resuts, we conclude, that enabling optimizations increases the
 
 \section{Execution Duration}
 \label{eval:numbers}
-In this section will compare the execution duration of the configurations defined in \ref{section:parameters}.
+In this section will compare the execution duration of the configurations defined in \autoref{section:parameters}.
 We group the configurations based on the number of transforms in the executed pipeline.
 
-\ref{fig:plot_no_transforms}, \ref{fig:plot_so_transforms}, \ref{fig:plot_ma_transforms}  illustrate the average execution time for each backend.
-The precise numbers can be found in \ref{app:eval:transforms}.
+\autoref{fig:plot_no_transforms}, \autoref{fig:plot_so_transforms}, \autoref{fig:plot_ma_transforms}  illustrate the average execution time for each backend.
+The precise numbers can be found in \autoref{app:eval:transforms}.
 
 \begin{description}
 	\item[pl] It is somewhat unexpected, that the pl backend performs worse than the ts baseline twice.
-	      To investigate this, the debug outputs of both these configurations (\ref{tab:cmp:sqlite}) were compared.
+	      To investigate this, the debug outputs of both these configurations (\autoref{tab:cmp:sqlite}) were compared.
 	      It was observed, that the duration of the block \Verb|LiquorLoader| approximately doubled when the backend pl was enabled.
 	      We determined this to be the cause of the worse performance.
 
@@ -380,7 +380,7 @@ The precise numbers can be found in \ref{app:eval:transforms}.
 	      This trend suggests, that the Polars implementation of table transforms is superior to the original TypeScript one.
 
 	\item[plob] The plob backend performs better than the baseline on all tested pipelines and inputs.
-	      This indicates, that the blocktype \Verb|LocalFileToTableExtractor| (\ref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing blocktypes. %TODO link diaram
+	      This indicates, that the blocktype \Verb|LocalFileToTableExtractor| (\autoref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing blocktypes. %TODO link diaram
 
 	\item[plrs] The plrs backend also performs better than the baseline on all tested pipelines and inputs.
 	      This is compelling evidence, that the combination of the executor \Verb|RustSQLiteLoaderExecutor| and the library \Verb|sqlite-loader-lib| is surperior to the original implementation.
@@ -389,7 +389,7 @@ The precise numbers can be found in \ref{app:eval:transforms}.
 	\item[plobrs] The plobrs combines the optimisations from the plob and plrs backends, thereby achieving the highest processing speed.
 	      % Furthermore, the mean slope of the ts backend is $12$ times larger than that of the plobrs backend. %FIXME remove
 
-	      \ref{fig:plot:factor} shows the factor, by which plobrs is faster than the baseline.
+	      \autoref{fig:plot:factor} shows the factor, by which plobrs is faster than the baseline.
 	      The three curves are monotonously rising, which evidences the assertion, that as the number of rows increases, the plobrs backend's processing speed compared to ts increases.
 	      Furthermore, it can be observed, that the curve representing a pipeline with many transforms, lies above the curve representing some transforms, which itself lies above the curve representing
 	      no transforms.
@@ -742,8 +742,8 @@ It is our contention, that all functional requirements, with the exception of co
 
 \subsection{Non functional requirements}
 \begin{enumerate}
-	\item[NFR-1] \textbf{performance} \ref{eval:numbers} demonstrated that the optimizations afforded by the new implementation enhance processing speeds,
-	      \ref{eval:max_size}  illustrated that the new implementation is capable of accommodating greater input data without crashing.
+	\item[NFR-1] \textbf{performance} \autoref{eval:numbers} demonstrated that the optimizations afforded by the new implementation enhance processing speeds,
+	      \autoref{eval:max_size}  illustrated that the new implementation is capable of accommodating greater input data without crashing.
 	\item[NFR-2] \textbf{codestyle} \Verb|npm run lint| only throws erros for files out of the scope of this thesis.
 	      Rust's linter clippy and formatter rustfmt do not report any issues.
 	\item[NFR-3] \textbf{maturity} This thesis implemented a prototype.
