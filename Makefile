@@ -1,22 +1,17 @@
-TEX_FILE = thesis
-CONTENTS = $(wildcard contents/*.tex)
-RESOURCES = $(wildcard resources/*)
-
 .PHONY: all
-all: ${TEX_FILE}.pdf
+all: build
 
-${TEX_FILE}.pdf: thesis.tex mybibliography.bib osrthesis.sty myconfiguration.sty ${CONTENTS} ${RESOURCES} ## build the .pdf without rerunnning unchanged dependencies
-	lualatex -shell-escape ${TEX_FILE}
-	biber ${TEX_FILE}
-	lualatex -shell-escape -synctex=1 ${TEX_FILE}
+.PHONY: build
+build: ## Build the document
+	latexmk --pdf
 
 .PHONY: cleantemp
 cleantemp: ## Remove all temporary files created during the compiling process.
-	rm -f *.aux *.bbl *.bcf *.out *.blg *.dvi *.log *.toc *.run.xml *.synctex.gz *.lot *.lof thesis-plantuml.* *.fdb_latexmk *.fls *.pyg *.pytxcode *.lol *.auxlock thesis-figure*.*
+	latexmk -c
 
 .PHONY: clean
 clean: cleantemp ## Remove all created files including the compiled PDF.
-	rm -f ${TEX_FILE}.pdf
+	latexmk -C
 
 .PHONY: help
 help:

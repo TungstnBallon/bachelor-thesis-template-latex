@@ -11,16 +11,16 @@ Jayvee pipelines require a data input with the following requirements
 \subsection{Requirements}
 \label{subsection:data_source_requirements}
 \begin{description}
-	\item[\ac{CSV} format] The dataset has to be available in a csv format, because the interpreter can only create tables from csv data.
-	\item[openness] The dataset must have a licence conformant with the Open Definition \autocite{opendefinition}.
-	      \textcite{opendefinition:licenses} provides a list of recommended and conformant licenses.
+	\item[\ac{CSV} format] The dataset has to be available in a \ac{CSV} format, because the interpreter can only create tables from \ac{CSV} data.
+	\item[openness] The dataset must have a license compliant with the Open Definition \autocite{opendefinition}.
+	      \textcite{opendefinition:licenses} provides a list of recommended and compliant licenses.
 \end{description}
 
 
 \subsection{Chosen Dataset}
 The selected dataset is entitled "Brewery Operations and Market Analysis" \autocite{dataset}.
 The dataset does not contain real world data.
-The dataset is licensed under the \ac{ODBbL}.
+The dataset is licensed under the \ac{ODbL}.
 All data is contained in a single \ac{CSV} file, eliminating the need for table joins, which are not supported by Jayvee.
 
 \subsubsection{Biases}
@@ -35,24 +35,24 @@ A configuration is characterized by the enabled optimizations, the amount of tra
 We define the following backends:
 \begin{description}
 	%FIXME double enabled.
-	\item[ts] TypeScript.
-	      The baseline for the evaluateion.
-	      The terms "ts backend" and "baseline" are used interchangably.
-	\item[pl] Polars.
+	\item[TS] TypeScript.
+	      The baseline for the evaluation.
+	      The terms "TS backend" and "baseline" are used interchangeably.
+	\item[PL] Polars.
 	      % Enabled by starting the Jayvee interpreter with the \Verb|--use-polars| \ac{CLI} flag.
 	      Enables the Polars implementations of tables, columns, block executors and transforms.
-	\item[plob] Polars-One-Block.
+	\item[PLOB] Polars-One-Block.
 	      % Enabled by using the \Verb|LocalFileToTableExtractor| block (see \autoref{arch:execs:localfiletotableextractor}) inside a pipeline and the \Verb|--use-polars| \ac{CLI} flag.
-	      Enables pl, plus the \Verb|LocalFileToTableExtractor| block (see \autoref{arch:execs:localfiletotableextractor}).
-	\item[plrs] Polars-Rusqlite.
+	      Enables PL, plus the \Verb|LocalFileToTableExtractor| block (see \autoref{arch:execs:localfiletotableextractor}).
+	\item[PLRS] Polars-Rusqlite.
 	      % Enabled by the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
-	      Enables pl, plus the \Verb|RustSQLiteLoaderExecutor| executor and the the \Verb|sqlite-loader-lib| library (see \autoref{arch:sqlite:rust}).
-	\item{plobrs} Polars-One-Block-Rusqlite.
+	      Enables PL, plus the \Verb|RustSQLiteLoaderExecutor| executor and the \Verb|sqlite-loader-lib| library (see \autoref{arch:sqlite:rust}).
+	\item{PLOBRS} Polars-One-Block-Rusqlite.
 	      % Enabled by using the \Verb|LocalFileToTableExtractor| block and the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
-	      Enables pl, plus \Verb|LocalFileToTableExtractor|, plus \Verb|RustSQLiteLoaderExecutor|.
+	      Enables PL, plus \Verb|LocalFileToTableExtractor|, plus \Verb|RustSQLiteLoaderExecutor|.
 
 	      %FIXME this paragraph
-	      This backend not usable for every pipeline.
+	      This backend is not usable for every pipeline.
 	      For example, pipelines that download files instead of reading a local one, it cannot use the block \Verb|LocalFileToTableExtractor|.
 	      However, more blocks like it can be created to be used in such cases.
 \end{description}
@@ -65,16 +65,16 @@ We create three pipelines with the following amount of transforms
 \end{description}
 
 In the remainder of this chapter, the term "some transforms" refers to the pipeline with four transforms.
-Similarly, the term "many transforms" the a pipeline with eight transforms.
+Similarly, the term "many transforms" refers to a pipeline with eight transforms.
 
 We set six values for the amount of input rows: %FIXME: 1300000 is missing
-$56250$, $112500$, $225000$, $4500000$, $900000$ ,$1800000$
+$56250$, $112500$, $225000$, $4500000$, $900000$, $1800000$
 
 A configuration picks one value from each category.
 
 
 \section{The evaluation tool}
-In order to automate the execution of the jayvee interpreter with the correct configurations, a \ac{CLI} program is created, the evaluation tool (see \autoref{fig:uml:evalation-tool}).
+In order to automate the execution of the Jayvee interpreter with the correct configurations, a \ac{CLI} program is created, the evaluation tool (see \autoref{fig:uml:evalation-tool}).
 The tool creates a list of all possible configurations and runs each of them 10 times, saving the execution duration.
 It also uses \Verb|sqldiff| \ac{CLI} program \autocite{sqldiff}, to verify that the created databases are identical.
 The timing of the execution duration includes code written by \textcite{so:benchmark}.
@@ -115,35 +115,35 @@ Given that one line in the \ac{CSV} file represents one row of data, %TODO BE CE
 \mint{bash}{head --lines=<NUMBER_OF_ROWS> brewery_data_all.csv > l-<NUMBER_OF_ROWS>.csv}
 generates a \ac{CSV} file with the requisite number of rows.
 
-Given that there are three distinct numbers of transform amounts, three separate Jayvee source files are created.
+Given that there are three distinct numbers of transform amounTS, three separate Jayvee source files are created.
 For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| block is required, resulting in a total of six.
-\autoref{fig:uml:pick-jv-model} outlines the process by which the evaluation tool selects the correct source file.
+\autoref{fig:uml:pick-jv-model} outlines the process by which the evaluation tool select the correct source file.
 \begin{figure}
 	\begin{plantuml}
 		@startuml
 		!pragma useVerticalIf on
 		start
 		if (no transforms) then (yes)
-		if (plob or plobrs enabled) then (yes)
+		if (PLOB or PLOBRS enabled) then (yes)
 		:plob-no.jv;
 		stop
-		else (ts, pl or plrs enabled)
+		else (TS, PL or PLRS enabled)
 		:ts-no.jv;
 		stop
 		endif
 		elseif (some transforms) then
-		if (plob or plobrs enabled) then (yes)
+		if (PLOB or PLOBRS enabled) then (yes)
 		:plob-so.jv;
 		stop
-		else (ts, pl or plrs enabled)
+		else (TS, PL or PLRS enabled)
 		:ts-so.jv;
 		stop
 		endif
 		else (many transforms)
-		if (plob or plobrs enabled) then (yes)
+		if (PLOB or PLOBRS enabled) then (yes)
 		:plob-ma.jv;
 		stop
-		else (ts, pl or plrs enabled)
+		else (TS, PL or PLRS enabled)
 		:ts-ma.jv;
 		stop
 		endif
@@ -156,8 +156,9 @@ For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| 
 
 The path of the \ac{CSV} data source, as well as the path of the destination database, are passed to the Jayvee interpreter via runtime parameters \autocite{jvalue:jayvee:docs:runtime}.
 
-%NOTE
-We considered it simplest do construct and execute a series of shell commands, simpler than using 3rd-party libraries. scince running the interpreter has to be a shell command anyway.
+%TODO
+We considered it simplest do construct and execute a series of shell commands, simpler than using 3rd-party libraries.
+Since running the interpreter has to be a shell command anyway.
 
 
 \autoref{lst:run_config} outlines the whole process.
@@ -172,10 +173,10 @@ def run_config(interpreter_dir, rowcount, transforms, backend):
 
 		command = f"node dist/apps/interpreter/main.js {source_file} -e SRC={source} -e SRC {destination}";
 
-		if backend != "ts":
+		if backend != "TS":
 			command += " --use-polars"
 
-		if backend == "plobrs" or backend == "plrs":
+		if backend == "PLOBRS" or backend == "PLRS":
 			command += " --use-rusqlite"
 
 		start = now()
@@ -211,7 +212,7 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 			stop
 			@enduml
 		\end{plantuml}
-		\caption{ts}
+		\caption{TS}
 		\label{fig:uml:pipelines:ts}
 	\end{subfigure}
 	\hfill
@@ -225,7 +226,7 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 			stop
 			@enduml
 		\end{plantuml}
-		\caption{plobrs}
+		\caption{PLOBRS}
 		\label{fig:uml:pipelines:plob}
 	\end{subfigure}
 	\caption{The initial section of Jayvee pipelines in Jayvee files starting with \dots . Presents the block's types and their associated IOType}
@@ -306,7 +307,7 @@ This limit depends on the enabled optimizations and the amount of transforms in 
 Because the biggest data input ($1 800 000$ rows) exceeds the limits for pipelines with some or many transforms, we introduce a seventh data input with $1 300 000$ rows.
 The configurations with many transforms will only process data inputs with $900 000$ rows or lower.
 
-Based on our knowledge of the interpreter, the "Invalid string lenght" error originates from a nodejs limit on the maximum length of a string. %FIXME make sure this is ok
+Based on our knowledge of the interpreter, the "Invalid string length" error originates from a NodeJS limit on the maximum length of a string. %FIXME make sure this is ok
 The observation, that the error occurs during the loading of the table into the SQLite database, suggests, that the string limit may be exceeded during the generation of the \ac{SQL} queries.
 
 The error message "JavaScript heap overflow", which also occurs is the \Verb|SQLiteLoader| block, indicates that the heap can not contain the data and the \ac{SQL} queries.
@@ -330,7 +331,7 @@ The error message "Cannot make a string longer than 0x1fffffe8 characters." is e
 			coordinates {
 					(1,1900000)(2,1300000)(3,900000)
 				};
-			\addlegendentry{ts}
+			\addlegendentry{TS}
 			\addplot[
 				color=blue,
 				mark=triangle*,
@@ -338,7 +339,7 @@ The error message "Cannot make a string longer than 0x1fffffe8 characters." is e
 			coordinates {
 					(1,1800000)(2,1800000)(3,1700000)
 				};
-			\addlegendentry{pl}
+			\addlegendentry{PL}
 			\addplot[
 				color=brown,
 				mark=triangle*,
@@ -346,7 +347,7 @@ The error message "Cannot make a string longer than 0x1fffffe8 characters." is e
 			coordinates {
 					(1,1900000)(2,1700000)(3,1700000)
 				};
-			\addlegendentry{plob}
+			\addlegendentry{PLOB}
 			\addplot[
 				color=green,
 				mark=triangle*,
@@ -354,14 +355,14 @@ The error message "Cannot make a string longer than 0x1fffffe8 characters." is e
 			coordinates {
 					(1,2000000)(2,2000000)(3,2000000)
 				};
-			\addlegendentry{plrs}
+			\addlegendentry{PLRS}
 		\end{axis}
 	\end{tikzpicture}
 	\caption{Maximum file sizes}
 	\label{fig:plot:filesize}
 \end{figure}
 
-Considering these resuts, we conclude, that enabling optimizations increases the amount of data, that the Jayvee interpreter is able to process.
+Considering these results, we conclude, that enabling optimizations increases the amount of data, that the Jayvee interpreter is able to process.
 
 
 \section{Execution Duration}
@@ -373,35 +374,35 @@ We group the configurations based on the number of transforms in the executed pi
 The precise numbers can be found in \autoref{app:eval:transforms}.
 
 \begin{description}
-	\item[pl] It is somewhat unexpected, that the pl backend performs worse than the ts baseline twice.
+	\item[PL] It is somewhat unexpected, that the PL backend performs worse than the TS baseline twice.
 	      To investigate this, the debug outputs of both these configurations (\autoref{tab:cmp:sqlite}) were compared.
-	      It was observed, that the duration of the block \Verb|LiquorLoader| approximately doubled when the backend pl was enabled.
+	      It was observed, that the duration of the block \Verb|LiquorLoader| approximately doubled when the backend PL was enabled.
 	      We determined this to be the cause of the worse performance.
 
-	      We observed, that with no transforms, ts was $1,33$ times slower than the the baseline ts.
+	      We observed, that with no transforms, PL was $1,33$ times slower than the baseline TS.
 	      With some transforms, this factor decreased to $1,09$.
-	      With many transforms pl was $1,07$ times faster than the baseline ts.
+	      With many transforms PL was $1,07$ times faster than the baseline TS.
 	      This trend suggests, that the Polars implementation of table transforms is superior to the original TypeScript one.
 
-	\item[plob] The plob backend performs better than the baseline on all tested pipelines and inputs.
-	      This indicates, that the blocktype \Verb|LocalFileToTableExtractor| (\autoref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing blocktypes. %TODO link diaram
+	\item[PLOB] The PLOB backend performs better than the baseline on all tested pipelines and inputs.
+	      This indicates, that the blocktype \Verb|LocalFileToTableExtractor| (\autoref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing block types. %TODO link diaram
 
-	\item[plrs] The plrs backend also performs better than the baseline on all tested pipelines and inputs.
-	      This is compelling evidence, that the combination of the executor \Verb|RustSQLiteLoaderExecutor| and the library \Verb|sqlite-loader-lib| is surperior to the original implementation.
-	      Plrs is also faster than pl, $1,64$ times on average. %FIXME remove
+	\item[PLRS] The PLRS backend also performs better than the baseline on all tested pipelines and inputs.
+	      This is compelling evidence, that the combination of the executor \Verb|RustSQLiteLoaderExecutor| and the library \Verb|sqlite-loader-lib| is superior to the original implementation.
+	      PLRS is also faster than PL, $1,64$ times on average. %FIXME remove
 
-	\item[plobrs] The plobrs combines the optimisations from the plob and plrs backends, thereby achieving the highest processing speed.
-	      % Furthermore, the mean slope of the ts backend is $12$ times larger than that of the plobrs backend. %FIXME remove
+	\item[PLOBRS] The PLOBRS backend combines the optimizations from the PLOB and PLRS backends, thereby achieving the highest processing speed.
+	      % Furthermore, the mean slope of the TS backend is $12$ times larger than that of the PLOBRS backend. %FIXME remove
 
-	      \autoref{fig:plot:factor} shows the factor, by which plobrs is faster than the baseline.
-	      The three curves are monotonously rising, which evidences the assertion, that as the number of rows increases, the plobrs backend's processing speed compared to ts increases.
+	      \autoref{fig:plot:factor} shows the factor, by which PLOBRS is faster than the baseline.
+	      The three curves are monotonously rising, which evidences the assertion, that as the number of rows increases, the PLOBRS backend's processing speed compared to TS increases.
 	      Furthermore, it can be observed, that the curve representing a pipeline with many transforms, lies above the curve representing some transforms, which itself lies above the curve representing
 	      no transforms.
-	      This evidence substantiates the claim, that the greater the number of transforms in a pipeline, the faster the plobrs backend is in comparison to the ts baseline.
+	      This evidence substantiates the claim, that the greater the number of transforms in a pipeline, the faster the PLOBRS backend is in comparison to the TS baseline.
 \end{description}
 
-Due to the fact, that the plob, plrs, and plobrs backends have been demonstrated to be faster than the ts baseline in all tested circumstances, we conclude that they are successful optimizations.
-The pl backend can only be considered an optimization, if the pipeline has sufficient transforms.
+Due to the fact, that the PLOB, PLRS, and PLOBRS backends have been demonstrated to be faster than the TS baseline in all tested circumstances, we conclude that they are successful optimizations.
+The PL backend can only be considered an optimization, if the pipeline has sufficient transforms.
 
 
 
@@ -422,7 +423,7 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 			]
 			coordinates {
 					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
-					% ts slopes: 0,051982222 0,044432, 0,059995556 0,047473333 0,043474 0,055424: avg: 0,050463519
+					% TS slopes: 0,051982222 0,044432, 0,059995556 0,047473333 0,043474 0,055424: avg: 0,050463519
 				};
 			\addplot[
 				color=blue,
@@ -450,10 +451,10 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 			]
 			coordinates {
 					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
-					%pl slopes: 0,003306667+0,006355556+0,003573333+0,003968889+0,003068+0,004248: 0,004086741
+					%PL slopes: 0,003306667+0,006355556+0,003573333+0,003968889+0,003068+0,004248: 0,004086741
 				};
 
-			\legend{ts,pl,plob,plrs,plobrs}
+			\legend{TS,PL,PLOB,PLRS,PLOBRS}
 		\end{axis}
 	\end{tikzpicture}
 	\caption{The execution durations for a pipeline with no transforms}
@@ -504,7 +505,7 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
 				};
 
-			\legend{ts,pl,plob,plrs,plobrs}
+			\legend{TS,PL,PLOB,PLRS,PLOBRS}
 		\end{axis}
 	\end{tikzpicture}
 	\caption{The execution durations for a pipeline with some transforms}
@@ -559,7 +560,7 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 					(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
 				};
 
-			\legend{ts,pl,plob,plrs,plobrs}
+			\legend{TS,PL,PLOB,PLRS,PLOBRS}
 		\end{axis}
 	\end{tikzpicture}
 	\caption{The execution durations for a pipeline with many transforms}
@@ -583,7 +584,7 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 			coordinates {
 					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
 				};
-			\addlegendentry{ts-no}
+			\addlegendentry{TS-no}
 			\addplot[
 				color = red,
 				mark=*,
@@ -591,7 +592,7 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 			coordinates {
 					(56250,4495)(112500,8283)(225000,15346)(450000,32467)(900000,60755)(1300000,95102)
 				};
-			\addlegendentry{ts-so}
+			\addlegendentry{TS-so}
 			\addplot[
 				color = red,
 				mark=square*,
@@ -599,38 +600,38 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 			coordinates {
 					(56250,5722)(112500,11097)(225000,18750)(450000,38264)(900000,81900)
 				};
-			\addlegendentry{ts-ma}
+			\addlegendentry{TS-ma}
 			\addplot[
 				mark=triangle*,
 			]
 			coordinates {
 					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
 				};
-			\addlegendentry{plobrs-no}
+			\addlegendentry{PLOBRS-no}
 			\addplot[
 				mark=*,
 			]
 			coordinates {
 					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
 				};
-			\addlegendentry{plobrs-so}
+			\addlegendentry{PLOBRS-so}
 			\addplot[
 				mark=square*,
 			]
 			coordinates {
 					(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
 				};
-			\addlegendentry{plobrs-ma}
+			\addlegendentry{PLOBRS-ma}
 		\end{axis}
 	\end{tikzpicture}
-	\caption{The execution duration of the ts and plobrs backends}
+	\caption{The execution duration of the TS and PLOBRS backends}
 	\label{fig:plot:ts_vs_plobrs}
 \end{figure}
 
 \begin{figure}
 	\begin{tikzpicture}
 		\begin{axis}[
-				title = {plobrs},
+				title = {PLOBRS},
 				% axis lines = left,
 				xlabel = {lines},
 				ylabel = {time in ms},
@@ -644,7 +645,7 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 			coordinates {
 					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
 				};
-			\addlegendentry{plobrs-no}
+			\addlegendentry{PLOBRS-no}
 			\addplot[
 				color = blue,
 				mark=*,
@@ -652,14 +653,14 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 			coordinates {
 					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
 				};
-			\addlegendentry{plobrs-so}
+			\addlegendentry{PLOBRS-so}
 			\addplot[
 				mark=square*,
 			]
 			coordinates {
 					(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
 				};
-			\addlegendentry{plobrs-ma}
+			\addlegendentry{PLOBRS-ma}
 		\end{axis}
 	\end{tikzpicture}
 	\caption{plot }\label{fig:plot:plobrs}
@@ -673,7 +674,7 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 				title = {speedup},
 				% axis lines = left,
 				xlabel = {lines},
-				ylabel = {ts / plobrs},
+				ylabel = {TS / PLOBRS},
 				legend pos=south east,
 			]
 			\addplot[
@@ -706,13 +707,13 @@ The pl backend can only be considered an optimization, if the pipeline has suffi
 
 \section{Differences in the resulting tables}
 \label{eval:diffs}
-The backends pl, plob, plrs and plobrs yield tables that differ from those produced by the original implementation in two notable ways:
+The backends PL, PLOB, PLRS and PLOBRS yield tables that differ from those produced by the original implementation in two notable ways:
 floating point numbers and rows with \Verb|NULL|.
 
 \subsection{Floating point values}
 During the evaluation process, it was observed, that seemingly random floating-point numbers in the final tables exhibited slight discrepancies.
-To investigate this phenomenon, a pipeline with some transforms and an input of $900 000$ rows, was executed, once with the ts backend and once with the pl backend.
-The pl backend was selected, because it includes the least amount of changes compared to the baseline.
+To investigate this phenomenon, a pipeline with some transforms and an input of $900 000$ rows, was executed, once with the TS backend and once with the PL backend.
+The PL backend was selected, because it includes the least amount of changes compared to the baseline.
 
 A comparison of the resulting tables revealed a total of $838$ differing values, indicating that one such value occurs approximately every $1074$ rows.
 Additionally, it was observed, that the differing values were confined to columns generated by transforms.
@@ -732,23 +733,23 @@ While this issue has not been resolved due to the time constraints of this thesi
 
 \begin{enumerate}
 	\item[FR-1] \textbf{interoperability} Polars is capable of exporting DataFrames into the Apache Arrow \ac{IPC} format.
-	\item[FR-2] \textbf{columnar} Polars implements the Apache Arrow specifictation, which is a columnar format.
+	\item[FR-2] \textbf{columnar} Polars implements the Apache Arrow specification, which is a columnar format.
 	\item[FR-3] \textbf{feature toggle} The implementation can be chosen with the interpreter's \ac{CLI} flags \Verb|--use-polars| and \Verb|--use-rusqlite|
 	\item[FR-4] \textbf{compatibility} The electric vehicles example completes without errors.
 	      The tables produced by the new implementations are not consistent with the old implementation.
-	      Consequiently, this requrement remains unfulfilled.
+	      Consequently, this requirement remains unfulfilled.
 	\item[FR-5] \textbf{modularization} The Rust library \Verb|sqlite-loader-lib| is usable from TypeScript through NAPI-RS.
 	\item[FR-6] \textbf{extensibility} \Verb|RustSQLiteLoaderExecutor|, using \Verb|sqlite-loader-lib|, exports a DataFrame into an SQLite database.
 	      This functionality is not yet implemented in Polars.
 \end{enumerate}
 
-It is our contention, that all functional requirements, with the exception of compatibility, have been met.
+It is our contention, that all functional requirements, except for compatibility, have been met.
 
-\subsection{Non functional requirements}
+\subsection{Non-functional requirements}
 \begin{enumerate}
 	\item[NFR-1] \textbf{performance} \autoref{eval:numbers} demonstrated that the optimizations afforded by the new implementation enhance processing speeds,
 	      \autoref{eval:max_size}  illustrated that the new implementation is capable of accommodating greater input data without crashing.
-	\item[NFR-2] \textbf{codestyle} \Verb|npm run lint| only throws erros for files out of the scope of this thesis.
+	\item[NFR-2] \textbf{code style} \Verb|npm run lint| only throws errors for files out of the scope of this thesis.
 	      Rust's linter clippy and formatter rustfmt do not report any issues.
 	\item[NFR-3] \textbf{maturity} This thesis implemented a prototype.
 \end{enumerate}

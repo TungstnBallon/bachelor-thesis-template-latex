@@ -4,9 +4,9 @@
 There are some projects working with arrow directly
 
 \textcite{Ahmad2020}
-created their own memory format based on apache arrow to process genome data.
+created their own memory format based on Apache Arrow to process genome data.
 They found that arrow improved the use of the available hardware, and led to fewer cache misses.
-Arrow performed better than both ramDisk and unix pipes.
+Arrow performed better than both ramDisk and Unix pipes.
 The overall execution time was 4.85 times faster with arrow.
 
 % - process genome data, heavily dependent on I/O
@@ -95,20 +95,20 @@ Columnar storage has advantages over row-oriented storage:
 % This layout provides higher spatial locality when iterating over column contiguous data entries for better CPU cache performance.
 % SIMD (Single instruction, multiple data) vector operations can also benefit from such a layout as vector elements are already aligned properly in memory." \autocite{Ahmad2020}
 
-Apache Arrow is often uses synonymously with the memory format it defines.
-This format is \emph{language agostic}, \emph{columnar} and \emph{in memory}.
+Apache Arrow is often used synonymously with the memory format it defines.
+This format is \emph{language agnostic}, \emph{columnar} and \emph{in memory}.
 It has implementations in many languages (see \autoref{subsubsection:arrow:langs} for a list).
 
 In the Arrow specification \autocite{arrow:spec}, a table is called record batch.
 They are comprised of Arrow arrays which represent columns.
-These Arrow arrays are different from JavaScript arrays, as they cannot contain different datatypes.
+These Arrow arrays are different from JavaScript arrays, as they cannot contain different data types.
 An Arrow array's actual data is split across a series of Arrow buffers, which represent continuous space in memory.
 Arrow record batches also have Arrow schemas, which contain the batch's metadata.
 
-Arrow has a more granular typesystem than javascript. This allows for a more percise control of memory.
+Arrow has a more granular type system than JavaScript. This allows for a more precise control of memory.
 Arrow types can have parameters.
-For example instead of javascripts \Verb|number|, Arrow has (un)signed integers with a bit width parameter,
-decimals with width, scale and precision as parameters, and floating point numbers with a percision parameter.
+For example instead of JavaScript \Verb|number|, Arrow has (un)signed integers with a bit width parameter,
+decimals with width, scale and precision as parameters, and floating point numbers with a precision parameter.
 The spec also includes a physical memory layout for each type.
 % MAYBE  - fixed-size list - list (32-bit offset), largelist (64bit offset) instead of array
 
@@ -123,7 +123,7 @@ At the time of writing there are 48 projects powered by Apache Arrow \autocite{a
 \end{figure}
 \begin{figure}
 	\includegraphics[width=\textwidth]{resources/arrow_interop}
-	\caption{Example how Arrow increases interoperability between proceses \autocite{Ahmad2020}}
+	\caption{Example how Arrow increases interoperability between processes \autocite{Ahmad2020}}
 	\label{fig:arrow_com}
 \end{figure}
 
@@ -132,7 +132,7 @@ At the time of writing there are 48 projects powered by Apache Arrow \autocite{a
 \label{section:polars}
 Polars is built on top of the Rust implementation of the Arrow specification.
 It incorporates convienient abstractions such as DataFrames and Series.
-Additionaly, it uses napi-rs to provide a JavaScript/TypeScript \ac{API} that preserves the performance of the rust library.
+Additionaly, it uses NAPI-RS to provide a JavaScript/TypeScript \ac{API} that preserves the performance of the rust library.
 It promises "up to 50x performance".
 \autocite{polars}
 
