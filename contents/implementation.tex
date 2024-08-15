@@ -86,10 +86,10 @@ export class ValueTypeProvider {
 Because \ac{SQL} insert values statements expect rows of data, the method \Verb|PolarsTable.generateInsertValuesStatement()| transposes the columnar DataFrame into a row-oriented format, before converting that to \ac{SQL}.
 
 The methods \Verb{PolarsTable.columns()} and \Verb|PolarsTable.getColumn(...)| return object(s) of the class \Verb|PolarsTableColumn|.
-The construction of this uses the conversion method from \autoref{impl:types:dtov} using the class \Verb|PolarsTables|'s attribute, \Verb|valueTypeProvider|
+Their construction uses the conversion method from \autoref{impl:types:dtov} using the class \Verb|PolarsTables|'s attribute, \Verb|valueTypeProvider|
 
 The method \Verb|withColumn(...)| faces the challenge of having to discern, whether its parameter is of the type \Verb|PolarsTableColumn| or \Verb|pl.Expr|.
-The JavaScript operator \Verb|in| checks, whether the an object has a specific property \autocite{js:in}.
+The TypeScript operator \Verb|in| checks, whether the object has a specific property \autocite{js:in}.
 Because the TypeScript compiler "knows", %FIXME knows might be a bad word here
 that \Verb|series| is a property of the \Verb|PolarsTableColumn| \Verb|pl.Expr|, this property is used to differentiate the parameter's type.
 
@@ -106,7 +106,7 @@ It doesn't have any methods, that aren't getters, setters or wrappers around equ
 However, the method \Verb|PolarsTableColumn.clone()| excludes the attribute \Verb|PolarsTableColumn.valueType|. %TODO explanation
 
 \subsubsection{TsTableColumn}
-All properties are prefixed with an underscore to prevent a naming conflict between the property and their getter / setter.
+All properties are prefixed with an underscore to prevent a naming conflict between the property and its getter / setter.
 
 \Verb|TsTableColumn.clone()| produces a \emph{deep clone} of the attribute \Verb|_values|.
 Based on our experience, the usual way to accomplish this is the global function \Verb|structuredClone(...)|.
@@ -278,7 +278,7 @@ def constructSeries(rows, columnEntry, context):
 \end{listing}
 
 \section{FileToTableIntepreter}
-The block type definition located at \Verb|FileToTableInterpreter.jv| defines the following properties:
+The block type definition located at \Verb|FileToTableInterpreter.jv| defines the following properties: %FIXME this is unreadable in the final document
 As the block type \Verb|FileToTableInterpreter| is a combination of \Verb|TextFileInterpreter|, \Verb|CSVInterpreter| and \Verb|TableInterpreter|, their properties and default values are incorporated into the definition.
 One property, \Verb|TextFileInterpreter|'s \Verb|lineBreak|, is no longer supported, due to the fact, that line splitting is handled by Polars, which does not support line breaks based on a \ac{regex}.
 
@@ -314,7 +314,8 @@ The executors for the block type \Verb|TableTransformer| are implemented in \Ver
 \label{impl:polars_table_transformer}
 In Jayvee, the name of a transform input variable may differ from the name of corresponding column.
 Additionaly, the transform's input variables may have ValueTypes that are incompatible with the columns of the input table.
-The method \Verb|checkInputColumnsMatchTransformInputTypes(...)| addresses these issues.
+
+The method \Verb|checkInputColumnsMatchTransformInputTypes(...)| addresses these issues. \\
 It verifies that the variable and column ValueTypes are compatible and links each input variable to the corresponding Polars column expression.
 When applied to a \Verb|DataFrame| this \Verb|pl.col(name)| expression enables the transformation of the values in column \Verb|name| \autocite{polars:docs:expr:col}.
 % \autoref{lst:polarstabletransformer:check} contains a pseudocode description of this method.
@@ -346,7 +347,7 @@ When applied to a \Verb|DataFrame| this \Verb|pl.col(name)| expression enables t
 % The method \Verb|doExecute(...)| uses the transform definition from the Jayvee source to create an instance of the \Verb|PolarsTransformExecutor| class.
 
 The method \Verb|PolarsTransformExecutor.executeTransform(...)| returns a Polars expression, not a table column.
-This results in two key somethings. %FIXME somethings
+This has two consequences:
 \begin{enumerate}
 	\item \Verb|alias(outputColumnName)| is appended to the Polars expression, to ensure the final column has the correct name.
 	\item The method \Verb|PolarsTable.withColumn(...)| is used to apply the expression to the table.
@@ -455,7 +456,7 @@ end
 		autoactivate on
 		->":PolarsTableTransformerExecutor": execute(inputTable, context)
 		":PolarsTableTransformerExecutor" -> ":PolarsTransformExecutor": executeTransform(\ncolumns,\ncontext\n)
-		":PolarsTransformExecutor" ->]: jayveExpressionToPolars(\njayvee expression\n)
+		":PolarsTransformExecutor" -> ":PolarsTransformExecutor": jayveExpressionToPolars(\njayvee expression\n)
 		return expr: pl.Expr
 		return expr.cast(pl.f64)
 		return inputTable.withColumn(\nexpr.cast(pl.f64).alias('out')\n)
@@ -594,7 +595,7 @@ These methods are \Verb|generateDropTableStatement|, \Verb|generateCreateTableSt
 
 \Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLiteLoaderExecutor| don't override the default implementation.
 
-\Verb|RustSQLiteLoaderExecutor| overrides \Verb|executeLoad|.
+\Verb|RustSQLiteLoaderExecutor| overrides \Verb|executeLoad(...)|.
 Its implementation writes the table to \Verb|dataframe.arrow| (the .arrow extension is recommended by the Arrow specification \autocite{arrow:spec}), using \Verb|PolarsTable|'s \Verb|writeIpcTo| method.
 Then it calls the \Verb|loadSQLite| function implemented in \Verb|sqlite-loader-lib|.
 
@@ -603,7 +604,7 @@ Then it calls the \Verb|loadSQLite| function implemented in \Verb|sqlite-loader-
 \subsection{sqlite-loader-lib}
 \label{subsection:sqlite-loader-lib}
 \Verb|sqlite-loader-lib| is implemented in a new directory outside the Jayvee repository.
-When attempting to implement \Verb|sqlite-loader-lib| inside the Jayvee repository, we encountered build issues. %TODO explain
+When attempting to implement \Verb|sqlite-loader-lib| inside the Jayvee repository, but we were not able to connect the interpreter's build system with that of NAPI-RS.
 
 NAPI-RS' package template \autocite{napi:template} provides simple setup instructions for a library built with NAPI-RS.
 \Verb|src/lib.rs| contains the functionality.
@@ -649,7 +650,7 @@ Due to the experimental nature of this library, we do not implement complex erro
 \Verb|ipc_reader| opens an Arrow \Verb|IPC| file and passes it to an Arrow \Verb|FileReader|.
 
 \Verb|db_connection| obtains a SQLite database connection from creating a SQLite database file.
-This connection is passed do connector\_arrow's SQLiteConnection type.
+This connection is passed do Connector\_Arrow's SQLiteConnection type.
 
 \Verb|sqlite-loader-lib| is made available to the Jayvee interpreter by the \ac{CLI} command
 \mint{bash}{npm install --save <PATH TO sqlite-loader-lib>}

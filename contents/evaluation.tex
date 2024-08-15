@@ -47,7 +47,7 @@ We define the following backends:
 	\item[PLRS] Polars-Rusqlite.
 	      % Enabled by the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
 	      Enables PL, plus the \Verb|RustSQLiteLoaderExecutor| executor and the \Verb|sqlite-loader-lib| library (see \autoref{arch:sqlite:rust}).
-	\item{PLOBRS} Polars-One-Block-Rusqlite.
+	\item[PLOBRS] Polars-One-Block-Rusqlite.
 	      % Enabled by using the \Verb|LocalFileToTableExtractor| block and the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
 	      Enables PL, plus \Verb|LocalFileToTableExtractor|, plus \Verb|RustSQLiteLoaderExecutor|.
 
@@ -112,10 +112,11 @@ Selecting the correct Jayvee source file, and passing the location of the source
 
 The \Verb|head| \ac{CLI} program outputs the first lines of a file \autocite{head}.
 Given that one line in the \ac{CSV} file represents one row of data, %TODO BE CERTAIN!
+executing the \ac{CLI} command
 \mint{bash}{head --lines=<NUMBER_OF_ROWS> brewery_data_all.csv > l-<NUMBER_OF_ROWS>.csv}
 generates a \ac{CSV} file with the requisite number of rows.
 
-Given that there are three distinct numbers of transform amounTS, three separate Jayvee source files are created.
+Given that there are three distinct numbers of transform amounts, three separate Jayvee source files are created.
 For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| block is required, resulting in a total of six.
 \autoref{fig:uml:pick-jv-model} outlines the process by which the evaluation tool select the correct source file.
 \begin{figure}
@@ -286,6 +287,7 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 	\label{fig:uml:pipelines:transforms}
 \end{figure}
 
+The following is an explanation of the transforms used inside the evaluation pipelines.
 \begin{description}
 	\item[AddColumnOne] Adds a column filled with the value one.
 	\item[BitPlusVol] Adds a column containing the sum of the columns "Bitterness" and "Volume\_Produced".
@@ -315,51 +317,53 @@ The error message "JavaScript heap overflow", which also occurs is the \Verb|SQL
 The error message "Cannot make a string longer than 0x1fffffe8 characters." is emitted, during the execution of a block with type \Verb|TextFileInterpreter|.
 
 \begin{figure}
-	\begin{tikzpicture}
-		\begin{axis}[
-				title = {filesize limits},
-				xlabel = {amount of transforms},
-				ylabel = {lines in the input file},
-				xtick = {1,2,3},
-				xticklabels={none,some,many},
-				legend pos=south west,
-			]
-			\addplot[
-				color = red,
-				mark=triangle*,
-			]
-			coordinates {
-					(1,1900000)(2,1300000)(3,900000)
-				};
-			\addlegendentry{TS}
-			\addplot[
-				color=blue,
-				mark=triangle*,
-			]
-			coordinates {
-					(1,1800000)(2,1800000)(3,1700000)
-				};
-			\addlegendentry{PL}
-			\addplot[
-				color=brown,
-				mark=triangle*,
-			]
-			coordinates {
-					(1,1900000)(2,1700000)(3,1700000)
-				};
-			\addlegendentry{PLOB}
-			\addplot[
-				color=green,
-				mark=triangle*,
-			]
-			coordinates {
-					(1,2000000)(2,2000000)(3,2000000)
-				};
-			\addlegendentry{PLRS}
-		\end{axis}
-	\end{tikzpicture}
-	\caption{Maximum file sizes}
-	\label{fig:plot:filesize}
+	\begin{center}
+		\begin{tikzpicture}
+			\begin{axis}[
+					title = {input size limits},
+					xlabel = {amount of transforms},
+					ylabel = {rows in the input data},
+					xtick = {1,2,3},
+					xticklabels={none,some,many},
+					legend pos=south west,
+				]
+				\addplot[
+					color = red,
+					mark=triangle*,
+				]
+				coordinates {
+						(1,1900000)(2,1300000)(3,900000)
+					};
+				\addlegendentry{TS}
+				\addplot[
+					color=blue,
+					mark=triangle*,
+				]
+				coordinates {
+						(1,1800000)(2,1800000)(3,1700000)
+					};
+				\addlegendentry{PL}
+				\addplot[
+					color=brown,
+					mark=triangle*,
+				]
+				coordinates {
+						(1,1900000)(2,1700000)(3,1700000)
+					};
+				\addlegendentry{PLOB}
+				\addplot[
+					color=green,
+					mark=triangle*,
+				]
+				coordinates {
+						(1,2000000)(2,2000000)(3,2000000)
+					};
+				\addlegendentry{PLRS}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{Maximum input sizes}
+		\label{fig:plot:filesize}
+	\end{center}
 \end{figure}
 
 Considering these results, we conclude, that enabling optimizations increases the amount of data, that the Jayvee interpreter is able to process.
@@ -408,301 +412,316 @@ The PL backend can only be considered an optimization, if the pipeline has suffi
 
 
 \begin{figure}
-	\begin{tikzpicture}
-		\begin{axis}[
-				title = {no transforms},
-				xlabel = {rows},
-				ylabel = {time in ms},
-				ymin=0, ymax=150000,
-				xmin=0, xmax=1800000,
-				legend pos=north west,
-			]
-			\addplot[
-				color = red,
-				mark=triangle*,
-			]
-			coordinates {
-					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
-					% TS slopes: 0,051982222 0,044432, 0,059995556 0,047473333 0,043474 0,055424: avg: 0,050463519
-				};
-			\addplot[
-				color=blue,
-				mark=triangle*,
-			]
-			coordinates {
-					(56250,4581)(112500,8323)(225000,16118)(450000,34125)(900000,63728)(1300000,93559)(1800000,139939)
-				};
-			\addplot[
-				color=brown,
-				mark=triangle*,
-			]
-			coordinates {
-					(56250,2531)(112500,4231)(225000,7739)(450000,14976)(900000,30211)(1300000,42888)(1800000,64660)
-				};
-			\addplot[
-				color=green,
-				mark=triangle*,
-			]
-			coordinates {
-					(56250,3102)(112500,5390)(225000,10126)(450000,21270)(900000,37705)(1300000,54562)(1800000,74755)
-				};
-			\addplot[
-				mark=triangle*,
-			]
-			coordinates {
-					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
-					%PL slopes: 0,003306667+0,006355556+0,003573333+0,003968889+0,003068+0,004248: 0,004086741
-				};
+	\begin{center}
+		\begin{tikzpicture}
+			\begin{axis}[
+					title = {no transforms},
+					xlabel = {rows},
+					ylabel = {time in ms},
+					ymin=0, ymax=150000,
+					xmin=0, xmax=1800000,
+					legend pos=north west,
+				]
+				\addplot[
+					color = red,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
+						% TS slopes: 0,051982222 0,044432, 0,059995556 0,047473333 0,043474 0,055424: avg: 0,050463519
+					};
+				\addplot[
+					color=blue,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,4581)(112500,8323)(225000,16118)(450000,34125)(900000,63728)(1300000,93559)(1800000,139939)
+					};
+				\addplot[
+					color=brown,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,2531)(112500,4231)(225000,7739)(450000,14976)(900000,30211)(1300000,42888)(1800000,64660)
+					};
+				\addplot[
+					color=green,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,3102)(112500,5390)(225000,10126)(450000,21270)(900000,37705)(1300000,54562)(1800000,74755)
+					};
+				\addplot[
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
+						%PL slopes: 0,003306667+0,006355556+0,003573333+0,003968889+0,003068+0,004248: 0,004086741
+					};
 
-			\legend{TS,PL,PLOB,PLRS,PLOBRS}
-		\end{axis}
-	\end{tikzpicture}
-	\caption{The execution durations for a pipeline with no transforms}
-	\label{fig:plot_no_transforms}
+				\legend{TS,PL,PLOB,PLRS,PLOBRS}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{The execution durations for a pipeline with no transforms}
+		\label{fig:plot_no_transforms}
+	\end{center}
 \end{figure}
 \begin{figure}
-	\begin{tikzpicture}
-		\begin{axis}[
-				title = {some transforms},
-				xlabel = {rows},
-				ylabel = {time in ms},
-				xmin=0, xmax=1800000,
-				ymin=0, ymax=150000,
-				legend pos=north west,
-			]
-			\addplot[
-				color = red,
-				mark=*,
-			]
-			coordinates {
-					(56250,4495)(112500,8283)(225000,15346)(450000,32467)(900000,60755)(1300000,95102)
-				};
-			\addplot[
-				color=blue,
-				mark=*,
-			]
-			coordinates {
-					(56250,4825)(112500,8952)(225000,16881)(450000,36874)(900000,67674)(1300000,99959)
-				};
-			\addplot[
-				color=brown,
-				mark=*,
-			]
-			coordinates {
-					(56250,2804)(112500,4756)(225000,8544)(450000,16524)(900000,33375)(1300000,49007)
-				};
-			\addplot[
-				color=green,
-				mark=*,
-			]
-			coordinates {
-					(56250,3144)(112500,5479)(225000,9894)(450000,21076)(900000,37910)(1300000,57910)
-				};
-			\addplot[
-				mark=*,
-			]
-			coordinates {
-					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
-				};
+	\begin{center}
+		\begin{tikzpicture}
+			\begin{axis}[
+					title = {some transforms},
+					xlabel = {rows},
+					ylabel = {time in ms},
+					xmin=0, xmax=1800000,
+					ymin=0, ymax=150000,
+					legend pos=north west,
+				]
+				\addplot[
+					color = red,
+					mark=*,
+				]
+				coordinates {
+						(56250,4495)(112500,8283)(225000,15346)(450000,32467)(900000,60755)(1300000,95102)
+					};
+				\addplot[
+					color=blue,
+					mark=*,
+				]
+				coordinates {
+						(56250,4825)(112500,8952)(225000,16881)(450000,36874)(900000,67674)(1300000,99959)
+					};
+				\addplot[
+					color=brown,
+					mark=*,
+				]
+				coordinates {
+						(56250,2804)(112500,4756)(225000,8544)(450000,16524)(900000,33375)(1300000,49007)
+					};
+				\addplot[
+					color=green,
+					mark=*,
+				]
+				coordinates {
+						(56250,3144)(112500,5479)(225000,9894)(450000,21076)(900000,37910)(1300000,57910)
+					};
+				\addplot[
+					mark=*,
+				]
+				coordinates {
+						(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
+					};
 
-			\legend{TS,PL,PLOB,PLRS,PLOBRS}
-		\end{axis}
-	\end{tikzpicture}
-	\caption{The execution durations for a pipeline with some transforms}
-	\label{fig:plot_so_transforms}
+				\legend{TS,PL,PLOB,PLRS,PLOBRS}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{The execution durations for a pipeline with some transforms}
+		\label{fig:plot_so_transforms}
+	\end{center}
 \end{figure}
 \begin{figure}
-	\begin{tikzpicture}
-		\begin{axis}[
-				title = {many transforms},
-				xlabel = {rows},
-				ylabel = {time in ms},
-				xmin=0, xmax=1800000,
-				ymin=0, ymax=150000,
-				legend pos=north west,
-			]
-			\addplot[
-				color = red,
-				mark=square*,
-			]
-			coordinates {
-					(56250,5722)(112500,11097)(225000,18750)(450000,38264)(900000,81900)
-				};
-			\addplot[
-				color=blue,
-				mark=square*,
-			]
-			coordinates {
+	\begin{center}
+		\begin{tikzpicture}
+			\begin{axis}[
+					title = {many transforms},
+					xlabel = {rows},
+					ylabel = {time in ms},
+					xmin=0, xmax=1800000,
+					ymin=0, ymax=150000,
+					legend pos=north west,
+				]
+				\addplot[
+					color = red,
+					mark=square*,
+				]
+				coordinates {
+						(56250,5722)(112500,11097)(225000,18750)(450000,38264)(900000,81900)
+					};
+				\addplot[
+					color=blue,
+					mark=square*,
+				]
+				coordinates {
 
-					(56250,5421)(112500,10348)(225000,17914)(450000,35151)(900000,72515)
+						(56250,5421)(112500,10348)(225000,17914)(450000,35151)(900000,72515)
 
-				};
-			\addplot[
-				color=brown,
-				mark=square*,
-			]
-			coordinates {
+					};
+				\addplot[
+					color=brown,
+					mark=square*,
+				]
+				coordinates {
 
-					(56250,3064)(112500,5248)(225000,9470)(450000,18147)(900000,35656)
+						(56250,3064)(112500,5248)(225000,9470)(450000,18147)(900000,35656)
 
-				};
-			\addplot[
-				color=green,
-				mark=square*,
-			]
-			coordinates {
-					(56250,3545)(112500,5997)(225000,10051)(450000,24406)(900000,38963)
-				};
-			\addplot[
-				mark=square*,
-			]
-			coordinates {
-					(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
-				};
+					};
+				\addplot[
+					color=green,
+					mark=square*,
+				]
+				coordinates {
+						(56250,3545)(112500,5997)(225000,10051)(450000,24406)(900000,38963)
+					};
+				\addplot[
+					mark=square*,
+				]
+				coordinates {
+						(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
+					};
 
-			\legend{TS,PL,PLOB,PLRS,PLOBRS}
-		\end{axis}
-	\end{tikzpicture}
-	\caption{The execution durations for a pipeline with many transforms}
-	\label{fig:plot_ma_transforms}
-\end{figure}
-
-
-
-\begin{figure}
-	\begin{tikzpicture}
-		\begin{axis}[
-				title = {overlaid},
-				xlabel = {lines},
-				ylabel = {time in ms},
-				legend pos=north west,
-			]
-			\addplot[
-				color = red,
-				mark=triangle*,
-			]
-			coordinates {
-					(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
-				};
-			\addlegendentry{TS-no}
-			\addplot[
-				color = red,
-				mark=*,
-			]
-			coordinates {
-					(56250,4495)(112500,8283)(225000,15346)(450000,32467)(900000,60755)(1300000,95102)
-				};
-			\addlegendentry{TS-so}
-			\addplot[
-				color = red,
-				mark=square*,
-			]
-			coordinates {
-					(56250,5722)(112500,11097)(225000,18750)(450000,38264)(900000,81900)
-				};
-			\addlegendentry{TS-ma}
-			\addplot[
-				mark=triangle*,
-			]
-			coordinates {
-					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
-				};
-			\addlegendentry{PLOBRS-no}
-			\addplot[
-				mark=*,
-			]
-			coordinates {
-					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
-				};
-			\addlegendentry{PLOBRS-so}
-			\addplot[
-				mark=square*,
-			]
-			coordinates {
-					(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
-				};
-			\addlegendentry{PLOBRS-ma}
-		\end{axis}
-	\end{tikzpicture}
-	\caption{The execution duration of the TS and PLOBRS backends}
-	\label{fig:plot:ts_vs_plobrs}
-\end{figure}
-
-\begin{figure}
-	\begin{tikzpicture}
-		\begin{axis}[
-				title = {PLOBRS},
-				% axis lines = left,
-				xlabel = {lines},
-				ylabel = {time in ms},
-				% xtick={0,56250,112500,225000,450000,900000,1800000},
-				legend pos=north west,
-			]
-			\addplot[
-				color = red,
-				mark=triangle*,
-			]
-			coordinates {
-					(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
-				};
-			\addlegendentry{PLOBRS-no}
-			\addplot[
-				color = blue,
-				mark=*,
-			]
-			coordinates {
-					(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
-				};
-			\addlegendentry{PLOBRS-so}
-			\addplot[
-				mark=square*,
-			]
-			coordinates {
-					(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
-				};
-			\addlegendentry{PLOBRS-ma}
-		\end{axis}
-	\end{tikzpicture}
-	\caption{plot }\label{fig:plot:plobrs}
+				\legend{TS,PL,PLOB,PLRS,PLOBRS}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{The execution durations for a pipeline with many transforms}
+		\label{fig:plot_ma_transforms}
+	\end{center}
 \end{figure}
 
 
 
 \begin{figure}
-	\begin{tikzpicture}
-		\begin{axis}[
-				title = {speedup},
-				% axis lines = left,
-				xlabel = {lines},
-				ylabel = {TS / PLOBRS},
-				legend pos=south east,
-			]
-			\addplot[
-				color = red,
-				mark=triangle*,
-			]
-			coordinates {
-					(56250,3.60)(112500,5.31)(225000,6.22)(450000,9.34)(900000,10.40)(1300000,11.35)(1800000,11.80)
-				};
-			\addlegendentry{no}
-			\addplot[
-				color = blue,
-				mark=*,
-			]
-			coordinates {
-					(56250,4.06)(112500,6.35)(225000,8.58)(450000,13.55)(900000,14.06)(1300000,15.22)
-				};
-			\addlegendentry{some}
-			\addplot[
-				mark=square*,
-			]
-			coordinates {
-					(56250,4.86)(112500,8.02)(225000,11.24)(450000,14.57)(900000,18.22)
-				};
-			\addlegendentry{many}
-		\end{axis}
-	\end{tikzpicture}
-	\caption{speedup factors}\label{fig:plot:factor}
+	\begin{center}
+		\begin{tikzpicture}
+			\begin{axis}[
+					title = {TS compared to PLOBRS},
+					xlabel = {rows},
+					xmin=0, xmax=1800000,
+					ymin=0, ymax=150000,
+					ylabel = {time in ms},
+					legend pos=north west,
+				]
+				\addplot[
+					color = red,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
+					};
+				\addlegendentry{TS-no}
+				\addplot[
+					color = red,
+					mark=*,
+				]
+				coordinates {
+						(56250,4495)(112500,8283)(225000,15346)(450000,32467)(900000,60755)(1300000,95102)
+					};
+				\addlegendentry{TS-so}
+				\addplot[
+					color = red,
+					mark=square*,
+				]
+				coordinates {
+						(56250,5722)(112500,11097)(225000,18750)(450000,38264)(900000,81900)
+					};
+				\addlegendentry{TS-ma}
+				\addplot[
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
+					};
+				\addlegendentry{PLOBRS-no}
+				\addplot[
+					mark=*,
+				]
+				coordinates {
+						(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
+					};
+				\addlegendentry{PLOBRS-so}
+				\addplot[
+					mark=square*,
+				]
+				coordinates {
+						(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
+					};
+				\addlegendentry{PLOBRS-ma}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{The execution duration of the TS and PLOBRS backends}
+		\label{fig:plot:ts_vs_plobrs}
+	\end{center}
+\end{figure}
+
+% \begin{figure}
+% 	\begin{center}
+% 		\begin{tikzpicture}
+% 			\begin{axis}[
+% 					title = {PLOBRS},
+% 					% axis lines = left,
+% 					xlabel = {rows},
+% 					ylabel = {time in ms},
+% 					% xtick={0,56250,112500,225000,450000,900000,1800000},
+% 					legend pos=north west,
+% 				]
+% 				\addplot[
+% 					color = red,
+% 					mark=triangle*,
+% 				]
+% 				coordinates {
+% 						(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
+% 					};
+% 				\addlegendentry{PLOBRS-no}
+% 				\addplot[
+% 					color = blue,
+% 					mark=*,
+% 				]
+% 				coordinates {
+% 						(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
+% 					};
+% 				\addlegendentry{PLOBRS-so}
+% 				\addplot[
+% 					mark=square*,
+% 				]
+% 				coordinates {
+% 						(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
+% 					};
+% 				\addlegendentry{PLOBRS-ma}
+% 			\end{axis}
+% 		\end{tikzpicture}
+% 		\caption{The execution durations of the PLOBRS backend}
+% 		\label{fig:plot:plobrs}
+% 	\end{center}
+% \end{figure}
+
+
+
+\begin{figure}
+	\begin{center}
+		\begin{tikzpicture}
+			\begin{axis}[
+					xlabel = {rows},
+					ylabel = {TS / PLOBRS},
+					xmin=0, xmax=1800000,
+					legend pos=south east,
+				]
+				\addplot[
+					color = red,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,3.60)(112500,5.31)(225000,6.22)(450000,9.34)(900000,10.40)(1300000,11.35)(1800000,11.80)
+					};
+				\addlegendentry{none}
+				\addplot[
+					color = blue,
+					mark=*,
+				]
+				coordinates {
+						(56250,4.06)(112500,6.35)(225000,8.58)(450000,13.55)(900000,14.06)(1300000,15.22)
+					};
+				\addlegendentry{some}
+				\addplot[
+					mark=square*,
+				]
+				coordinates {
+						(56250,4.86)(112500,8.02)(225000,11.24)(450000,14.57)(900000,18.22)
+					};
+				\addlegendentry{many}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{The processing speed of TS compared to PLOBRS}
+		\label{fig:plot:factor}
+	\end{center}
 \end{figure}
 
 \section{Differences in the resulting tables}
@@ -736,7 +755,13 @@ While this issue has not been resolved due to the time constraints of this thesi
 	\item[FR-2] \textbf{columnar} Polars implements the Apache Arrow specification, which is a columnar format.
 	\item[FR-3] \textbf{feature toggle} The implementation can be chosen with the interpreter's \ac{CLI} flags \Verb|--use-polars| and \Verb|--use-rusqlite|
 	\item[FR-4] \textbf{compatibility} The electric vehicles example completes without errors.
-	      The tables produced by the new implementations are not consistent with the old implementation.
+	      However, discrepancies still exist:
+	      %TODO autoref
+	      \begin{itemize}
+		      \item Not all operators are supported by the new implementation.
+		      \item It is not possible to convert all Jayvee ValueTypes to Polars DataTypes, nor vice versa.
+		      \item The tables produced by the new implementations are not consistent with the old implementation.
+	      \end{itemize}
 	      Consequently, this requirement remains unfulfilled.
 	\item[FR-5] \textbf{modularization} The Rust library \Verb|sqlite-loader-lib| is usable from TypeScript through NAPI-RS.
 	\item[FR-6] \textbf{extensibility} \Verb|RustSQLiteLoaderExecutor|, using \Verb|sqlite-loader-lib|, exports a DataFrame into an SQLite database.

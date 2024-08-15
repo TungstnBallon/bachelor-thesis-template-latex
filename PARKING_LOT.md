@@ -2,12 +2,10 @@
     - nodejs-Polars is sparse, so we will MAYBE: DECIDE reference the python documentation.
 - Architecture:
     - explain IOType to use it elsewhere.
-    - Cite requirement process
     - Operator type calculators were not changed
         - they dont reflect the actual types of the data during runtime anymore.
         - they still prevent the user from doing illegal stuff.
 - Implementation:
-    - paper im workog
     - added sqlite-loader-lib to external field in package.json to solve build issues
 - Evaluation:
     - Limitations:
@@ -30,7 +28,11 @@
 
 
 - TODO
-    - how to cite images
-    - give credit to napi-package-template
-    - fix `\Verb` and uml diagram spacing
+    - uml diagram spacing
     - parentheses to functions
+    - reword lit review
+    - remove unused acronyms
+    - link the electric vehicles example
+    - autoref incompatibilities to the chapters
+    - class diagram or description
+    - ensure figures don't break the flow of reading, especially lists

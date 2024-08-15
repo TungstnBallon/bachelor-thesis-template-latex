@@ -1,7 +1,7 @@
 \chapter{Literature Review}
 \label{chapter:Literature}
 
-There are some projects working with arrow directly
+% There are some projects working with arrow directly:
 
 \textcite{Ahmad2020}
 created their own memory format based on Apache Arrow to process genome data.
@@ -10,7 +10,7 @@ Arrow performed better than both ramDisk and Unix pipes.
 The overall execution time was 4.85 times faster with arrow.
 
 % - process genome data, heavily dependent on I/O
-% - create own memory format based on apache arrow
+% - create own memory format based on Apache Arrow
 % - applications can communicate and share data in-memory
 % - better system resource utilization
 % - high cache locality -> less memory access
@@ -18,7 +18,7 @@ The overall execution time was 4.85 times faster with arrow.
 % - overall execution time speedup of 4.85x for WGS (whole genome sequencing)
 
 \textcite{Peltenburg2021}
-developed \emph{Fletchgen} which can generate hardware interfaces designed for arrow workloads.
+developed \emph{Fletchgen} which can generate hardware interfaces designed for Arrow workloads.
 
 % - cpus are at their performance limit for big data -> fpga accellerators
 % - develop open source fletcher framework
@@ -33,12 +33,12 @@ developed \emph{Fletchgen} which can generate hardware interfaces designed for a
 
 
 \textcite{Grossman2022}
-used apache arrow to build \emph{SHMEM-ML}, a machine lerning library.
+used Apache Arrow to build \emph{SHMEM-ML}, a machine learning library.
 Arrow enabled "zero copy data sharing" with other libraries.
-They were able to speed up model training by a factor of 38, compared to the industry average.
+They were able to accelerate model training by a factor of 38, compared to the industry average.
 
 % - create SHMEM-ML: domain specific library for distributed array computations and machine learning model training
-% - built on top of apache arrow
+% - built on top of Apache arrow
 % - zero copy data sharing with other libraries
 % - target full machine workflow
 % -  38 speedup in distributed training performance relative to the industry standard Horovod framework without a regression in model metrics.
@@ -65,11 +65,11 @@ See Figure~\autoref{fig:row_v_col} for a visual comparison.
 	\label{fig:row_v_col}
 \end{figure}
 
-Columnar storage formats were initially developed for use in databases (e.g. MonetDB \autocite{Boncz2002}).
+The earliest instances of columnar storage formats were initially developed for use in databases, with MonetDB \autocite{Boncz2002} being a notable example.
 By 2013 these formats had become widely implemented across the industry
 \autocite{Abadi2013}.
-Around 2011 the first research was done into how columnar storage could be made useful for Big Data frameworks.
-Eventually, this work resulted in Apache Parquet and Apache ORC, both disk-based columnar formats.
+In approximately 2011 initial research was conducted into the potential applications of columnar storage in the context of Big Data frameworks.
+Subsequently, this research culminated the development of Apache Parquet and Apache ORC, both disk-based columnar formats.
 \autocite{Floratou2019}
 
 In 2016, The Apache Foundation initiated \emph{Apache Arrow}, which specifies a columnar storage layout \emph{in memory}.
@@ -99,22 +99,22 @@ Apache Arrow is often used synonymously with the memory format it defines.
 This format is \emph{language agnostic}, \emph{columnar} and \emph{in memory}.
 It has implementations in many languages (see \autoref{subsubsection:arrow:langs} for a list).
 
-In the Arrow specification \autocite{arrow:spec}, a table is called record batch.
+In the Arrow specification \autocite{arrow:spec}, a table is called \emph{record batch}.
 They are comprised of Arrow arrays which represent columns.
-These Arrow arrays are different from JavaScript arrays, as they cannot contain different data types.
+These Arrow arrays are different from TypeScript arrays, as they cannot contain different data types.
 An Arrow array's actual data is split across a series of Arrow buffers, which represent continuous space in memory.
 Arrow record batches also have Arrow schemas, which contain the batch's metadata.
 
-Arrow has a more granular type system than JavaScript. This allows for a more precise control of memory.
+Arrow has a more granular type system than TypeScript. This allows for a more precise control of memory.
 Arrow types can have parameters.
-For example instead of JavaScript \Verb|number|, Arrow has (un)signed integers with a bit width parameter,
+For example instead of TypeScript's type \Verb|number|, Arrow has (un)signed integers with a bit width parameter,
 decimals with width, scale and precision as parameters, and floating point numbers with a precision parameter.
-The spec also includes a physical memory layout for each type.
+The specification includes a physical memory layout for each type.
 % MAYBE  - fixed-size list - list (32-bit offset), largelist (64bit offset) instead of array
 
-The Arrow specification also defines an \ac{IPC} file format, that allows saving Arrow record batches on disk.
+Additionally, the Arrow specification defines an \ac{IPC} file format, that allows saving Arrow record batches on disk.
 
-At the time of writing there are 48 projects powered by Apache Arrow \autocite{arrow:projects}.
+At the time of writing this thesis, there are 48 projects powered by Apache Arrow \autocite{arrow:projects}.
 
 \begin{figure}
 	\includegraphics[width=\textwidth]{resources/arrow_tab}
@@ -123,7 +123,7 @@ At the time of writing there are 48 projects powered by Apache Arrow \autocite{a
 \end{figure}
 \begin{figure}
 	\includegraphics[width=\textwidth]{resources/arrow_interop}
-	\caption{Example how Arrow increases interoperability between processes \autocite{Ahmad2020}}
+	\caption{Illustration demonstrating Arrow enhances interoperability between processes \autocite{Ahmad2020}}
 	\label{fig:arrow_com}
 \end{figure}
 
@@ -131,8 +131,8 @@ At the time of writing there are 48 projects powered by Apache Arrow \autocite{a
 \section{Polars}
 \label{section:polars}
 Polars is built on top of the Rust implementation of the Arrow specification.
-It incorporates convienient abstractions such as DataFrames and Series.
-Additionaly, it uses NAPI-RS to provide a JavaScript/TypeScript \ac{API} that preserves the performance of the rust library.
+It incorporates convenient abstractions such as DataFrames and Series.
+Additionally, it uses NAPI-RS to provide a TypeScript \ac{API} that preserves the performance of the rust library.
 It promises "up to 50x performance".
 \autocite{polars}
 

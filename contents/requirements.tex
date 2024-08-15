@@ -2,24 +2,22 @@
 \label{section:Requirements}
 
 We differentiate between functional and non-functional requirements \autocite{Herrmann2022}.
-Both types of requirements have been evaluated for completeness, consistency and feasibility by us.
 
 \section{Functional Requirements}
 \label{subsection:FunctionalRequirements}
 
 \begin{enumerate}
-	\item[FR-1] \textbf{interoperability} Provided by the standardized \emph{Apache Arrow}.
-	\item[FR-2] \textbf{columnar} A columnar format has advantages outlined in \autoref{section:column_vs_row}.
+	\item[FR-1] \textbf{interoperability}: Provided by the standardized \emph{Apache Arrow}. %FIXME between what
+	\item[FR-2] \textbf{columnar}: A columnar format has advantages outlined in \autoref{section:column_vs_row}.
 	      % \item[FR-3] \textbf{error free} Execute the electric vehicles example %TODO: link
 	      %       without errors.
 	      % \item{FR-4} \textbf{completeness}
-	\item[FR-3]\textbf{feature toggle} We must be able to (de)activate the new features at runtime.
-	      This makes comparing the new features easier. %FIXME fachausdruck
-	\item[FR-4] \textbf{compatibility} Execute the electric vehicles example %TODO: link
-	      without errors.
+	\item[FR-3]\textbf{feature toggle}: We must be able to (de)activate the new features at runtime.
+	      This makes comparing the new features easier.
+	\item[FR-4] \textbf{compatibility}: Execute the electric vehicles example described in \Verb|electric-vehicles.jv| (\autoref{tab:src}) without errors.
 	      The \Verb|.sqlite| files produced by the different implementations must be identical.
-	\item[FR-5] \textbf{modularization} Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typescript.
-	\item[FR-6] \textbf{extensibility} The functionality of the chosen data representation must be extensible.
+	\item[FR-5] \textbf{modularization}: Should it be necessary to write code in a language other than TypeScript, this code must be placed in an external library usable from typescript.
+	\item[FR-6] \textbf{extensibility}: The functionality of the chosen data representation must be extensible.
 	      % This prototype must extend the capabilities of polars / arrow %TODO rephrase
 \end{enumerate}
 
@@ -47,13 +45,15 @@ Both types of requirements have been evaluated for completeness, consistency and
 \label{subsection:NonFunctionalRequirements}
 
 \begin{enumerate}
-	\item[NFR-1] \textbf{performance} The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
+	\item[NFR-1] \textbf{performance}: The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
 	      We expect this to result in either a decrease in the execution time for Jayvee models, or an extension of the Jayvee interpreter's capabilities.
 	      % \item[NFR-2] \textbf{readability} The source code is readable for non-rust developers
 	      % \item[NFR-2] \textbf{consistent logging} The new code generates log messages consistent to the existing ones.
-	\item[NFR-2] \textbf{code style} The source code adheres to the project's code style.
+	\item[NFR-2] \textbf{code style}: The source code adheres to the project's code style.
 	      This is enforced by running \Verb|npm run lint|.
 	      In rust code we use the defaults from rustfmt and clippy.
-	\item[NFR-3] \textbf{maturity} We aim to create a prototype, not a mature implementation.
+	\item[NFR-3] \textbf{maturity}: We aim to create a prototype, not a mature implementation.
 \end{enumerate}
 
+
+Both types of requirements have been evaluated for completeness, consistency and feasibility by us.

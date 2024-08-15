@@ -1,3 +1,10 @@
-{\textsl{General instructions:}}
-If the thesis is written in German, this section contains the English
-translation.  The abstract is 100--200 words maximum.
+This thesis develops a new table implementation for the Jayvee interpreter.
+Jayvee is a simple language for describing data pipelines.
+The execution of these pipelines necessitates the handling of tabular data.
+Previously, Jayvee utilized TypeScript's data structures to represent such data.
+
+We present the architectural design and implementation of a prototype table implementation.
+The prototype uses the Polars library to adhere to the Apache Arrow specification.
+Additionally, a library, written in Rust, is integrated into this architecture, to accelerate the export of tables.
+
+The evaluation demonstrates, that the new implementation has the potential to increase the Jayvee interpreter's maximum input size above $2.5$ Gigabyte and its processing speed by a factor of between $3.60$ and $18.22$.

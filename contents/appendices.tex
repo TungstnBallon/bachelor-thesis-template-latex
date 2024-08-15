@@ -64,7 +64,7 @@
 \subsection{Evaluation results}
 \label{app:eval:transforms}
 
-\begin{table}
+\begin{table}[h]
 	\caption{Average execution duration / Standard deviation for no transforms}
 	\label{tab:eval:none}
 	\begin{tabular}{|l|l|l|l|l|l|}
@@ -82,7 +82,7 @@
 	\end{tabular}
 \end{table}
 
-\begin{table}
+\begin{table}[h]
 	\caption{The duration of the block \Verb{LiquorLoader} with no transforms.}
 	\label{tab:cmp:sqlite}
 	\begin{center}
@@ -103,7 +103,7 @@
 \end{table}
 
 
-\begin{table}
+\begin{table}[h]
 	\caption{Average / Standard deviation for some transforms on 10 repetitions}
 	\label{tab:eval:some}
 	\begin{tabular}{|l|l|l|l|l|l|}
@@ -120,7 +120,7 @@
 	\end{tabular}
 \end{table}
 
-\begin{table}
+\begin{table}[h]
 	\caption{Average / Standard deviation for many transforms on 10 repetitions}
 	\label{tab:eval:many}
 	\begin{tabular}{|l|l|l|l|l|l|}
@@ -138,8 +138,8 @@
 \end{table}
 
 
-\begin{table}
-	\caption{The result of the execution time of ts divided by PLOBRS. Columns 1-3 are the amount of transforms}
+\begin{table}[h]
+	\caption{The result of the execution time of ts divided by PLOBRS. Columns 2-4 are the amount of transforms}
 	\label{tab:eval:ts_div_by_plobrs}
 	\begin{tabular}{|l|l|l|l|}
 		\hline
@@ -156,7 +156,7 @@
 	\end{tabular}
 \end{table}
 
-\begin{table}
+\begin{table}[h]
 	\caption{Jayvee operators and the Polars expressions they are transformed to.
 		a represents the first parameter, b the second, and c the third}
 	\label{tab:impl:expressions}
@@ -232,7 +232,7 @@
 	\end{tabular}
 \end{table}
 
-\begin{table}
+\begin{table}[h]
 	\caption{Jayvee interpreter crashes}
 	\label{tab:crashes}
 	\begin{center}
@@ -260,14 +260,15 @@
 	\end{center}
 \end{table}
 
-\begin{table}
+\begin{table}[h]
 	\caption{Table of source code references}
 	\label{tab:src}
 	\begin{center}
 		\begin{tabular}{|l|l|}
 			\hline
-			filename                                  & containing folder relative to the project root                  \\
+			file name                                 & containing folder relative to the project root                  \\
 			\hline
+			electric-vehicles.jv                      & example/                                                        \\
 			table.ts                                  & libs/execution/src/lib/types/io-types/                          \\
 			table-colummn.ts                          & libs/execution/src/lib/types/io-types/                          \\
 			primitive-value-type-provider.ts          & libs/language-server/src/lib/ast/wrappers/value-type/primitive/ \\
@@ -280,7 +281,7 @@
 			LocalFileToTableExtractor.jv              & libs/language-server/src/stdlib/                                \\
 			local-file-to-table-extractor-executor.ts & libs/extensions/tabular/exec/src/lib/                           \\
 			table-transformer-executor.ts             & libs/extensions/tabular/exec/src/lib/                           \\
-			transform-executor.ts                     & lib/execution/src/lib/transforms/                               \\
+			transform-executor.ts                     & libs/execution/src/lib/transforms/                              \\
 			                                          &                                                                 \\
 			                                          &                                                                 \\
 			                                          &                                                                 \\
@@ -295,7 +296,7 @@
 	\end{center}
 \end{table}
 
-\begin{table}
+\begin{table}[h]
 	\caption{The typeguard mechanism of each InternalValueRepresentation}
 	\label{tab:internalvaluerepresentation}
 	\begin{center}
@@ -323,7 +324,7 @@
 
 
 \section{SBOM}
-\begin{table}
+\begin{table}[h]
 	\caption{SBOM}\label{tab:sbom}
 	\begin{center}
 		\begin{tabular}{|l|l|l|l|}
