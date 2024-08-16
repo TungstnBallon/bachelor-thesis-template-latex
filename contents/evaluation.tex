@@ -23,8 +23,8 @@ The dataset does not contain real world data.
 The dataset is licensed under the \ac{ODbL}.
 All data is contained in a single \ac{CSV} file, eliminating the need for table joins, which are not supported by Jayvee.
 
-\subsubsection{Biases}
-- dataset does not benefit any backend specifically %TODO
+\subsubsection{Dataset biases}
+An examination of the dataset revealed no evidence of bias that would distort the results.
 
 \section{Parameters}
 \label{section:parameters}
@@ -34,27 +34,22 @@ A configuration is characterized by the enabled optimizations, the amount of tra
 
 We define the following backends:
 \begin{description}
-	%FIXME double enabled.
 	\item[TS] TypeScript.
 	      The baseline for the evaluation.
 	      The terms "TS backend" and "baseline" are used interchangeably.
 	\item[PL] Polars.
-	      % Enabled by starting the Jayvee interpreter with the \Verb|--use-polars| \ac{CLI} flag.
 	      Enables the Polars implementations of tables, columns, block executors and transforms.
 	\item[PLOB] Polars-One-Block.
-	      % Enabled by using the \Verb|LocalFileToTableExtractor| block (see \autoref{arch:execs:localfiletotableextractor}) inside a pipeline and the \Verb|--use-polars| \ac{CLI} flag.
 	      Enables PL, plus the \Verb|LocalFileToTableExtractor| block (see \autoref{arch:execs:localfiletotableextractor}).
 	\item[PLRS] Polars-Rusqlite.
-	      % Enabled by the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
 	      Enables PL, plus the \Verb|RustSQLiteLoaderExecutor| executor and the \Verb|sqlite-loader-lib| library (see \autoref{arch:sqlite:rust}).
 	\item[PLOBRS] Polars-One-Block-Rusqlite.
-	      % Enabled by using the \Verb|LocalFileToTableExtractor| block and the \Verb|--use-polars| and \Verb|--use-rusqlite| \ac{CLI} flags.
 	      Enables PL, plus \Verb|LocalFileToTableExtractor|, plus \Verb|RustSQLiteLoaderExecutor|.
 
 	      %FIXME this paragraph
 	      This backend is not usable for every pipeline.
 	      For example, pipelines that download files instead of reading a local one, it cannot use the block \Verb|LocalFileToTableExtractor|.
-	      However, more blocks like it can be created to be used in such cases.
+	      However, more blocks analogous to this one could be created to be used in such cases.
 \end{description}
 
 We create three pipelines with the following amount of transforms
@@ -77,7 +72,7 @@ A configuration picks one value from each category.
 In order to automate the execution of the Jayvee interpreter with the correct configurations, a \ac{CLI} program is created, the evaluation tool (see \autoref{fig:uml:evalation-tool}).
 The tool creates a list of all possible configurations and runs each of them 10 times, saving the execution duration.
 It also uses \Verb|sqldiff| \ac{CLI} program \autocite{sqldiff}, to verify that the created databases are identical.
-The timing of the execution duration includes code written by \textcite{so:benchmark}.
+\textcite{so:benchmark} provides example code, showing how to time execution duration in Rust.
 
 \begin{figure}
 	\begin{plantuml}
@@ -111,7 +106,7 @@ It involves creating a source file with the correct amount of lines,
 Selecting the correct Jayvee source file, and passing the location of the source and destination files as command line arguments.
 
 The \Verb|head| \ac{CLI} program outputs the first lines of a file \autocite{head}.
-Given that one line in the \ac{CSV} file represents one row of data, %TODO BE CERTAIN!
+Given that one line in the \ac{CSV} file represents one row of data, %FIXME its all lines except sometimes the first one (it might be a header).
 executing the \ac{CLI} command
 \mint{bash}{head --lines=<NUMBER_OF_ROWS> brewery_data_all.csv > l-<NUMBER_OF_ROWS>.csv}
 generates a \ac{CSV} file with the requisite number of rows.
@@ -157,13 +152,9 @@ For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| 
 
 The path of the \ac{CSV} data source, as well as the path of the destination database, are passed to the Jayvee interpreter via runtime parameters \autocite{jvalue:jayvee:docs:runtime}.
 
-%TODO
-We considered it simplest do construct and execute a series of shell commands, simpler than using 3rd-party libraries.
-Since running the interpreter has to be a shell command anyway.
+Given that the interpreter is required to be executed via a shell command, it was determined, that shell commands would be preferred over libraries for other functionality, such as comparing \Verb|.sqlite| files, or creating the input data files.
 
-
-\autoref{lst:run_config} outlines the whole process.
-
+\autoref{lst:run_config} outlines the whole process of running a configuration.
 \begin{listing}
 	\begin{minted}{python}
 def run_config(interpreter_dir, rowcount, transforms, backend):
@@ -389,7 +380,7 @@ The precise numbers can be found in \autoref{app:eval:transforms}.
 	      This trend suggests, that the Polars implementation of table transforms is superior to the original TypeScript one.
 
 	\item[PLOB] The PLOB backend performs better than the baseline on all tested pipelines and inputs.
-	      This indicates, that the blocktype \Verb|LocalFileToTableExtractor| (\autoref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing block types. %TODO link diaram
+	      This indicates, that the block type \Verb|LocalFileToTableExtractor| (\autoref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing block types. %TODO link diaram
 
 	\item[PLRS] The PLRS backend also performs better than the baseline on all tested pipelines and inputs.
 	      This is compelling evidence, that the combination of the executor \Verb|RustSQLiteLoaderExecutor| and the library \Verb|sqlite-loader-lib| is superior to the original implementation.
@@ -748,19 +739,20 @@ While this issue has not been resolved due to the time constraints of this thesi
 
 
 \section{Reevaluating the requirements}
-\subsection{Functional requirements}
 
+In order to evaluate the success of this thesis, it is necessary to revisit the defined requirements and determine whether they have been met.
+
+\subsection{Functional requirements}
 \begin{enumerate}
 	\item[FR-1] \textbf{interoperability} Polars is capable of exporting DataFrames into the Apache Arrow \ac{IPC} format.
 	\item[FR-2] \textbf{columnar} Polars implements the Apache Arrow specification, which is a columnar format.
 	\item[FR-3] \textbf{feature toggle} The implementation can be chosen with the interpreter's \ac{CLI} flags \Verb|--use-polars| and \Verb|--use-rusqlite|
 	\item[FR-4] \textbf{compatibility} The electric vehicles example completes without errors.
 	      However, discrepancies still exist:
-	      %TODO autoref
 	      \begin{itemize}
-		      \item Not all operators are supported by the new implementation.
-		      \item It is not possible to convert all Jayvee ValueTypes to Polars DataTypes, nor vice versa.
-		      \item The tables produced by the new implementations are not consistent with the old implementation.
+		      \item Not all operators are supported by the new implementation (see \autoref{tab:impl:expressions}).
+		      \item It is not possible to convert all Jayvee \Verb|ValueType|s to Polars \Verb|DataType|s, nor vice versa (see \autoref{subsection:TypeConversion}).
+		      \item The tables produced by the new implementations are not consistent with the old implementation (see \autoref{eval:diffs}).
 	      \end{itemize}
 	      Consequently, this requirement remains unfulfilled.
 	\item[FR-5] \textbf{modularization} The Rust library \Verb|sqlite-loader-lib| is usable from TypeScript through NAPI-RS.

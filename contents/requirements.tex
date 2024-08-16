@@ -9,23 +9,19 @@ We differentiate between functional and non-functional requirements \autocite{He
 \begin{enumerate}
 	\item[FR-1] \textbf{interoperability}: Provided by the standardized \emph{Apache Arrow}. %FIXME between what
 	\item[FR-2] \textbf{columnar}: A columnar format has advantages outlined in \autoref{section:column_vs_row}.
-	      % \item[FR-3] \textbf{error free} Execute the electric vehicles example %TODO: link
-	      %       without errors.
-	      % \item{FR-4} \textbf{completeness}
 	\item[FR-3]\textbf{feature toggle}: We must be able to (de)activate the new features at runtime.
 	      This makes comparing the new features easier.
 	\item[FR-4] \textbf{compatibility}: Execute the electric vehicles example described in \Verb|electric-vehicles.jv| (\autoref{tab:src}) without errors.
 	      The \Verb|.sqlite| files produced by the different implementations must be identical.
 	\item[FR-5] \textbf{modularization}: Should it be necessary to write code in a language other than TypeScript, this code must be placed in an external library usable from typescript.
 	\item[FR-6] \textbf{extensibility}: The functionality of the chosen data representation must be extensible.
-	      % This prototype must extend the capabilities of polars / arrow %TODO rephrase
 \end{enumerate}
 
 % Tables are the central way Jayvee represent's data.
 % The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
-% Hence % TODO: ?
+% Hence
 % we shall focus on how to efficiently represent tables in memory.
-% Since Jayvee's \Verb|TableTransformer| work on columns and not rows, the advantages of the columnar format outlined in %TODO: ref
+% Since Jayvee's \Verb|TableTransformer| work on columns and not rows, the advantages of the columnar format outlined in
 % lend themselves well to jayvee.
 % Jayvee needs manipulate the data, so data needs to be stored in memory not on disk.
 % 1. This leads to the requirement that \emph{tables are represented with a columnar, in-memory data layout}.

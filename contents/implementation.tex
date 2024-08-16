@@ -18,10 +18,14 @@ The class \Verb|ValueTypeProvider|, located in \Verb|primitive-value-type-provid
 	fromPolarsDType(dtype: polars.DataType): ValueType
 	\end{minted}
 \end{center}
+
 It uses the method \Verb|DataType.equals(...)| instead of \Verb|===| for a more accurate comparison of DataTypes.
-- uses if instead of switch-case to make it clear that this is equals instead of ===
+To make this apparent immediately, \emph{if statements} instead of \emph{switch-case} are used.
+
 The Polars type system is more granular than that of Jayvee, which results in the occurrence of DataTypes, that yield the same ValueType.
 For instance, both \Verb|polars.Float32| and \Verb|polars.Float64| return \Verb|Decimal|.
+
+Not all \Verb|DataType|s are needed for the Jayvee interpreter to function. Due to the limited timeframe of this thesis, those are unsupported and thow an error.
 
 \subsection{Conversion from ValueType to DataType}
 The interface \Verb|ValueType|, located in \Verb|value-type.ts|, defines this method:
@@ -31,7 +35,7 @@ The interface \Verb|ValueType|, located in \Verb|value-type.ts|, defines this me
 	\end{minted}
 \end{center}
 is defined in the interface \Verb|ValueType| interface.
-The classes representing ValueTypes, that are not supported by Polars, implement this method to return \Verb|undefined|.
+The classes representing \Verb|ValueType|s, that are not supported by Polars, implement this method to return \Verb|undefined|.
 
 \subsection{InternalValueRepresentation}
 In many cases, the return type of Polars methods, that return concrete values, is \Verb|any|.
@@ -69,7 +73,7 @@ Besides these wrapping methods, it is necessarry for \Verb|PolarsTable| to imple
 \subsection{Implementation details}
 \label{impl:table:details}
 
-%TODO not done here yet: getTypes and withColumn, maybe the visitors
+%TODO not done here yet: getTypes and maybe the visitors
 
 \Verb|PolarsTable.clone()| does \emph{not} clone the attribute \Verb|PolarsTable.valueTypeProvider|, because it should be treated as a Singleton.
 From \Verb|primitive-value-type-provider.ts|:
@@ -95,15 +99,14 @@ that \Verb|series| is a property of the \Verb|PolarsTableColumn| \Verb|pl.Expr|,
 
 
 \section{TableColumn}
-
-%TODO something here, maybe implementation location, which is already mentioned above?
+As described in \autoref{arch:table}, the class \Verb|TableColumn| and its subclasses are implemented in \Verb|table-column.ts|.
 
 \subsection{PolarsTableColumn}
 Some attribute names are prefixed with an underscore to prevent naming conflicts between the attribute and its getter / setter.
 
 \Verb|PolarsTableColumn| is a thin wrapper around \Verb|polars.Series|.
 It doesn't have any methods, that aren't getters, setters or wrappers around equivalent \Verb|Series| methods or attributes.
-However, the method \Verb|PolarsTableColumn.clone()| excludes the attribute \Verb|PolarsTableColumn.valueType|. %TODO explanation
+However, the method \Verb|PolarsTableColumn.clone()| excludes the attribute \Verb|PolarsTableColumn.valueType| for the same reason that \Verb|PolarsTable.clone()| excludes the attribute \Verb|PolarsTable.valueTypeProvider| (see \autoref{impl:table:details}). %FIXME maybe dont reference and explain here
 
 \subsubsection{TsTableColumn}
 All properties are prefixed with an underscore to prevent a naming conflict between the property and its getter / setter.
@@ -154,7 +157,7 @@ Refer to \autoref{fig:uml:getExecutorForBlockType} for a diagram.
 \end{figure}
 
 
-\subsection{TableInterpreterExecutor} %TODO
+\subsection{TableInterpreterExecutor}
 \label{section:tableinterpreterexecutor}
 
 \Verb|TableInterpreterExecutor| is implemented in \Verb|table-interpreter-executor.ts|.
@@ -233,7 +236,7 @@ def toPolarsDataTypeWithLogs(valueType, logger):
 \subsubsection{PolarsTableInterpreterExecutor}
 \label{subsubsection:polarstableinterpreterexecutor}
 The static attribute \Verb|type| is set to \Verb|'PolarsTableInterpreter'|.
-The method \Verb|getExecutorForBlockType(...)| compares this attribute to the blocktype from the jayvee source file.
+The method \Verb|getExecutorForBlockType(...)| compares this attribute to the block type from the jayvee source file.
 As a consequence of the alterations, made to the block executor selection process in \autoref{subsection:createBlockExecutor}, the interpreter is now searching for the \Verb|PolarsTableInterpreter| instead of \Verb|TableInterpreter|, if the \Verb|--use-polars| command line interface \ac{CLI} flag is enabled.
 
 \Verb|PolarsTableInterpreterExecutor|'s objective is, to transform the existing, row-oriented, \ac{CSV} data into a columnar table format.
@@ -406,19 +409,11 @@ Transform executors are implemented in \Verb|transform-executor.ts|.
 As explained in \autoref{section:transforms} we will use Polars expressions to execute transforms.
 
 \subsection{PolarsTransformExecutor}
-CONTINUE HERE!
-\autoref{impl:polars_table_transformer} describes, how a transform's variable input name is linked with a Polars expression representing the corresponding column.
-\Verb|addInputColumnsToContext(...)| adds the Polars expressions, that represent the input columns, to the evaluation context.
+\hyperref[impl:polars_table_transformer]{Subsection~\ref*{impl:polars_table_transformer}} describes, how a transform's variable input name is linked with a Polars expression representing the corresponding column.
+\Verb|addInputColumnsToContext(...)| adds these links to the evaluation context (see \autoref{fig:uml:eval_context}), which allows them to be used when evaluating the transform's expression.
 
-The \Verb|EvaluationContext| class contains a map, \Verb|variableValues|, linking variable names to their values of type \Verb{InternalValueRepresentation | pl.Expr}.
-\Verb|pl.Expr| is the type for Polars expressions.
-
-
-\Verb|addInputColumnsToContext| uses \Verb|EvaluationContext|'s \Verb|setValueForReference| method to add the Polars expressions representing the input columns to the evaluation context.
-
-\Verb|executeTransform| is not overwritten by this class, because it only modifies/changes %FIXME pick one
-the context and leaves the other functionality to \Verb|doExecute| (see \autoref{lst:polarstransforms:execute}).
-\autoref{fig:uml:transform} contains a visualization of the calls between \Verb|PolarsTableTransformerExecutor| and \Verb|PolarsTransformExecutor|.
+The transform executor has to ensure, that the computed column has the correct \Verb|ValueType|.
+To this end, the method \Verb|doExecuteTransform(...)| converts this target \Verb|ValueType| to a target \Verb|DataType| and appends \Verb|cast(target)| to the Polars expression (see \autoref{lst:polarstransforms:execute}).
 \begin{listing}
 	\begin{minted}{python}
 def doExecuteTransform(variableToColumnName, context):
@@ -441,22 +436,24 @@ def doExecuteTransform(variableToColumnName, context):
 	targetPolarsDataType = outputDetails.valueType.toPolarsDataType()
 
 	# This casts the type of the resulting column to the type defined for the output.
-	# If this conversion is not possible, the program crashes %FIXME rethink this
 	expr = expr.cast(targetPolarsDataType)
 
 	return expr
 end
 	\end{minted}
-	\caption{}
+	\caption{Pseudocode of the method \Verb{doExecuteTransform(...)}}
 	\label{lst:polarstransforms:execute}
 \end{listing}
+
+\autoref{fig:uml:transform} contains a visualization of the calls between \Verb|PolarsTableTransformerExecutor| and \Verb|PolarsTransformExecutor|.
+
 \begin{figure}
 	\begin{plantuml}
 		@startuml
 		autoactivate on
 		->":PolarsTableTransformerExecutor": execute(inputTable, context)
 		":PolarsTableTransformerExecutor" -> ":PolarsTransformExecutor": executeTransform(\ncolumns,\ncontext\n)
-		":PolarsTransformExecutor" -> ":PolarsTransformExecutor": jayveExpressionToPolars(\njayvee expression\n)
+		":PolarsTransformExecutor" -> ":PolarsTransformExecutor": jayveeExpressionToPolars(\njayvee expression\n)
 		return expr: pl.Expr
 		return expr.cast(pl.f64)
 		return inputTable.withColumn(\nexpr.cast(pl.f64).alias('out')\n)
@@ -469,10 +466,11 @@ end
 \subsection{Expressions}
 \label{impl:expressions}
 As explainded in \autoref{section:expressions}, Jayvee expression are either literals, variables or operators.
-The \Verb|jayveExpressionToPolars| function, located in \Verb|libs/language-server/src/lib/ast/expressions/evaluate-expression.ts|, evaluates Jayvee expressions depending on this category (see \autoref{fig:uml:polars_evaluate_expression}).
-It utilizes an instance of \Verb|EvaluationContext| (\autoref{fig:uml:eval_context}) to retrieve a variable's value, or to find an operator's evaluator.
+The function \Verb|jayveeExpressionToPolars(...)|, located in \Verb|evaluate-expression.ts|, transforms Jayvee expressions into Polars expressions depending on this category (see \autoref{fig:uml:polars_evaluate_expression}).
+
+It utilizes an instance of the class \Verb|EvaluationContext| (\autoref{fig:uml:eval_context}) to retrieve a variable's value, or to find an operator's evaluator.
 \Verb|pl.lit| represents a value literal that can be uses as a Polars expression.
-It is useful in statements like \mint{typescript}{pl.lit(10).minus(pl.col("somecolumn"))}.
+It is useful in expressions such as \mint{typescript}{pl.lit(10).minus(pl.col("somecolumn"))}
 
 \begin{figure}
 	\begin{plantuml}
@@ -507,8 +505,8 @@ It is useful in statements like \mint{typescript}{pl.lit(10).minus(pl.col("somec
 		@enduml
 	\end{plantuml}
 	\caption{
-		Activity diagram of the \Verb{jayveExpressionToPolars} function.
-		\Verb{expr} is the expression that should be evaluated. %FIXME: caption
+		Activity diagram of the function \Verb{jayveeExpressionToPolars(...)}.
+		\Verb{expr} represents the input Jayvee expression.
 	}
 	\label{fig:uml:polars_evaluate_expression}
 \end{figure}
@@ -516,30 +514,24 @@ It is useful in statements like \mint{typescript}{pl.lit(10).minus(pl.col("somec
 
 \subsubsection{Operator evaluators}
 \label{subsubsection:impl:operator_evaluator}
-\autoref{tab:impl:expressions} contains a table linking every Jayvee operator evaluator with the Polars expression it evaluates to.
+\autoref{tab:impl:expressions} contains a table linking every Jayvee operator with the Polars expression it evaluates to.
 Many Jayvee operators have an equivalent Polars expressions.
+For those that don't, we provide a list of explanations here:
+\begin{description}
+	\item[xor] Use a logically equivalent term comprised of the expressions \Verb|and(...)|, \Verb|or(...)| and \Verb|not()|.
+	\item[sqrt] Use the mathematically equivalent expression \Verb|pow(1/2)|.
+	\item[round] Polars' expression \Verb|round| expects the number of digits after the comma as a parameter.
+	      In order to remain compatible with the TypeScript implementation, this number is set to \Verb|0|.
+\end{description}
+There are also Jayvee operators that are not supported by the new implementation:
+\begin{description}
+	\item[root, pow, replace, matches] The Polars expressions for these operators expect single values and do not support columns as parameters.
+	\item[asBoolean] Polars supports converting between strings and numeric types with the expression \Verb|cast(...)|.
+	      This approach is not supported for booleans \autocite{polars:docs:expr:parsing}.
+	      %TODO maybe mention that it could be done if I had more time.
+\end{description}
 
-Polars does not have an \Verb|xor| expression, but the \Verb|and|, \Verb|or| and \Verb|not| expressions can be used to create a logically equivalent expression.
-
-Jayvee's \Verb|sqrt| is transformed to the mathematically equivalent \Verb|pow(1/2)|.
-
-Polars \Verb|round| expression expects the number of digits after the comma as a parameter.
-We pass \Verb|0|, to remain consistent with the TypeScript implementation.
-
-\Verb|root| and \Verb|pow| are unsupported, because Polars' \Verb|pow| expression expects a constant exponent.
-
-\Verb|replace| and \Verb|matches| are unsupported.
-Polars has expressions that allow working with \ac{regex}s, the time frame was too short to figure out a solution.
-%TODO explain that it was too hard to ensure consistency with the typescript implementation
-
-Polars allows users to parse strings, by casting them to a target Polars DataType \autocite{polars:docs:expr:parsing}.
-\Verb|asText|, \Verb|asDecimal| and \Verb|asInteger| convert their respective Jayvee ValueType to obtain this target DataType. \\
-\Verb|asText|, \Verb|asDecimal| and \Verb|asInteger| are implemented this way. \\
-Polars does not allow casting strings to booleans \autocite{polars:docs:expr:parsing}, which means that the \Verb|asBoolean| operator is unsupported.
-%TODO maybe mention that it could be done if I had more time.
-
-
-The sequence diagram \autoref{fig:uml:epr:example} depicts how the block \Verb|B1| from \autoref{lst:expr:example:pipeline} would execute its transform.
+The sequence diagram in \autoref{fig:uml:epr:example} depicts, how the block \Verb|B| from \autoref{lst:expr:example:pipeline} would execute its transform.
 \begin{listing}
 	\begin{minted}{typescript}
 transform tr {
@@ -548,16 +540,15 @@ transform tr {
 	to z oftype decimal;
 	z: x + y;
 }
-block Bl oftype TableTransformer {
+block B oftype TableTransformer {
 	inputColumns: ['a', 'b'];
 	outputColumn: 'c';
 	uses: tr;
 }
 	\end{minted}
-	\caption{A Jayvee snippet defining a TableTransformer and a transform.}
+	\caption{A Jayvee snippet defining a block with type \Verb{TableTransformer} and its transform.}
 	\label{lst:expr:example:pipeline}
 \end{listing}
-- how he inputTable to Bl is transformed is depicted in this diagram
 \begin{figure}
 	\begin{plantuml}
 		@startuml
@@ -575,10 +566,10 @@ block Bl oftype TableTransformer {
 		return pl.col('b')
 		return pl.col('a')\n.add(pl.col('b'))
 		return pl.col('a')\n.add(pl.col('b'))\n.cast(pl.f64)
-		return Table with column generated by\npl.col('a')\n.add(pl.col('b'))\n.cast(pl.f64)\n.alias('c')
+		return inputTable.withColumn(\npl.col('a')\n.add(pl.col('b'))\n.cast(pl.f64)\n.alias('c')\n)
 		@enduml
 	\end{plantuml}
-	\caption{}
+	\caption{The method calls relevant to transforming a table.}
 	\label{fig:uml:epr:example}
 \end{figure}
 
@@ -586,42 +577,51 @@ block Bl oftype TableTransformer {
 
 
 \section{SQLiteLoaderExecutor}
-\Verb|SQLiteLoaderExecutor| is implemented in \Verb|libs/extensions/rdbms/exec/src/lib/sqlite-loader-executor.ts|.
+\Verb|SQLiteLoaderExecutor| is implemented in \Verb|sqlite-loader-executor.ts|.
 
-\Verb|doExecute| retrieves and validates the blocks properties: \Verb|file|, \Verb|table| and \Verb|dropTable|, which are passed to the \Verb|executeLoad| method.
+% \Verb|doExecute| retrieves and validates the blocks properties: \Verb|file|, \Verb|table| and \Verb|dropTable|, which are passed to the \Verb|executeLoad| method.
 
-\Verb|executeLoad| provides a general implementation that works for \Verb|TsTable| and \Verb|PolarsTable|, because it uses the abstract \Verb|Table| class' methods to generate \ac{SQL} queries.
-These methods are \Verb|generateDropTableStatement|, \Verb|generateCreateTableStatement| and \Verb|generateInsertValuesStatement|.
+The method \Verb|executeLoad(...)| provides a general implementation that works for \Verb|TsTable| and \Verb|PolarsTable|, because it uses the abstract \Verb|Table| class' methods to generate \ac{SQL} queries.
+These methods are \Verb|Table.generateDropTableStatement(...)|, \Verb|Table.generateCreateTableStatement(...)| and \Verb|Table.generateInsertValuesStatement(...)|.
 
-\Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLiteLoaderExecutor| don't override the default implementation.
+\Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLiteLoaderExecutor| don't override this default implementation.
 
-\Verb|RustSQLiteLoaderExecutor| overrides \Verb|executeLoad(...)|.
+The subclass \Verb|RustSQLiteLoaderExecutor| overrides the method \Verb|executeLoad(...)|.
 Its implementation writes the table to \Verb|dataframe.arrow| (the .arrow extension is recommended by the Arrow specification \autocite{arrow:spec}), using \Verb|PolarsTable|'s \Verb|writeIpcTo| method.
-Then it calls the \Verb|loadSQLite| function implemented in \Verb|sqlite-loader-lib|.
+Then it calls the \Verb|loadSQLite(...)| function implemented in \Verb|sqlite-loader-lib|.
+%TODO maybee activity diagram
 
 
 
 \subsection{sqlite-loader-lib}
 \label{subsection:sqlite-loader-lib}
-\Verb|sqlite-loader-lib| is implemented in a new directory outside the Jayvee repository.
-When attempting to implement \Verb|sqlite-loader-lib| inside the Jayvee repository, but we were not able to connect the interpreter's build system with that of NAPI-RS.
+The library \Verb|sqlite-loader-lib| is implemented in a new directory outside the Jayvee repository.
+Attempts were made to implement \Verb|sqlite-loader-lib| within the Jayvee repository.
+Regrettably, these efforts were unsuccessful.
+The reason for this is, that interpreter's build system was unable to integrate with NAPI-RS.
 
-NAPI-RS' package template \autocite{napi:template} provides simple setup instructions for a library built with NAPI-RS.
-\Verb|src/lib.rs| contains the functionality.
+\textcite{napi:template} provide simple setup instructions for a library built with NAPI-RS.
+\Verb|lib.rs| contains the functionality.
 To compile the library, the \ac{CLI} command:
 \mint{bash}{npm run build}
 is executed.
 
 As described in \autoref{arch:sqlite:rust}, \Verb|sqlite-loader-lib| only exposes the function \Verb|loadSqlite| (see \ref{fig:uml:loadSqlite}).
 Due to the experimental nature of this library, we do not implement complex error recovery.
+When an error occurs, it is used to construct an instance of the \Verb|napi::Error| struct.
+NAPI-RS can convert this instance into an Error object usable by TypeScript.
+
+Because NAPI-RS is not able to make Jayvee's \Verb|Logger| class usable in this library, log messages are printed using the Rust macro \Verb|println!(...)|, which is similar to TypeScript's \Verb|console.log(...)|.
+
 \begin{figure}
 	\begin{plantuml}
 		@startuml
+		scale 0.7
 		start
 		:Open the Arrow IPC file;
 		note
-		Ensures the table data is
-		available on disk.
+		Also ensures the table data
+		is available on disk.
 		end note
 		:Open a connection to
 		the sqlite database;
@@ -643,62 +643,65 @@ Due to the experimental nature of this library, we do not implement complex erro
 		stop
 		@enduml
 	\end{plantuml}
-	\caption(An activity diagram of the \Verb{loadSqlite})
+	\caption{An activity diagram of the \Verb{loadSqlite(...)}}
 	\label{fig:uml:loadSqlite}
 \end{figure}
 
-\Verb|ipc_reader| opens an Arrow \Verb|IPC| file and passes it to an Arrow \Verb|FileReader|.
 
-\Verb|db_connection| obtains a SQLite database connection from creating a SQLite database file.
-This connection is passed do Connector\_Arrow's SQLiteConnection type.
-
+\subsubsection{Integrating sqlite-loader-lib into the interpreter}
 \Verb|sqlite-loader-lib| is made available to the Jayvee interpreter by the \ac{CLI} command
 \mint{bash}{npm install --save <PATH TO sqlite-loader-lib>}
 
-\begin{listing}
-	\begin{minted}{python}
-def ipc_reader(ipc_path):
-	file = file_open(ipc_path)
-	return FileReader(file)
-	\end{minted}
-\end{listing}
+There is a build issue left to solve.
+The Jayvee interpreter's build process includes merging the entire source code into a single file.
+This is not feasible, given that the library is only accessible to the build process as a binary file, rather than as source code.
 
-\begin{listing}
-	\begin{minted}{python}
-def db_connection(sqlite_path):
-	sqlite_connection = new_rusqlite_connection(sqlite_path)
-	connector_arrow_connection = SQLiteConnection(sqlite_connection)
-	return connector_arrow_connection
-	\end{minted}
-\end{listing}
+In order to instruct the build process to exclude \Verb|sqlite-loader-lib| from the final source code file, we append \Verb|"sqlite-loader-lib"| to the \ac {JSON} array \Verb|targets.build.options.external| inside the files listed in \autoref{list:project:jsons}.
 
-\begin{listing}
-	\begin{minted}{python}
-def append(appender, batches):
-	inserted_rows = 0
-	for batch in batches:
-		appender.append(batch)
-		inserted_rows += batch.number_of_rows
-	return inserted_rows
-end
-	\end{minted}
-\end{listing}
-
-\begin{listing}
-	\begin{minted}{python}
-def load_sqlite(ipc_path, table_name, sqlite_path, drop_table):
-	reader = ipc_reader()
-	conn = db_connection(sqlite_path)
-
-	if drop_table then
-		conn.table_drop(table_name)
-	endif
-
-	schema = reader.schema()
-	appender = conn.append(table_name)
-	inserted_rows = append(appender, reader)
-end
-	\end{minted}
-\end{listing}
-
+% \begin{listing}
+% 	\begin{minted}{python}
+% def ipc_reader(ipc_path):
+% 	file = file_open(ipc_path)
+% 	return FileReader(file)
+% 	\end{minted}
+% \end{listing}
+%
+% \begin{listing}
+% 	\begin{minted}{python}
+% def db_connection(sqlite_path):
+% 	sqlite_connection = new_rusqlite_connection(sqlite_path)
+% 	connector_arrow_connection = SQLiteConnection(sqlite_connection)
+% 	return connector_arrow_connection
+% 	\end{minted}
+% \end{listing}
+%
+% \begin{listing}
+% 	\begin{minted}{python}
+% def append(appender, batches):
+% 	inserted_rows = 0
+% 	for batch in batches:
+% 		appender.append(batch)
+% 		inserted_rows += batch.number_of_rows
+% 	return inserted_rows
+% end
+% 	\end{minted}
+% \end{listing}
+%
+% \begin{listing}
+% 	\begin{minted}{python}
+% def load_sqlite(ipc_path, table_name, sqlite_path, drop_table):
+% 	reader = ipc_reader()
+% 	conn = db_connection(sqlite_path)
+%
+% 	if drop_table then
+% 		conn.table_drop(table_name)
+% 	endif
+%
+% 	schema = reader.schema()
+% 	appender = conn.append(table_name)
+% 	inserted_rows = append(appender, reader)
+% end
+% 	\end{minted}
+% \end{listing}
+%
 

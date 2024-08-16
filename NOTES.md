@@ -57,7 +57,7 @@
 ```lualatex
 Tables are the central way Jayvee represent's data.
 The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
-Hence % TODO: ?
+Hence 
 we shall focus on how to efficiently represent tables in memory.
 ```
 
