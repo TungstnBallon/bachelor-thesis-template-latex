@@ -24,8 +24,8 @@ These blocks are categorized in extractors, transformers and loaders.
 			@enduml
 		\end{plantuml}
 	\end{center}
-	\caption{The basic structure of a pipeline.}
-	\label{}
+	\caption{The basic structure of a pipeline}
+	\label{intro:pipeine}
 \end{figure}
 
 \textbf{Extractors} bring the data into the pipeline and make it available for the other types of blocks.
@@ -34,12 +34,12 @@ Jayvee supports retrieving data from local files (\Verb|LocalFileExtractor|) and
 \textbf{Transformers} modify the data between extractor and loader.
 
 \textbf{Loaders} export data to somewhere outside the pipeline.
-Most common is a SQLite file (\Verb|SQLiteLoader|), but Postgres (\Verb|PostgresLoader|) and \ac{CSV} (\Verb|CSVFileLoader|) are also supported.
+Most common is a SQLite file (\Verb|SQLiteLoader|), but Postgres (\Verb|PostgresLoader|) and \ac{CSV} (\Verb|CSVFileLoader|) are also supported. %FIXME don't know if its the most common -> rephrase
 
-The Jayvee interface of blocks (see %TODO: reference architecture chapter
-) defines one input and one output port.
-The output port can be linked to multiple input ports.
+% The Jayvee interface of blocks (see reference architecture chapter
+% ) defines one input and one output port.
+% The output port can be linked to multiple input ports. %FIXME decide whether to use this
 
 A more detailed description of Jayvee's core concepts has been provided by \textcite{jvalue:jayvee:docs:core_concepts}.
 
-Jayvee's goal is to simply allow everyone to describe ETL pipelines \autocite{jvalue:jayvee}.
+Jayvee's goal is to enable everyone to describe ETL pipelines \autocite{jvalue:jayvee}.

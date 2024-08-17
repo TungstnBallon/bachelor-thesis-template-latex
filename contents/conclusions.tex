@@ -7,19 +7,19 @@ This prototype is based on the Polars library and, by using this library, implem
 The strategy pattern is used, to allow for the original implementation to be preserved alongside the implementation presented in this thesis.
 It also allows the interpreter's users to choose the implementation at runtime.
 
-The Polars library was utilized to extend the Jayvee interpreter with a new table implementation that adheres to the Apache Arrow specification.
+The Polars library was utilized to extend the Jayvee interpreter with a new table implementation, that adheres to the Apache Arrow specification.
 The original implementation is left intact.
-
-Designing the architecture using the strategy pattern has enabled the interpreter to allow for the selection of the preferred backend at runtime.
 
 Further work is required to address the identified compatibility issues.
 It is believed that the remaining unsupported Jayvee operators can be implemented and that NULL values can be handled appropriately.
 However, the cause and potential solution for the seemingly random differences in floating-point numbers remain unclear.
 
 A library, that addresses missing functionality in Polars, was developed.
-This library was demonstrated to be more performant, than the implementation, that uses the NodeJS Polars library. %TODO make sure this is shown
+This library was demonstrated to be more performant, than the implementation, that uses the NodeJS Polars library.
 Despite this, we suspect, that an implementation within the Polars library may potentially be even more performant.
 
+
+%TODO finish
 The new implementation increases the maximum amount of input data.
 
 

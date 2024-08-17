@@ -52,7 +52,7 @@ We define the following backends:
 	      However, more blocks analogous to this one could be created to be used in such cases.
 \end{description}
 
-We create three pipelines with the following amount of transforms
+We create three pipelines with the following amount of transforms:
 \begin{description}
 	\item[none] The pipeline does not transform the data.
 	\item[some] There are four transforms in the pipeline.
@@ -63,7 +63,7 @@ In the remainder of this chapter, the term "some transforms" refers to the pipel
 Similarly, the term "many transforms" refers to a pipeline with eight transforms.
 
 We set six values for the amount of input rows: %FIXME: 1300000 is missing
-$56250$, $112500$, $225000$, $4500000$, $900000$, $1800000$
+$56250$, $112500$, $225000$, $4500000$, $900000$ and $1800000$
 
 A configuration picks one value from each category.
 
@@ -146,7 +146,7 @@ For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| 
 		endif
 		@enduml
 	\end{plantuml}
-	\caption{This diagram describes the process, by which the evaluation tool identifies the correct source file.}
+	\caption{This diagram describes the process, by which the evaluation tool identifies the correct source file}
 	\label{fig:uml:pick-jv-model}
 \end{figure}
 
@@ -218,10 +218,11 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 			stop
 			@enduml
 		\end{plantuml}
-		\caption{PLOBRS}
+		\caption{PLOB}
 		\label{fig:uml:pipelines:plob}
 	\end{subfigure}
-	\caption{The initial section of Jayvee pipelines in Jayvee files starting with \dots . Presents the block's types and their associated IOType}
+	\caption{The initial section of Jayvee pipelines in Jayvee files starting with TS or PLOB.
+		Presents the block's types and their associated \Verb{IOType}} %FIXME IOType might not be properly explained
 	\label{fig:uml:pipelines:backends}
 \end{figure}
 
@@ -272,9 +273,7 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 		\end{plantuml}
 		\caption{many}
 	\end{subfigure}
-	\caption{How pipelines with \dots transform the input data.
-		Displays block names and types.
-	}
+	\caption{The transform section of pipelines with none, some or many transforms}
 	\label{fig:uml:pipelines:transforms}
 \end{figure}
 
@@ -300,12 +299,14 @@ This limit depends on the enabled optimizations and the amount of transforms in 
 Because the biggest data input ($1 800 000$ rows) exceeds the limits for pipelines with some or many transforms, we introduce a seventh data input with $1 300 000$ rows.
 The configurations with many transforms will only process data inputs with $900 000$ rows or lower.
 
-Based on our knowledge of the interpreter, the "Invalid string length" error originates from a NodeJS limit on the maximum length of a string. %FIXME make sure this is ok
+Based on our knowledge of the interpreter, the "Invalid string length" error originates from a NodeJS limit on the maximum length of a string.
 The observation, that the error occurs during the loading of the table into the SQLite database, suggests, that the string limit may be exceeded during the generation of the \ac{SQL} queries.
 
 The error message "JavaScript heap overflow", which also occurs is the \Verb|SQLiteLoader| block, indicates that the heap can not contain the data and the \ac{SQL} queries.
 
 The error message "Cannot make a string longer than 0x1fffffe8 characters." is emitted, during the execution of a block with type \Verb|TextFileInterpreter|.
+
+The PLOBRS backend processed $10 000 000$ rows ($2.5$ \ac{GB}) without crashing.
 
 \begin{figure}
 	\begin{center}
@@ -352,7 +353,7 @@ The error message "Cannot make a string longer than 0x1fffffe8 characters." is e
 				\addlegendentry{PLRS}
 			\end{axis}
 		\end{tikzpicture}
-		\caption{Maximum input sizes}
+		\caption{Maximum input sizes for each backend}
 		\label{fig:plot:filesize}
 	\end{center}
 \end{figure}
@@ -375,12 +376,12 @@ The precise numbers can be found in \autoref{app:eval:transforms}.
 	      We determined this to be the cause of the worse performance.
 
 	      We observed, that with no transforms, PL was $1,33$ times slower than the baseline TS.
-	      With some transforms, this factor decreased to $1,09$.
-	      With many transforms PL was $1,07$ times faster than the baseline TS.
+	      With some transforms, this factor decreased to $1.09$.
+	      With many transforms PL was $1.07$ times faster than the baseline TS.
 	      This trend suggests, that the Polars implementation of table transforms is superior to the original TypeScript one.
 
 	\item[PLOB] The PLOB backend performs better than the baseline on all tested pipelines and inputs.
-	      This indicates, that the block type \Verb|LocalFileToTableExtractor| (\autoref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing block types. %TODO link diaram
+	      This indicates, that the block type \Verb|LocalFileToTableExtractor| (\autoref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing block types.
 
 	\item[PLRS] The PLRS backend also performs better than the baseline on all tested pipelines and inputs.
 	      This is compelling evidence, that the combination of the executor \Verb|RustSQLiteLoaderExecutor| and the library \Verb|sqlite-loader-lib| is superior to the original implementation.
@@ -744,9 +745,9 @@ In order to evaluate the success of this thesis, it is necessary to revisit the 
 
 \subsection{Functional requirements}
 \begin{enumerate}
-	\item[FR-1] \textbf{interoperability} Polars is capable of exporting DataFrames into the Apache Arrow \ac{IPC} format.
-	\item[FR-2] \textbf{columnar} Polars implements the Apache Arrow specification, which is a columnar format.
-	\item[FR-3] \textbf{feature toggle} The implementation can be chosen with the interpreter's \ac{CLI} flags \Verb|--use-polars| and \Verb|--use-rusqlite|
+	\item[FR-1] \textbf{interoperability} The Apache Arrow \ac{IPC} format is used by \Verb|RustSQLiteLoaderExecutor| and \Verb|sqlite-loader-lib| (see \autoref{arch:sqlite:rust}). %FIXME ref is broken
+	\item[FR-2] \textbf{columnar} The class \Verb|PolarsTable| uses the Polars library, which implements the Apache Arrow specification, a columnar format (see \autoref{subsection:arch:polarstable}).
+	\item[FR-3] \textbf{feature toggle} The implementation can be chosen with the interpreter's \ac{CLI} flags \Verb|--use-polars| and \Verb|--use-rusqlite|. %FIXME maybe link something here too
 	\item[FR-4] \textbf{compatibility} The electric vehicles example completes without errors.
 	      However, discrepancies still exist:
 	      \begin{itemize}
@@ -755,9 +756,9 @@ In order to evaluate the success of this thesis, it is necessary to revisit the 
 		      \item The tables produced by the new implementations are not consistent with the old implementation (see \autoref{eval:diffs}).
 	      \end{itemize}
 	      Consequently, this requirement remains unfulfilled.
-	\item[FR-5] \textbf{modularization} The Rust library \Verb|sqlite-loader-lib| is usable from TypeScript through NAPI-RS.
-	\item[FR-6] \textbf{extensibility} \Verb|RustSQLiteLoaderExecutor|, using \Verb|sqlite-loader-lib|, exports a DataFrame into an SQLite database.
-	      This functionality is not yet implemented in Polars.
+	\item[FR-5] \textbf{modularization} The Rust library \Verb|sqlite-loader-lib| is usable from TypeScript through NAPI-RS (see \autoref{arch:sqlite:lib}). %FIXME ref is broken
+	\item[FR-6] \textbf{extensibility} \Verb|RustSQLiteLoaderExecutor|, using \Verb|sqlite-loader-lib|, exports a \Verb|DataFrame| into an SQLite database.
+	      This functionality is not yet implemented in Polars (see \autoref{arch:sqlite:rust}).
 \end{enumerate}
 
 It is our contention, that all functional requirements, except for compatibility, have been met.
@@ -767,7 +768,7 @@ It is our contention, that all functional requirements, except for compatibility
 	\item[NFR-1] \textbf{performance} \autoref{eval:numbers} demonstrated that the optimizations afforded by the new implementation enhance processing speeds,
 	      \autoref{eval:max_size}  illustrated that the new implementation is capable of accommodating greater input data without crashing.
 	\item[NFR-2] \textbf{code style} \Verb|npm run lint| only throws errors for files out of the scope of this thesis.
-	      Rust's linter clippy and formatter rustfmt do not report any issues.
+	      Rust's linter \emph{clippy} and formatter \emph{rustfmt} do not report any issues.
 	\item[NFR-3] \textbf{maturity} This thesis implemented a prototype.
 \end{enumerate}
 

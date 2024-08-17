@@ -4,11 +4,12 @@
 In this chapter, we explain the implementation of the architecture described in \autoref{chapter:Architecture}.
 In instances where this thesis makes reference to filenames, the corresponding path can be found in \autoref{tab:src}.
 
-In general, we prefer methods, such as \Verb|map(...)|, over for loops, because they are, in our experience, less error-prone and result in more readable code.
+In general, we prefer methods, such as \Verb|map(...)|, over for loops, because they are, in our experience, %FIXME citation
+less error-prone and result in more readable code.
 
 \section{Type Conversion}
 \label{subsection:TypeConversion}
-As described in \autoref{section:type_conversion}, we implement a conversion mechanism between Polars' DataTypes and Jayvee's ValueTypes.
+As described in \autoref{section:type_conversion}, we implement a conversion mechanism between Polars' \Verb|DataType|s and Jayvee's \Verb|ValueType|s.
 
 \subsection{Conversion from DataType to ValueType}
 \label{impl:types:dtov}
@@ -19,13 +20,13 @@ The class \Verb|ValueTypeProvider|, located in \Verb|primitive-value-type-provid
 	\end{minted}
 \end{center}
 
-It uses the method \Verb|DataType.equals(...)| instead of \Verb|===| for a more accurate comparison of DataTypes.
+It uses the method \Verb|DataType.equals(...)| instead of \Verb|===| for a more accurate comparison of \Verb|DataType|s.
 To make this apparent immediately, \emph{if statements} instead of \emph{switch-case} are used.
 
-The Polars type system is more granular than that of Jayvee, which results in the occurrence of DataTypes, that yield the same ValueType.
+The Polars type system is more granular than that of Jayvee, which results in the occurrence of \Verb|DataType|s, that yield the same \Verb|ValueType|.
 For instance, both \Verb|polars.Float32| and \Verb|polars.Float64| return \Verb|Decimal|.
 
-Not all \Verb|DataType|s are needed for the Jayvee interpreter to function. Due to the limited timeframe of this thesis, those are unsupported and thow an error.
+Not all \Verb|DataType|s are needed for the Jayvee interpreter to function. Due to the limited timeframe of this thesis, those are unsupported and throw an error.
 
 \subsection{Conversion from ValueType to DataType}
 The interface \Verb|ValueType|, located in \Verb|value-type.ts|, defines this method:
@@ -35,7 +36,7 @@ The interface \Verb|ValueType|, located in \Verb|value-type.ts|, defines this me
 	\end{minted}
 \end{center}
 is defined in the interface \Verb|ValueType| interface.
-The classes representing \Verb|ValueType|s, that are not supported by Polars, implement this method to return \Verb|undefined|.
+The classes representing \Verb|ValueType|s, that are not supported by Polars, implement this method to return \Verb[breakafter=n]|undefined|.
 
 \subsection{InternalValueRepresentation}
 In many cases, the return type of Polars methods, that return concrete values, is \Verb|any|.
@@ -66,31 +67,34 @@ Besides these wrapping methods, it is necessarry for \Verb|PolarsTable| to imple
 \begin{itemize}
 	\item \Verb|getTypes()|
 	\item \Verb|withColumn(...)|
-	\item \Verb|generateInsertValuesStatement(...)|, \Verb|generateCreateTableStatement(...)|
+	\item \Verb|generateInsertValuesStatement(...)|
+	\item \Verb|generateCreateTableStatement(...)|
 	\item \Verb|columns()|, \Verb|getColumn(...)|
 \end{itemize}
 
 \subsection{Implementation details}
 \label{impl:table:details}
 
-%TODO not done here yet: getTypes and maybe the visitors
+\Verb|PolarsTable.clone()| does \emph{not} clone the attribute \Verb|PolarsTable.valueTypeProvider|, because it should be treated as a Singleton (see \autoref{lst:singleton}).
+\begin{listing}[H]
+	\begin{center}
+		\begin{minted}[linenos,firstnumber=23,numbersep=-10pt]{typescript}
+	/**
+	* Should be created as singleton due to the equality comparison of primitive value types.
+	* Exported for testing purposes.
+	*/
+	export class ValueTypeProvider {
+		\end{minted}
+	\end{center}
+	\caption{Excerpt from \Verb{primitive-value-type-provider.ts}}
+	\label{lst:singleton}
+\end{listing}
 
-\Verb|PolarsTable.clone()| does \emph{not} clone the attribute \Verb|PolarsTable.valueTypeProvider|, because it should be treated as a Singleton.
-From \Verb|primitive-value-type-provider.ts|:
-\begin{center}
-	\begin{minted}[linenos,firstnumber=23]{typescript}
-/**
- * Should be created as singleton due to the equality comparison of primitive value types.
- * Exported for testing purposes.
- */
-export class ValueTypeProvider {
-	\end{minted}
-\end{center}
-
-Because \ac{SQL} insert values statements expect rows of data, the method \Verb|PolarsTable.generateInsertValuesStatement()| transposes the columnar DataFrame into a row-oriented format, before converting that to \ac{SQL}.
+Because \ac{SQL} insert values statements expect rows of data, %FIXME citation
+the method \Verb|PolarsTable.generateInsertValuesStatement()| transposes the columnar \Verb|DataFrame| into a row-oriented format, before converting that to \ac{SQL}.
 
 The methods \Verb{PolarsTable.columns()} and \Verb|PolarsTable.getColumn(...)| return object(s) of the class \Verb|PolarsTableColumn|.
-Their construction uses the conversion method from \autoref{impl:types:dtov} using the class \Verb|PolarsTables|'s attribute, \Verb|valueTypeProvider|
+Their construction uses the conversion method from \autoref{impl:types:dtov} using the class \Verb|PolarsTables|'s attribute, \Verb|valueTypeProvider|.
 
 The method \Verb|withColumn(...)| faces the challenge of having to discern, whether its parameter is of the type \Verb|PolarsTableColumn| or \Verb|pl.Expr|.
 The TypeScript operator \Verb|in| checks, whether the object has a specific property \autocite{js:in}.
@@ -112,14 +116,15 @@ However, the method \Verb|PolarsTableColumn.clone()| excludes the attribute \Ver
 All properties are prefixed with an underscore to prevent a naming conflict between the property and its getter / setter.
 
 \Verb|TsTableColumn.clone()| produces a \emph{deep clone} of the attribute \Verb|_values|.
-Based on our experience, the usual way to accomplish this is the global function \Verb|structuredClone(...)|.
+Based on our experience, %FIXME citation
+the usual way to accomplish this is the global function \Verb[breakafter=c(,breakbefore=C,]|structuredClone(...)|.
 This approach caused the interpreter to crash at runtime.
 We suspect the cause has to do with limitations of \Verb|structuredClone(...)| described by \textcite{js:docs:structuredClone}.
 This issue was addressed by serializing the column to \ac{JSON}, and subsequently parsing it, thereby creating deep copies.
 To retrieve the type information lost during this process, the type guards described in \autoref{subsection:TypeConversion} were utilized.
 
 \section{New block executors}
-\subsection{Selecting the correct block executor} %FIXME
+\subsection{Selecting the correct block executor}
 \label{subsection:createBlockExecutor}
 The method \Verb|getExecutorForBlockType(...)| in \Verb|extension.ts| is modified, to look for a different block type than its parameter specifies.
 Refer to \autoref{fig:uml:getExecutorForBlockType} for a diagram.
@@ -152,7 +157,7 @@ Refer to \autoref{fig:uml:getExecutorForBlockType} for a diagram.
 		stop
 		@enduml
 	\end{plantuml}
-	\caption{How the correct block executor is selected at runtime.}
+	\caption{How the correct block executor is selected at runtime}
 	\label{fig:uml:getExecutorForBlockType}
 \end{figure}
 
@@ -167,9 +172,9 @@ This file also contains the function
 toPolarsDataTypeWithLogs(valueType: ValueType, logger: Logger): polars.DataType
 	\end{minted}
 \end{center}
-Its purpose is, to convert Polars DataTypes into Jayvee ValueTypes.
-It was determined, that unsupported ValueTypes should be included in the table as unparsed strings, while still logging an error.
-To this end, the function converts unsupported ValueTypes to the default value of \Verb|pl.Utf8|.
+Its purpose is, to convert Polars \Verb|DataType|s into Jayvee \Verb|ValueType|s.
+It was determined, that unsupported \Verb|ValueType|s should be included in the table as unparsed strings, while still logging an error.
+To this end, the function converts unsupported \Verb|ValueType|s to the default value of \Verb|pl.Utf8| (see \autoref{lst:toPolarsDataTypeWithLogs}).
 
 \begin{listing}
 	\begin{minted}{python}
@@ -180,7 +185,7 @@ def toPolarsDataTypeWithLogs(valueType, logger):
 		return polars.Utf8
 	return dataType
 	\end{minted}
-	\caption{Pseudocode of the function \Verb{toPolarsDataTypeWithLogs}}
+	\caption{Pseudocode of the function \Verb{toPolarsDataTypeWithLogs(...)}.}
 	\label{lst:toPolarsDataTypeWithLogs}
 \end{listing}
 
@@ -198,7 +203,7 @@ def toPolarsDataTypeWithLogs(valueType, logger):
 % 	\caption{\Verb|ColumnDefinitionEntry|}\label{fig:uml:ColumnDefinitionEntry}
 % \end{figure}
 
-\Verb|deriveColumnDefinitionEntriesWithoutHeader|, \Verb|deriveColumnDefinitionEntriesFromHeader| and \Verb|parseAndValidateValue| remain unchanged, because they do not rely on the table implementation.
+The methods \Verb|deriveColumnDefinitionEntriesWithoutHeader(...)|, \Verb|deriveColumnDefinitionEntriesFromHeader(...)| and \Verb|parseAndValidateValue(...)| remain unchanged, because they do not rely on the table implementation. %FIXME pdf render looks bad
 
 % - deriveColumnDefinitionEntriesWithoutHeader
 % - uses the definitions from the schema property of the TableInterpreter block
@@ -209,8 +214,8 @@ def toPolarsDataTypeWithLogs(valueType, logger):
 % - if name isn't in the header row the column is ignored
 % - otherwise same behavior as deriveColumnDefinitionEntriesWithoutHeader
 
-\Verb|doExecute| merely preprocesses the block's properties, leaving the concrete algorithm to \Verb|TableInterpreterExecutor|'s subclasses
-%FIXME(\autoref{lst:tableInterpreter:doExecute})
+The method \Verb|doExecute(...)| merely preprocesses the block's properties, leaving the concrete algorithm to \Verb|TableInterpreterExecutor|'s subclasses
+%(\autoref{lst:tableInterpreter:doExecute})
 .
 % \begin{listing}
 % 	\begin{minted}{python}
@@ -241,28 +246,28 @@ As a consequence of the alterations, made to the block executor selection proces
 
 \Verb|PolarsTableInterpreterExecutor|'s objective is, to transform the existing, row-oriented, \ac{CSV} data into a columnar table format.
 This is addressed by iterating over all rows multiple times, with each iteration constructing only one column (see \autoref{lst:polarsTableInterpreter:constructSeries}).
-This process yields a list of Polars \Verb|Series|, which are then utilized to construct a columnar Polars DataFrame.
+This process yields a list of Polars \Verb|Series|, which are then utilized to construct a columnar Polars \Verb|DataFrame|.
 
 The method \Verb|constructAndValidateTable(...)| skips the first row of the input data, if the block property \Verb|header| is set to \Verb|true|.
 The use of the ternary if statement is justified by the fact that, it allows \Verb|rows| to be declared as a constant.
 
-\begin{listing}
-	\begin{minted}{python}
-def constructAndValidateTable(sheet, header, columnEntries, context):
-	rows = sheet.getData()
-	# rows is a row-oriented, two dimensional array of strings
-	if header:
-		... # Skip first row
-	series = []  # Empty list
-	for entry in columnEntries:
-		s = this.constructSeries(rows, entry, context)
-		series.add(s)
-	dataFrame = polars.DataFrame(series)
-	return new PolarsTable(dataFrame, context.valueTypeProvider)
-	\end{minted}
-	\caption{}
-	\label{lst:polarsTableInterpreter:constructTable}
-\end{listing}
+% \begin{listing}
+% 	\begin{minted}{python}
+% def constructAndValidateTable(sheet, header, columnEntries, context):
+% 	rows = sheet.getData()
+% 	# rows is a row-oriented, two dimensional array of strings
+% 	if header:
+% 		... # Skip first row
+% 	series = []  # Empty list
+% 	for entry in columnEntries:
+% 		s = this.constructSeries(rows, entry, context)
+% 		series.add(s)
+% 	dataFrame = polars.DataFrame(series)
+% 	return new PolarsTable(dataFrame, context.valueTypeProvider)
+% 	\end{minted}
+% 	\caption{Pseudocode of the method \Verb{constructAndValidateTable(...)}.}
+% 	\label{lst:polarsTableInterpreter:constructTable}
+% \end{listing}
 \begin{listing}
 	\begin{minted}{python}
 def constructSeries(rows, columnEntry, context):
@@ -276,7 +281,7 @@ def constructSeries(rows, columnEntry, context):
 
 	return polars.Series(columnEntry.ColumnName, values, dataType)
 	\end{minted}
-	\caption{Pseudocode of the method \Verb{constructSeries(...)}}
+	\caption{Pseudocode of the method \Verb{constructSeries(...)}.}
 	\label{lst:polarsTableInterpreter:constructSeries}
 \end{listing}
 
@@ -289,7 +294,7 @@ One property, \Verb|TextFileInterpreter|'s \Verb|lineBreak|, is no longer suppor
 The block executor \Verb|FileToTableInterpreterExecutor| is implemented in \Verb|file-to-table-interpreter-executor.ts|.
 
 Given the close relationship between the block \Verb|FileToTableInterpreter| and \Verb|TableInterpreter| (see \autoref{subsection:FileToTableInterpreter}), it is reasonable to share code with \Verb|TableInterpreterExecutor|, in order to enhance both consistency and maintainability.
-Specifically, the method \Verb|TableInterpreterExecutor.deriveColumnDefinitionEntriesWithoutHeader(...)| and the function \Verb|toPolarsDataTypeWithLogs| were reused.
+Specifically, the method \Verb|TableInterpreterExecutor.deriveColumnDefinitionEntriesWithoutHeader(...)| and the function \Verb|toPolarsDataTypeWithLogs(...)| were reused.
 
 Polars only supports the \ac{UTF-8} encoding, with the option to either crashing when an error occurs, or incorrectly decoding the text.
 This is different from the original implementation, which supports more encodings.
@@ -316,38 +321,11 @@ The executors for the block type \Verb|TableTransformer| are implemented in \Ver
 \subsection{PolarsTableTransformer}
 \label{impl:polars_table_transformer}
 In Jayvee, the name of a transform input variable may differ from the name of corresponding column.
-Additionaly, the transform's input variables may have ValueTypes that are incompatible with the columns of the input table.
+Additionally, the transform's input variables may have \Verb|ValueType|s that are incompatible with the columns of the input table.
 
-The method \Verb|checkInputColumnsMatchTransformInputTypes(...)| addresses these issues. \\
-It verifies that the variable and column ValueTypes are compatible and links each input variable to the corresponding Polars column expression.
+These issues are addressed by the method \Verb|checkInputColumnsMatchTransformInputTypes(...)|.
+It verifies that the variable and column \Verb|ValueType|s are compatible and links each input variable to the corresponding Polars column expression.
 When applied to a \Verb|DataFrame| this \Verb|pl.col(name)| expression enables the transformation of the values in column \Verb|name| \autocite{polars:docs:expr:col}.
-% \autoref{lst:polarstabletransformer:check} contains a pseudocode description of this method.
-% \begin{listing}
-% 	\begin{minted}{python}
-% def checkInputColumnsMatchTransformTypes(inputColumnNames, inputTable, transformInputDetailsList):
-% 	indexes = range from 0 to inputColumnNames.length
-% 	variableToColumnMap = {} # Empty map
-% 	for i in indexes:
-% 		inputColumName = inputColumnNames[i]
-% 		inputColumn = inputTable.getColumn(inputColumnName)
-% 		inputDetails = transformInputDetailsList[i]
-%
-% 		if (
-% 			not inputColumn.valueType.isConvertibleTo(inputDetails.valueType)
-% 		) {
-% 			return Error
-% 		}
-% 		variableName = inputDetails.name
-% 		variableToColumnMap.set(variableName, pl.col(inputColumn.name))
-%
-% 	return variableToColumnMap
-% 	\end{minted}
-% 	\caption{}
-% 	\label{lst:polarstabletransformer:check}
-% \end{listing}
-
-% \Verb|doExecute| is described by pseudocode in \autoref{lst:polarstabletransformer:execute}.
-% The method \Verb|doExecute(...)| uses the transform definition from the Jayvee source to create an instance of the \Verb|PolarsTransformExecutor| class.
 
 The method \Verb|PolarsTransformExecutor.executeTransform(...)| returns a Polars expression, not a table column.
 This has two consequences:
@@ -459,7 +437,7 @@ end
 		return inputTable.withColumn(\nexpr.cast(pl.f64).alias('out')\n)
 		@enduml
 	\end{plantuml}
-	\caption{Sequence diagram of the method calls between \Verb{PolarsTableTransformerExecutor} and \Verb{PolarsTransformExecutor}}
+	\caption{Sequence diagram of the method calls between \Verb[breakbefore=f]{PolarsTableTransformerExecutor} and \Verb{PolarsTransformExecutor}}
 	\label{fig:uml:transform}
 \end{figure}
 
@@ -470,7 +448,7 @@ The function \Verb|jayveeExpressionToPolars(...)|, located in \Verb|evaluate-exp
 
 It utilizes an instance of the class \Verb|EvaluationContext| (\autoref{fig:uml:eval_context}) to retrieve a variable's value, or to find an operator's evaluator.
 \Verb|pl.lit| represents a value literal that can be uses as a Polars expression.
-It is useful in expressions such as \mint{typescript}{pl.lit(10).minus(pl.col("somecolumn"))}
+It is useful in expressions such as: \mint{typescript}{pl.lit(10).minus(pl.col("somecolumn"))}
 
 \begin{figure}
 	\begin{plantuml}
@@ -498,15 +476,15 @@ It is useful in expressions such as \mint{typescript}{pl.lit(10).minus(pl.col("s
 		:obtain the fitting operator
 		evaluator;
 		:evaluate the Jayvee expression
-		to a polars expression;
-		:return the polars expresion;
+		to a Polars expression;
+		:return the Polars expresion;
 		stop
 		endif
 		@enduml
 	\end{plantuml}
 	\caption{
 		Activity diagram of the function \Verb{jayveeExpressionToPolars(...)}.
-		\Verb{expr} represents the input Jayvee expression.
+		\Verb{expr} represents the input Jayvee expression %FIXME sentences maybe missing fullstop
 	}
 	\label{fig:uml:polars_evaluate_expression}
 \end{figure}
@@ -516,7 +494,7 @@ It is useful in expressions such as \mint{typescript}{pl.lit(10).minus(pl.col("s
 \label{subsubsection:impl:operator_evaluator}
 \autoref{tab:impl:expressions} contains a table linking every Jayvee operator with the Polars expression it evaluates to.
 Many Jayvee operators have an equivalent Polars expressions.
-For those that don't, we provide a list of explanations here:
+For those that do not, we provide a list of explanations here:
 \begin{description}
 	\item[xor] Use a logically equivalent term comprised of the expressions \Verb|and(...)|, \Verb|or(...)| and \Verb|not()|.
 	\item[sqrt] Use the mathematically equivalent expression \Verb|pow(1/2)|.
@@ -528,7 +506,6 @@ There are also Jayvee operators that are not supported by the new implementation
 	\item[root, pow, replace, matches] The Polars expressions for these operators expect single values and do not support columns as parameters.
 	\item[asBoolean] Polars supports converting between strings and numeric types with the expression \Verb|cast(...)|.
 	      This approach is not supported for booleans \autocite{polars:docs:expr:parsing}.
-	      %TODO maybe mention that it could be done if I had more time.
 \end{description}
 
 The sequence diagram in \autoref{fig:uml:epr:example} depicts, how the block \Verb|B| from \autoref{lst:expr:example:pipeline} would execute its transform.
@@ -569,7 +546,7 @@ block B oftype TableTransformer {
 		return inputTable.withColumn(\npl.col('a')\n.add(pl.col('b'))\n.cast(pl.f64)\n.alias('c')\n)
 		@enduml
 	\end{plantuml}
-	\caption{The method calls relevant to transforming a table.}
+	\caption{The method calls relevant to transforming a table}
 	\label{fig:uml:epr:example}
 \end{figure}
 
@@ -582,15 +559,13 @@ block B oftype TableTransformer {
 % \Verb|doExecute| retrieves and validates the blocks properties: \Verb|file|, \Verb|table| and \Verb|dropTable|, which are passed to the \Verb|executeLoad| method.
 
 The method \Verb|executeLoad(...)| provides a general implementation that works for \Verb|TsTable| and \Verb|PolarsTable|, because it uses the abstract \Verb|Table| class' methods to generate \ac{SQL} queries.
-These methods are \Verb|Table.generateDropTableStatement(...)|, \Verb|Table.generateCreateTableStatement(...)| and \Verb|Table.generateInsertValuesStatement(...)|.
+These methods are \Verb|Table.generateDropTableStatement(...)|, \Verb|Table.generateCreateTableStatement(...)| and \Verb|Table.generateInsertValuesStatement(...)|. %FIXME PDF render
 
-\Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLiteLoaderExecutor| don't override this default implementation.
+\Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLiteLoaderExecutor| do not override this default implementation.
 
 The subclass \Verb|RustSQLiteLoaderExecutor| overrides the method \Verb|executeLoad(...)|.
-Its implementation writes the table to \Verb|dataframe.arrow| (the .arrow extension is recommended by the Arrow specification \autocite{arrow:spec}), using \Verb|PolarsTable|'s \Verb|writeIpcTo| method.
+Its implementation writes the table to \Verb|dataframe.arrow| (the .arrow extension is recommended by the Arrow specification \autocite{arrow:spec}), using \Verb|PolarsTable|'s \Verb|writeIpcTo(...)| method.
 Then it calls the \Verb|loadSQLite(...)| function implemented in \Verb|sqlite-loader-lib|.
-%TODO maybee activity diagram
-
 
 
 \subsection{sqlite-loader-lib}
@@ -606,12 +581,14 @@ To compile the library, the \ac{CLI} command:
 \mint{bash}{npm run build}
 is executed.
 
-As described in \autoref{arch:sqlite:rust}, \Verb|sqlite-loader-lib| only exposes the function \Verb|loadSqlite| (see \ref{fig:uml:loadSqlite}).
+As described in \autoref{arch:sqlite:rust}, \Verb|sqlite-loader-lib| only exposes the function \Verb|loadSqlite(...)| (see \ref{fig:uml:loadSqlite}).
 Due to the experimental nature of this library, we do not implement complex error recovery.
 When an error occurs, it is used to construct an instance of the \Verb|napi::Error| struct.
 NAPI-RS can convert this instance into an Error object usable by TypeScript.
 
-Because NAPI-RS is not able to make Jayvee's \Verb|Logger| class usable in this library, log messages are printed using the Rust macro \Verb|println!(...)|, which is similar to TypeScript's \Verb|console.log(...)|.
+\autoref{arch:sqlite:lib} describes, that NAPI-RS is only able to pass builtin from TypeScript to Rust. %FIXME wording + builtin is wrong
+This also applies to the Jayvee's class \Verb|Logger|, meaning it is inaccessible from the Rust library.
+As an alternative, log messages are printed using the Rust macro \Verb|println!(...)|, which is similar to TypeScript's \Verb|console.log(...)|.
 
 \begin{figure}
 	\begin{plantuml}
@@ -624,7 +601,7 @@ Because NAPI-RS is not able to make Jayvee's \Verb|Logger| class usable in this 
 		is available on disk.
 		end note
 		:Open a connection to
-		the sqlite database;
+		the SQLite database;
 		if (The dropTable block property is true)
 		:Drop the table from
 		the database;

@@ -5,9 +5,9 @@
 
 \textcite{Ahmad2020}
 created their own memory format based on Apache Arrow to process genome data.
-They found that arrow improved the use of the available hardware, and led to fewer cache misses.
+They found that Arrow improved the use of the available hardware, and led to fewer cache misses.
 Arrow performed better than both ramDisk and Unix pipes.
-The overall execution time was 4.85 times faster with arrow.
+The overall execution time was 4.85 times faster with Arrow.
 
 % - process genome data, heavily dependent on I/O
 % - create own memory format based on Apache Arrow
@@ -54,26 +54,22 @@ Two primary approaches have been developed to address this challenge.
 The first is to save the values of each row one after another.
 This is referred to as \emph{row-oriented} or \emph{row-storage}.
 The other approach is to save the values of each column one after another.
-This is known as \emph{columnar} or \emph{column-storage}.
+This is known as \emph{columnar} or \emph{column-storage} \autocite{Floratou2019}.
 See Figure~\autoref{fig:row_v_col} for a visual comparison.
-\autocite{Floratou2019}
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.95\textwidth]{resources/columnar}
 	\end{center}
-	\caption{\textbf{Top:} An example table. \textbf{Left:} The table in row oriented memory. \textbf{Right:} The table in columnar memory \autocite{arrow:overview}.}
+	\caption{\textbf{Top:} An example table \textbf{Left:} The table in row oriented memory \textbf{Right:} The table in columnar memory \autocite{arrow:overview}}
 	\label{fig:row_v_col}
 \end{figure}
 
 The earliest instances of columnar storage formats were initially developed for use in databases, with MonetDB \autocite{Boncz2002} being a notable example.
 By 2013 these formats had become widely implemented across the industry
 \autocite{Abadi2013}.
-In approximately 2011 initial research was conducted into the potential applications of columnar storage in the context of Big Data frameworks.
-Subsequently, this research culminated the development of Apache Parquet and Apache ORC, both disk-based columnar formats.
-\autocite{Floratou2019}
+In approximately 2011 initial research was conducted into the potential applications of columnar storage in the context of Big Data frameworks, which culminated in the development of Apache Parquet and Apache ORC, both disk-based columnar formats \autocite{Floratou2019}.
 
-In 2016, The Apache Foundation initiated \emph{Apache Arrow}, which specifies a columnar storage layout \emph{in memory}.
-\autocite{Ahmad2020}
+In 2016, The Apache Foundation initiated \emph{Apache Arrow}, which specifies a columnar storage layout \emph{in memory} \autocite{Ahmad2020}.
 
 Columnar storage has advantages over row-oriented storage:
 \begin{itemize}
@@ -97,7 +93,7 @@ Columnar storage has advantages over row-oriented storage:
 
 Apache Arrow is often used synonymously with the memory format it defines.
 This format is \emph{language agnostic}, \emph{columnar} and \emph{in memory}.
-It has implementations in many languages (see \autoref{subsubsection:arrow:langs} for a list).
+It has implementations in many languages \autocite{arrow:overview} (see \autoref{subsubsection:arrow:langs} for a list).
 
 In the Arrow specification \autocite{arrow:spec}, a table is called \emph{record batch}.
 They are comprised of Arrow arrays which represent columns.
@@ -109,7 +105,7 @@ Arrow has a more granular type system than TypeScript. This allows for a more pr
 Arrow types can have parameters.
 For example instead of TypeScript's type \Verb|number|, Arrow has (un)signed integers with a bit width parameter,
 decimals with width, scale and precision as parameters, and floating point numbers with a precision parameter.
-The specification includes a physical memory layout for each type.
+The specification includes a physical memory layout for each type \autocite{arrow:spec}.
 % MAYBE  - fixed-size list - list (32-bit offset), largelist (64bit offset) instead of array
 
 Additionally, the Arrow specification defines an \ac{IPC} file format, that allows saving Arrow record batches on disk.
@@ -120,23 +116,22 @@ At the time of writing this thesis, there are 48 projects powered by Apache Arro
 	\begin{center}
 		\includegraphics[width=\textwidth]{resources/arrow_tab}
 	\end{center}
-	\caption{Key Concepts of an Arrow Table \autocite{Dremio}.}
+	\caption{Key Concepts of an Arrow Table \autocite{Dremio}}
 	\label{fig:arrow_tab}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=\textwidth]{resources/arrow_interop}
 	\end{center}
-	\caption{Illustration demonstrating Arrow enhances interoperability between processes \autocite{Ahmad2020}.}
+	\caption{Illustration demonstrating Arrow enhances interoperability between processes \autocite{Ahmad2020}}
 	\label{fig:arrow_com}
 \end{figure}
 
 
 \section{Polars}
 \label{section:polars}
-Polars is built on top of the Rust implementation of the Arrow specification.
-It incorporates convenient abstractions such as DataFrames and Series.
+\emph{Polars} is built on top of the Rust implementation of the Arrow specification.
+It incorporates convenient abstractions such as \Verb|DataFrame| and \Verb|Series|.
 Additionally, it uses NAPI-RS to provide a TypeScript \ac{API} that preserves the performance of the rust library.
-It promises "up to 50x performance".
-\autocite{polars}
+It promises "up to 50x performance" \autocite{polars}. %FIXME make it clear this citation is the whole paragraph
 

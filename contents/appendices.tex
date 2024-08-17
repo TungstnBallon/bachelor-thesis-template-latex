@@ -1,71 +1,11 @@
 \section{Tables}
 \label{appendix:example1}
-% \begin{table}[ht]
-% 	\caption{Evaluation runs plobrs-none-$10_000_000$}
-% 	\label{outdated:tab:eval:plobrs-none-10_000_000}
-% 	\begin{tabular}{|l|l|l|l|}
-% 		\hline
-% 		Run  & LiquorTableExtractor & LiquorLoader     & Total            \\
-% 		\hline
-% 		1    & 647 ms               & 33805 ms         & 34479 ms         \\
-% 		2    & 673 ms               & 55665 ms         & 56338 ms         \\
-% 		3    & 671 ms               & 42562 ms         & 43236 ms         \\
-% 		4    & 701 ms               & 42146 ms         & 42847 ms         \\
-% 		5    & 665 ms               & 51189 ms         & 51854 ms         \\
-% 		6    & 662 ms               & 33251 ms         & 33915 ms         \\
-% 		7    & 696 ms               & 50749 ms         & 51446 ms         \\
-% 		8    & 687 ms               & 33406 ms         & 34094 ms         \\
-% 		9    & 666 ms               & 38528 ms         & 39194 ms         \\
-% 		10   & 661 ms               & 43955 ms         & 44616 ms         \\
-% 		\hline
-% 		avg. & 672.9 ms             & 42525.6 ms       & 43201.9 ms       \\
-% 		std. & 16.02154799 ms       & 7607.40576281 ms & 7608.28849939 ms \\
-% 		\hline
-% 	\end{tabular}
-% \end{table}
-% \begin{table}[ht]
-% 	\caption{OUTDATED: Evaluation runs plobrs-none-$10_000_000$}
-% 	\label{tab:eval:plobrs-none-10_000_000}
-% 	\begin{tabular}{|l|l|l|l|}
-% 		\hline
-% 		Run  & LiquorTableExtractor & LiquorLoader     & Total         \\
-% 		\hline
-% 		1    & 681 ms               & 44299 ms         & 44980 ms      \\
-% 		2    & 2261 ms              & 49228 ms         & 51489 ms      \\
-% 		3    & 667 ms               & 54672 ms         & 55340 ms      \\
-% 		4    & 670 ms               & 58248 ms         & 58918 ms      \\
-% 		5    & 690 ms               & 48068 ms         & 48760 ms      \\
-% 		6    & 1552 ms              & 55566 ms         & 57119 ms      \\
-% 		7    & 1116 ms              & 53347 ms         & 54463 ms      \\
-% 		8    & 702 ms               & 51142 ms         & 51844 ms      \\
-% 		9    & 828 ms               & 48669 ms         & 49497 ms      \\
-% 		10   & 722 ms               & 47677 ms         & 48399 ms      \\
-% 		\hline
-% 		avg. & 988,9ms              & 51091,6ms        & 52080,9 ms    \\
-% 		std. & 502.03295709ms       & 4067.25964748 ms & 4129.34707793 \\
-% 		\hline
-% 	\end{tabular}
-% \end{table}
-% \begin{table}[ht]
-% 	\caption{OUTDATED: Average, Standard deviation for no transforms on 100 repetitions}
-% 	\label{outdated:tab:eval:none}
-% 	\begin{tabular}{|l|l|l|l|l|l|}
-% 		\hline
-% 		lines  & ts              & pl              & plob            & plrs            & plobrs          \\
-% 		\hline
-% 		100    & 864 ms, 24 ms  & 878 ms, 23 ms  & 853 ms, 23 ms  & 869 ms, 41 ms  & 849 ms, 29 ms  \\
-% 		1000   & 942 ms, 31 ms  & 983 ms, 35 ms  & 894 ms, 28 ms  & 925 ms, 24 ms  & 853 ms, 26 ms  \\
-% 		10000  & 1426 ms, 31 ms & 1587 ms, 33 ms & 1162 ms, 28 ms & 1312 ms, 26 ms & 883 ms, 41 ms  \\
-% 		100000 & 5935 ms, 69 ms & 7541 ms, 83 ms & 3894 ms, 45 ms & 4932 ms, 69 ms & 1222 ms, 28 ms \\
-% 		\hline
-% 	\end{tabular}
-% \end{table}
 
 \subsection{Evaluation results}
 \label{app:eval:transforms}
 
-\begin{table}[h]
-	\caption{Average execution duration, Standard deviation for no transforms}
+\begin{table}[H]
+	\caption{Average execution duration and standard deviation for a pipeline with no transforms (10 repetitions)}
 	\label{tab:eval:none}
 	\begin{center}
 		\begin{tabular}{|l|l|l|l|l|l|}
@@ -98,30 +38,30 @@
 	\end{center}
 \end{table}
 
-\begin{table}[h]
-	\caption{The duration of the block \Verb{LiquorLoader} with no transforms.}
+\begin{table}[H]
+	\caption{The average duration of the block \Verb{LiquorLoader} for a pipeline with no transforms (10 repetitions)}
 	\label{tab:cmp:sqlite}
 	\begin{center}
 		\begin{tabular}{|l|l|l|l|}
 			\hline
-			rows    & TS       & PL       & PL, TS \\
+			rows    & TS       & PL       & PL / TS \\
 			\hline
 			\hline
-			56250   & 850 ms   & 1857 ms  & 2,18   \\
-			112500  & 1892 ms  & 3677 ms  & 1,94   \\
-			225000  & 3591 ms  & 7356 ms  & 2,05   \\
-			450000  & 7341 ms  & 14549 ms & 1,98   \\
-			900000  & 14830 ms & 30934 ms & 2,09   \\
-			1300000 & 22516 ms & 46691 ms & 2,07   \\
-			1800000 & 24720 ms & 61527 ms & 2,49   \\
+			56250   & 850 ms   & 1857 ms  & 2,18    \\
+			112500  & 1892 ms  & 3677 ms  & 1,94    \\
+			225000  & 3591 ms  & 7356 ms  & 2,05    \\
+			450000  & 7341 ms  & 14549 ms & 1,98    \\
+			900000  & 14830 ms & 30934 ms & 2,09    \\
+			1300000 & 22516 ms & 46691 ms & 2,07    \\
+			1800000 & 24720 ms & 61527 ms & 2,49    \\
 			\hline
 		\end{tabular}
 	\end{center}
 \end{table}
 
 
-\begin{table}[h]
-	\caption{Average, Standard deviation for some transforms on 10 repetitions}
+\begin{table}[H]
+	\caption{Average execution duration and standard deviation for a pipeline with some transforms (10 repetitions)}
 	\label{tab:eval:some}
 	\begin{center}
 		\begin{tabular}{|l|l|l|l|l|l|}
@@ -151,8 +91,8 @@
 	\end{center}
 \end{table}
 
-\begin{table}[h]
-	\caption{Average, Standard deviation for many transforms on 10 repetitions}
+\begin{table}[H]
+	\caption{Average execution duration and standard deviation for a pipeline with some transforms (10 repetitions)}
 	\label{tab:eval:many}
 	\begin{center}
 		\begin{tabular}{|l|l|l|l|l|l|}
@@ -180,27 +120,56 @@
 \end{table}
 
 
-\begin{table}[h]
-	\caption{The result of the execution time of TS divided by PLOBRS. Columns 2-4 are partitioned based on the number of transforms}
+\begin{table}[H]
+	\caption{The result of the average execution time of TS divided by that of PLOBRS}
 	\label{tab:eval:ts_div_by_plobrs}
 	\begin{center}
 		\begin{tabular}{|l|l|l|l|}
 			\hline
-			lines   & none  & some  & many  \\
+			rows    & no transforms & some transforms & many transforms \\
 			\hline
-			56250   & 3,60  & 4,06  & 4,86  \\
-			112500  & 5,31  & 6,35  & 8,02  \\
-			225000  & 6,22  & 8,58  & 11,24 \\
-			450000  & 9,34  & 13,55 & 14,57 \\
-			900000  & 10,40 & 14,06 & 18,22 \\
-			1300000 & 11,35 & 15,22 & -     \\
-			1800000 & 11,80 & -     & -     \\
+			56250   & 3,60          & 4,06            & 4,86            \\
+			112500  & 5,31          & 6,35            & 8,02            \\
+			225000  & 6,22          & 8,58            & 11,24           \\
+			450000  & 9,34          & 13,55           & 14,57           \\
+			900000  & 10,40         & 14,06           & 18,22           \\
+			1300000 & 11,35         & 15,22           & -               \\
+			1800000 & 11,80         & -               & -               \\
 			\hline
 		\end{tabular}
 	\end{center}
 \end{table}
 
-\begin{table}[h]
+
+\begin{table}[H]
+	\caption{Jayvee interpreter crashes}
+	\label{tab:crashes}
+	\begin{center}
+		\begin{tabularx}{\textwidth}{|l|l|l|X|}
+			\hline
+			configuration & largest row count & file size    & error message                                           \\
+			\hline
+			\hline
+			TS-no         & $1 900 000$ rows  & $475$\ac{MB} & Invalid string lenght.                                  \\
+			TS-so         & $1 300 000$ rows  & $325$\ac{MB} & JavaScrip heap overflow.                                \\
+			TS-ma         & $900 000$ rows    & $225$\ac{MB} & JavaScrip heap overflow.                                \\
+			\hline
+			PL-no         & $1 800 000$ rows  & $450$\ac{MB} & JavaScrip heap overflow.                                \\
+			PL-so         & $1 800 000$ rows  & $450$\ac{MB} & JavaScrip heap overflow.                                \\
+			PL-ma         & $1 700 000$ rows  & $425$\ac{MB} & Invalid string length.                                  \\
+			\hline
+			PLOB-no       & $1 900 000$ rows  & $475$\ac{MB} & Invalid string lenght.                                  \\
+			PLOB-so       & $1 700 000$ rows  & $425$\ac{MB} & Invalid string length.                                  \\
+			PLOB-ma       & $1 700 000$ rows  & $425$\ac{MB} & Invalid string length.                                  \\
+			\hline
+			PLRS          & $2 000 000$ rows  & $500$\ac{MB} & Cannot make a string longer than 0x1fffffe8 characters. \\
+			\hline
+		\end{tabularx}
+	\end{center}
+\end{table}
+
+\subsection{Other tables}
+\begin{table}[H]
 	\caption{Jayvee operators and the Polars expressions they are transformed to.
 		a represents the first parameter, b the second, and c the third}
 	\label{tab:impl:expressions}
@@ -248,44 +217,14 @@
 	\end{center}
 \end{table}
 
-\begin{table}[h]
-	\caption{Jayvee interpreter crashes.
-		The PLOBRS backend processed $10 000 000$ rows ($2.5$\ac{GB}) without crashing.
-	}
-	\label{tab:crashes}
-	\begin{center}
-		\begin{tabularx}{\textwidth}{|l|l|l|X|}
-			\hline
-			configuration & largest row count & file size    & error message                                           \\
-			\hline
-			\hline
-			TS-no         & $1 900 000$ rows  & $475$\ac{MB} & Invalid string lenght.                                  \\
-			TS-so         & $1 300 000$ rows  & $325$\ac{MB} & JavaScrip heap overflow.                                \\
-			TS-ma         & $900 000$ rows    & $225$\ac{MB} & JavaScrip heap overflow.                                \\
-			\hline
-			PL-no         & $1 800 000$ rows  & $450$\ac{MB} & JavaScrip heap overflow.                                \\
-			PL-so         & $1 800 000$ rows  & $450$\ac{MB} & JavaScrip heap overflow.                                \\
-			PL-ma         & $1 700 000$ rows  & $425$\ac{MB} & Invalid string length.                                  \\
-			\hline
-			PLOB-no       & $1 900 000$ rows  & $475$\ac{MB} & Invalid string lenght.                                  \\
-			PLOB-so       & $1 700 000$ rows  & $425$\ac{MB} & Invalid string length.                                  \\
-			PLOB-ma       & $1 700 000$ rows  & $425$\ac{MB} & Invalid string length.                                  \\
-			\hline
-			PLRS          & $2 000 000$ rows  & $500$\ac{MB} & Cannot make a string longer than 0x1fffffe8 characters. \\
-			\hline
-			PLOBRS        & -                 & -            & -                                                       \\
-			\hline
-		\end{tabularx}
-	\end{center}
-\end{table}
-
-\begin{table}[h]
+\begin{table}[H]
 	\caption{Table of source code references}
 	\label{tab:src}
 	\begin{center}
 		\resizebox{\textwidth}{!}{\begin{tabular}{|l|l|}
 				\hline
 				file name                                 & containing folder relative to the project root                  \\
+				\hline
 				\hline
 				electric-vehicles.jv                      & example/                                                        \\
 				table.ts                                  & libs/execution/src/lib/types/io-types/                          \\
@@ -303,14 +242,15 @@
 				transform-executor.ts                     & libs/execution/src/lib/transforms/                              \\
 				evaluate-expression.ts                    & libs/language-server/src/lib/ast/expressions/                   \\
 				sqlite-loader-executor.ts                 & libs/extensions/rdbms/exec/src/lib/                             \\
+				\hline
 				lib.rs                                    & src/                                                            \\
 				\hline
 			\end{tabular}}
 	\end{center}
 \end{table}
 
-\begin{table}[h]
-	\caption{The type guard mechanism of each InternalValueRepresentation}
+\begin{table}[H]
+	\caption{The type guard mechanism of each \Verb{InternalValueRepresentation}}
 	\label{tab:internalvaluerepresentation}
 	\begin{center}
 		\begin{tabularx}{\textwidth}{|l|X|}
@@ -334,10 +274,8 @@
 	\end{center}
 \end{table}
 
-
-
 \section{SBOM}
-\begin{table}[h]
+\begin{table}[H]
 	\caption{SBOM}
 	\label{tab:sbom}
 	\begin{center}
@@ -368,7 +306,7 @@
 \section{Lists}
 \subsection{Languages with Apache Arrow libraries}
 \label{subsubsection:arrow:langs}
-C++, C\#, Go, Java, JavaScript, Julia, Rust, Swift, C, MATLAB, Python, R, Ruby \autocite{arrow:overview}
+C++, C\#, Go, Java, JavaScript, Julia, Rust, Swift, C, MATLAB, Python, R and Ruby \autocite{arrow:overview}.
 
 \subsection{Configuration files modified to successfully build the interpreter}
 \label{list:project:jsons}

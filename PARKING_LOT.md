@@ -1,14 +1,24 @@
+- Literature Review:
+    - figures 2.2 und 2.3 besser ausspielen
 - Architecture:
     - explain IOType to use it elsewhere.
+- Implementation:
+    - CLI flags
+- Conclusions:
+    - finish
 
 - TODO
-    - CONCLUSION
+    - figure 4.2 klären
     - uml diagram spacing
-    - parentheses to functions
-    - remove unused acronyms
-    - some figure captions say they are class diagrams but only include one class: should maybe be called description.
-    - ensure figures don't break the flow of reading, especially lists
-    - replace titles that are just class names with something better.
-    - the source code is available at ...
-    - all figues and listings have a fitting caption.
-    - center figs and plots and listings
+    - arch-sqlite-rust and arch-sqlite-lib are renderes as Figures even though they are subsubsections
+    - reading flow
+        - include appendix (last line)
+    - fix tODO and fIXME
+    - überschriften checken
+        - replace titles that are just class names with something better.
+
+
+
+    - fürs code abgeben `git pack`
+    - faubox zum hochladen des datensatzes
+

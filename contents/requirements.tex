@@ -11,9 +11,10 @@ We differentiate between functional and non-functional requirements \autocite{He
 	\item[FR-2] \textbf{columnar}: A columnar format has advantages outlined in \autoref{section:column_vs_row}.
 	\item[FR-3]\textbf{feature toggle}: We must be able to (de)activate the new features at runtime.
 	      This makes comparing the new features easier.
-	\item[FR-4] \textbf{compatibility}: Execute the electric vehicles example described in \Verb|electric-vehicles.jv| (\autoref{tab:src}) without errors.
+	\item[FR-4] \textbf{compatibility}: The electric vehicles example must complete without errors.
+	      This example is executed, by running the \ac{CLI} command \Verb|npm run example:vehicles-polars| inside the project directory.
 	      The \Verb|.sqlite| files produced by the different implementations must be identical.
-	\item[FR-5] \textbf{modularization}: Should it be necessary to write code in a language other than TypeScript, this code must be placed in an external library usable from typescript.
+	\item[FR-5] \textbf{modularization}: Should it be necessary to write code in a language other than TypeScript, this code must be placed in an external library usable from TypeScript.
 	\item[FR-6] \textbf{extensibility}: The functionality of the chosen data representation must be extensible.
 \end{enumerate}
 
@@ -41,6 +42,7 @@ We differentiate between functional and non-functional requirements \autocite{He
 \label{subsection:NonFunctionalRequirements}
 
 \begin{enumerate}
+	%FIXME align text in the pdf
 	\item[NFR-1] \textbf{performance}: The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
 	      We expect this to result in either a decrease in the execution time for Jayvee models, or an extension of the Jayvee interpreter's capabilities.
 	      % \item[NFR-2] \textbf{readability} The source code is readable for non-rust developers

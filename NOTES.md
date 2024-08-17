@@ -125,21 +125,29 @@ ETL: fachbegriff extract, transform, load.
 rust-welt: component oder package diagram
 
 
-fürs code abgeben `git pack`
-faubox zum hochladen des datensatzes
 
 48. publish sqlite-loader-rust and evaluation tool?
 - als branches
 59. muss latex compilen?
 - no
 60. can I try to guess why floats are different, or why the Invalid string lenght error happens
-Based on our knowledge of the interpreter, this error originiates from a nodejs limit on the maximum length of a string.
-61. is 25 mb margin of error small enough for max filesize.
+Based on our knowledge of the interpreter, this error originates from a NodeJS limit on the maximum length of a string.
+61. is 25 mb margin of error small enough for max file size.
 62. axis should always start at 0?
 generell nein, die transform diagramme schon
 63. linking between requirements and architecture vs requirements and implementation.
 
 remove unneeded plots/diagrams
 center plots
+
+HERE:
+64. persönlich abgeben? personal/uni ausweis mitbringen?
+65. make it clear the scope of a citation is the paragraph vs scentence, maybe example in 2.2?
+66. discuss citation:
+"Polars expressions are a way of describing a series of operations, that result in
+one or more columns. They facilitate automatic optimization and parallelization
+(Polars Contributors, n.d.-c)"
+67. figure captions mit fullstop? was ist bei zwei sätzen in der caption?
+
 
 
