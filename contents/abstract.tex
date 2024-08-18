@@ -1,10 +1,12 @@
-This thesis develops a new table implementation for the Jayvee interpreter.
-Jayvee is a simple language for describing data pipelines.
+\emph{Jayvee} is a simple language for describing data pipelines.
 The execution of these pipelines necessitates the handling of tabular data.
-Previously, Jayvee utilized TypeScript's data structures to represent such data.
+Previously, \emph{Jayvee} utilized \emph{TypeScript}'s data structures to represent such data.
+This thesis develops a new table implementation for the \emph{Jayvee} interpreter.
 
-We present the architectural design and implementation of a prototype table implementation.
-The prototype uses the Polars library to adhere to the Apache Arrow specification.
-Additionally, a library, written in Rust, is integrated into this architecture, to accelerate the export of tables.
+We present the architectural design and implementation of such a prototype.
+It uses the \emph{Polars} library to adhere to the \emph{Apache Arrow} specification.
+Additionally, a library, written in \emph{Rust}, is integrated into this architecture, to accelerate the export of tables.
 
-The evaluation demonstrates, that the new implementation has the potential to increase the Jayvee interpreter's maximum input size above $2.5$ Gigabyte and its processing speed by a factor of between $3.60$ and $18.22$.
+The evaluation demonstrates, that the new implementation has the potential to increase the \emph{Jayvee} interpreter's maximum input size from $475$ Megabyte above $2.5$ Gigabyte and its processing speed by a factor of between $3.60$ and $18.22$.
+
+% vim: filetype=tex

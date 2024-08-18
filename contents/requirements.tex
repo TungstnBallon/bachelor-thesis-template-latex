@@ -7,50 +7,27 @@ We differentiate between functional and non-functional requirements \autocite{He
 \label{subsection:FunctionalRequirements}
 
 \begin{enumerate}
-	\item[FR-1] \textbf{interoperability}: Provided by the standardized \emph{Apache Arrow}. %FIXME between what
-	\item[FR-2] \textbf{columnar}: A columnar format has advantages outlined in \autoref{section:column_vs_row}.
-	\item[FR-3]\textbf{feature toggle}: We must be able to (de)activate the new features at runtime.
+	\item[interoperability] The memory format is standardized.
+	\item[columnar] A columnar format has advantages outlined in \autoref{section:column_vs_row}.
+	\item[feature toggle] We must be able to (de)activate the new features at runtime.
 	      This makes comparing the new features easier.
-	\item[FR-4] \textbf{compatibility}: The electric vehicles example must complete without errors.
+	\item[compatibility]  The electric vehicles example must complete without errors.
 	      This example is executed, by running the \ac{CLI} command \Verb|npm run example:vehicles-polars| inside the project directory.
 	      The \Verb|.sqlite| files produced by the different implementations must be identical.
-	\item[FR-5] \textbf{modularization}: Should it be necessary to write code in a language other than TypeScript, this code must be placed in an external library usable from TypeScript.
-	\item[FR-6] \textbf{extensibility}: The functionality of the chosen data representation must be extensible.
+	\item[modularization] Should it be necessary to write code in a language other than \emph{TypeScript}, this code must be placed in an external library usable from \emph{TypeScript}.
+	\item[extensibility] The functionality of the chosen data representation must be extensible.
 \end{enumerate}
-
-% Tables are the central way Jayvee represent's data.
-% The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
-% Hence
-% we shall focus on how to efficiently represent tables in memory.
-% Since Jayvee's \Verb|TableTransformer| work on columns and not rows, the advantages of the columnar format outlined in
-% lend themselves well to jayvee.
-% Jayvee needs manipulate the data, so data needs to be stored in memory not on disk.
-% 1. This leads to the requirement that \emph{tables are represented with a columnar, in-memory data layout}.
-%
-% The goal of this thesis is not to create a fully mature implementation of this new format, but rather to prototype an integration and evaluate the results of this migration.
-% However to accurately evaluate the changes, the core functionality of jayvee (parse data into table, apply function to columns of that table, export table) needs to be preserved.
-% 2. \emph{Core functionality is maintained}.
-% This includes that tables can still be created in the same ways (\Verb|TableIntepreter|) and exported with the same blocks (\Verb|SQLiteLoader|) (\Verb|PostresLoader|).
-% 3. \emph{Arithmetic operations work in transforms}.
-
-% 4. Should it be necessary to write code in a language other than typescript, this code must be placed in an external library usable from typesript.
-% This ensures usability and increases maintainability by for other developers.
-
-% 5. To make evaluation easier the new implementation must be choosable with a commandline flag \emph{at runtime}.
 
 \section{Non-Functional Requirements}
 \label{subsection:NonFunctionalRequirements}
 
 \begin{enumerate}
-	%FIXME align text in the pdf
-	\item[NFR-1] \textbf{performance}: The main goal of this thesis is to \emph{optimize} Jayvee's in-memory representation.
-	      We expect this to result in either a decrease in the execution time for Jayvee models, or an extension of the Jayvee interpreter's capabilities.
-	      % \item[NFR-2] \textbf{readability} The source code is readable for non-rust developers
-	      % \item[NFR-2] \textbf{consistent logging} The new code generates log messages consistent to the existing ones.
-	\item[NFR-2] \textbf{code style}: The source code adheres to the project's code style.
+	\item[performance] The main goal of this thesis is to optimize \emph{Jayvee}'s in-memory representation.
+	      We expect this to result in either a decrease in the execution time for \emph{Jayvee} models, or an extension of the \emph{Jayvee} interpreter's capabilities.
+	\item[code style] The source code adheres to the project's code style.
 	      This is enforced by running \Verb|npm run lint|.
-	      In rust code we use the defaults from rustfmt and clippy.
-	\item[NFR-3] \textbf{maturity}: We aim to create a prototype, not a mature implementation.
+	      In rust code we use the defaults from \emph{rustfmt} and \emph{clippy}.
+	\item[maturity] We aim to create a prototype, not a mature implementation.
 \end{enumerate}
 
 

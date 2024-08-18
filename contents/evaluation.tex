@@ -1,12 +1,12 @@
 \chapter{Evaluation}
 \label{chapter:Evaluation}
 
-The Evaluation will focus on the execution time of Jayvee pipelines, and how it has changed due to the optimizations described in previous chapters.
+The Evaluation will focus on the execution time of \emph{Jayvee} pipelines, and how it has changed due to the optimizations described in previous chapters.
 
 \section{Data source}
 \label{section:data_source}
 
-Jayvee pipelines require a data input with the following requirements
+\emph{Jayvee} pipelines require a data input with the following requirements
 
 \subsection{Requirements}
 \label{subsection:data_source_requirements}
@@ -21,7 +21,7 @@ Jayvee pipelines require a data input with the following requirements
 The selected dataset is entitled "Brewery Operations and Market Analysis" \autocite{dataset}.
 The dataset does not contain real world data.
 The dataset is licensed under the \ac{ODbL}.
-All data is contained in a single \ac{CSV} file, eliminating the need for table joins, which are not supported by Jayvee.
+All data is contained in a single \ac{CSV} file, eliminating the need for table joins, which are not supported by \emph{Jayvee}.
 
 \subsubsection{Dataset biases}
 An examination of the dataset revealed no evidence of bias that would distort the results.
@@ -29,7 +29,7 @@ An examination of the dataset revealed no evidence of bias that would distort th
 \section{Parameters}
 \label{section:parameters}
 
-The evaluation requires the execution of the Jayvee interpreter with different configurations.
+To measure the performance of the new implementation, the evaluation includes the execution of the \emph{Jayvee} interpreter with different configurations.
 A configuration is characterized by the enabled optimizations, the amount of transforms in the pipeline, and the number of rows in the input \ac{CSV} file.
 
 We define the following backends:
@@ -38,15 +38,14 @@ We define the following backends:
 	      The baseline for the evaluation.
 	      The terms "TS backend" and "baseline" are used interchangeably.
 	\item[PL] Polars.
-	      Enables the Polars implementations of tables, columns, block executors and transforms.
+	      Enables the \emph{Polars} implementations of tables, columns, block executors and transforms.
 	\item[PLOB] Polars-One-Block.
 	      Enables PL, plus the \Verb|LocalFileToTableExtractor| block (see \autoref{arch:execs:localfiletotableextractor}).
 	\item[PLRS] Polars-Rusqlite.
-	      Enables PL, plus the \Verb|RustSQLiteLoaderExecutor| executor and the \Verb|sqlite-loader-lib| library (see \autoref{arch:sqlite:rust}).
+	      Enables PL, plus the \Verb|RustSQLiteLoaderExecutor| executor and the \Verb|sqlite-loader-lib| library (see \autoref{arch:sqlite:lib}).
 	\item[PLOBRS] Polars-One-Block-Rusqlite.
 	      Enables PL, plus \Verb|LocalFileToTableExtractor|, plus \Verb|RustSQLiteLoaderExecutor|.
 
-	      %FIXME this paragraph
 	      This backend is not usable for every pipeline.
 	      For example, pipelines that download files instead of reading a local one, it cannot use the block \Verb|LocalFileToTableExtractor|.
 	      However, more blocks analogous to this one could be created to be used in such cases.
@@ -62,17 +61,17 @@ We create three pipelines with the following amount of transforms:
 In the remainder of this chapter, the term "some transforms" refers to the pipeline with four transforms.
 Similarly, the term "many transforms" refers to a pipeline with eight transforms.
 
-We set six values for the amount of input rows: %FIXME: 1300000 is missing
+We set six values for the amount of input rows:
 $56250$, $112500$, $225000$, $4500000$, $900000$ and $1800000$
 
 A configuration picks one value from each category.
 
 
 \section{The evaluation tool}
-In order to automate the execution of the Jayvee interpreter with the correct configurations, a \ac{CLI} program is created, the evaluation tool (see \autoref{fig:uml:evalation-tool}).
+In order to automate the execution of the \emph{Jayvee} interpreter with the correct configurations, a \ac{CLI} program is created, the evaluation tool (see \autoref{fig:uml:evalation-tool}).
 The tool creates a list of all possible configurations and runs each of them 10 times, saving the execution duration.
 It also uses \Verb|sqldiff| \ac{CLI} program \autocite{sqldiff}, to verify that the created databases are identical.
-\textcite{so:benchmark} provides example code, showing how to time execution duration in Rust.
+\textcite{so:benchmark} provides example code, showing how to time execution duration in \emph{Rust}.
 
 \begin{figure}
 	\begin{plantuml}
@@ -82,7 +81,7 @@ It also uses \Verb|sqldiff| \ac{CLI} program \autocite{sqldiff}, to verify that 
 		while (For each optimization)
 		while (10 times)
 		:start timer;
-		:Run Jayvee interpreter with the configuration;
+		:Run \emph{Jayvee} interpreter with the configuration;
 		:stop timer and save duration;
 		endwhile
 		:Calculate average and
@@ -103,15 +102,15 @@ It also uses \Verb|sqldiff| \ac{CLI} program \autocite{sqldiff}, to verify that 
 This subsection outlines how the configuration is actually run.
 
 It involves creating a source file with the correct amount of lines,
-Selecting the correct Jayvee source file, and passing the location of the source and destination files as command line arguments.
+Selecting the correct \emph{Jayvee} source file, and passing the location of the source and destination files as command line arguments.
 
 The \Verb|head| \ac{CLI} program outputs the first lines of a file \autocite{head}.
-Given that one line in the \ac{CSV} file represents one row of data, %FIXME its all lines except sometimes the first one (it might be a header).
-executing the \ac{CLI} command
-\mint{bash}{head --lines=<NUMBER_OF_ROWS> brewery_data_all.csv > l-<NUMBER_OF_ROWS>.csv}
+Except for the header line, one line in the \ac{CSV} file represents one row of data.
+Consequently, executing the \ac{CLI} command
+\mint{bash}{head --lines=<NUMBER_OF_ROWS + 1> brewery_data_all.csv > l-<NUMBER_OF_ROWS + 1>.csv}
 generates a \ac{CSV} file with the requisite number of rows.
 
-Given that there are three distinct numbers of transform amounts, three separate Jayvee source files are created.
+Given that there are three distinct numbers of transform amounts, three separate \emph{Jayvee} source files are created.
 For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| block is required, resulting in a total of six.
 \autoref{fig:uml:pick-jv-model} outlines the process by which the evaluation tool select the correct source file.
 \begin{figure}
@@ -150,7 +149,7 @@ For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| 
 	\label{fig:uml:pick-jv-model}
 \end{figure}
 
-The path of the \ac{CSV} data source, as well as the path of the destination database, are passed to the Jayvee interpreter via runtime parameters \autocite{jvalue:jayvee:docs:runtime}.
+The path of the \ac{CSV} data source, as well as the path of the destination database, are passed to the \emph{Jayvee} interpreter via runtime parameters \autocite{jvalue:jayvee:docs:runtime}.
 
 Given that the interpreter is required to be executed via a shell command, it was determined, that shell commands would be preferred over libraries for other functionality, such as comparing \Verb|.sqlite| files, or creating the input data files.
 
@@ -176,12 +175,12 @@ def run_config(interpreter_dir, rowcount, transforms, backend):
 		duration = now() - start
 		return duration
 	\end{minted}
-	\caption{Pseudocode illustrating the manner in which the evaluation tool executes a configuration} %FIXME: is it pseudocode?
+	\caption{Pseudocode illustrating the manner in which the evaluation tool executes a configuration}
 	\label{lst:run_config}
 \end{listing}
 
 \subsection{Evaluation Pipelines}
-This subsection describes the Jayvee pipelines that get executed during the evaluation.
+This subsection describes the \emph{Jayvee} pipelines that get executed during the evaluation.
 
 In total, there are six different pipelines, each with its own file.
 The pipelines differ in two ways: how they extract the data from the data file and how many transforms are in the pipeline.
@@ -221,8 +220,8 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 		\caption{PLOB}
 		\label{fig:uml:pipelines:plob}
 	\end{subfigure}
-	\caption{The initial section of Jayvee pipelines in Jayvee files starting with TS or PLOB.
-		Presents the block's types and their associated \Verb{IOType}} %FIXME IOType might not be properly explained
+	\caption{The initial section of \emph{Jayvee} pipelines in \emph{Jayvee} files starting with TS or PLOB.
+		Presents the block's types and their associated \Verb{IOType}}
 	\label{fig:uml:pipelines:backends}
 \end{figure}
 
@@ -290,16 +289,16 @@ Consequently, the aforementioned pipelines do not contain such operations.
 
 \section{Maximum Size of the input data}
 \label{eval:max_size}
-During the evaluation process, we encountered Jayvee interpreter crashes.
+During the evaluation process, we encountered \emph{Jayvee} interpreter crashes (see \autoref{tab:crashes}).
 We observed, that reducing the size of the input file appeared to prevent these crashes.
-We subsequently narrowed down the exact limit to a range of $100 000$ lines, or $25\ac{MB}$.
+We subsequently narrowed down the exact limit to a range of $100 000$ lines, or $25$ \ac{MB}.
 This limit depends on the enabled optimizations and the amount of transforms in the pipeline.
 
 \autoref{tab:crashes} contains a table of maximum file sizes for each configuration and a snippet of the crash's error message.
 Because the biggest data input ($1 800 000$ rows) exceeds the limits for pipelines with some or many transforms, we introduce a seventh data input with $1 300 000$ rows.
 The configurations with many transforms will only process data inputs with $900 000$ rows or lower.
 
-Based on our knowledge of the interpreter, the "Invalid string length" error originates from a NodeJS limit on the maximum length of a string.
+Based on our knowledge of the interpreter, the "Invalid string length" error originates from a \emph{NodeJS} limit on the maximum length of a string.
 The observation, that the error occurs during the loading of the table into the SQLite database, suggests, that the string limit may be exceeded during the generation of the \ac{SQL} queries.
 
 The error message "JavaScript heap overflow", which also occurs is the \Verb|SQLiteLoader| block, indicates that the heap can not contain the data and the \ac{SQL} queries.
@@ -358,12 +357,12 @@ The PLOBRS backend processed $10 000 000$ rows ($2.5$ \ac{GB}) without crashing.
 	\end{center}
 \end{figure}
 
-Considering these results, we conclude, that enabling optimizations increases the amount of data, that the Jayvee interpreter is able to process.
+Considering these results, we conclude, that enabling optimizations increases the amount of data, that the \emph{Jayvee} interpreter is able to process.
 
 
 \section{Execution Duration}
 \label{eval:numbers}
-In this section will compare the execution duration of the configurations defined in \autoref{section:parameters}.
+In this section, we will compare the execution duration of the configurations defined in \autoref{section:parameters}.
 We group the configurations based on the number of transforms in the executed pipeline.
 
 \autoref{fig:plot_no_transforms}, \autoref{fig:plot_so_transforms}, \autoref{fig:plot_ma_transforms}  illustrate the average execution time for each backend.
@@ -375,20 +374,20 @@ The precise numbers can be found in \autoref{app:eval:transforms}.
 	      It was observed, that the duration of the block \Verb|LiquorLoader| approximately doubled when the backend PL was enabled.
 	      We determined this to be the cause of the worse performance.
 
-	      We observed, that with no transforms, PL was $1,33$ times slower than the baseline TS.
+	      We observed, that with no transforms, PL was $1.33$ times slower than the baseline TS.
 	      With some transforms, this factor decreased to $1.09$.
 	      With many transforms PL was $1.07$ times faster than the baseline TS.
-	      This trend suggests, that the Polars implementation of table transforms is superior to the original TypeScript one.
+	      This trend suggests, that the \emph{Polars} implementation of table transforms is superior to the original \emph{TypeScript} one.
 
 	\item[PLOB] The PLOB backend performs better than the baseline on all tested pipelines and inputs.
 	      This indicates, that the block type \Verb|LocalFileToTableExtractor| (\autoref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing block types.
 
 	\item[PLRS] The PLRS backend also performs better than the baseline on all tested pipelines and inputs.
 	      This is compelling evidence, that the combination of the executor \Verb|RustSQLiteLoaderExecutor| and the library \Verb|sqlite-loader-lib| is superior to the original implementation.
-	      PLRS is also faster than PL, $1,64$ times on average. %FIXME remove
+	      Furthermore, PLRS outperforms than PL in all tested situations.
+	      This means, that the external library is more effective than the approach described in \autoref{impl:execs:sqloader}.
 
 	\item[PLOBRS] The PLOBRS backend combines the optimizations from the PLOB and PLRS backends, thereby achieving the highest processing speed.
-	      % Furthermore, the mean slope of the TS backend is $12$ times larger than that of the PLOBRS backend. %FIXME remove
 
 	      \autoref{fig:plot:factor} shows the factor, by which PLOBRS is faster than the baseline.
 	      The three curves are monotonously rising, which evidences the assertion, that as the number of rows increases, the PLOBRS backend's processing speed compared to TS increases.
@@ -728,12 +727,12 @@ The PL backend was selected, because it includes the least amount of changes com
 
 A comparison of the resulting tables revealed a total of $838$ differing values, indicating that one such value occurs approximately every $1074$ rows.
 Additionally, it was observed, that the differing values were confined to columns generated by transforms.
-The value emitted by the Polars backend was found to deviate from the value emitted by the TypeScript backend by an average of $8.53{\times}10^{-9}$.
-This led to the conclusion that there are discrepancies in the floating point operations implemented by TypeScript and Polars.
+The value emitted by the \emph{Polars} backend was found to deviate from the value emitted by the \emph{TypeScript} backend by an average of $8.53{\times}10^{-9}$.
+This led to the conclusion that there are discrepancies in the floating point operations implemented by \emph{TypeScript} and \emph{Polars}.
 However, the underlying cause and potential solution to this discrepancy remain uncertain.
 
 \subsection{Rows including \Verb{NULL}}
-The original TypeScript implementation either discards rows containing \Verb|NULL|, or replaces them with an empty string.
+The original \emph{TypeScript} implementation either discards rows containing \Verb|NULL|, or replaces them with an empty string.
 This is inconsistent with the new implementation, which allows for \Verb|NULL| values in tables.
 While this issue has not been resolved due to the time constraints of this thesis, but we are optimistic that it can be addressed in the future.
 
@@ -745,31 +744,31 @@ In order to evaluate the success of this thesis, it is necessary to revisit the 
 
 \subsection{Functional requirements}
 \begin{enumerate}
-	\item[FR-1] \textbf{interoperability} The Apache Arrow \ac{IPC} format is used by \Verb|RustSQLiteLoaderExecutor| and \Verb|sqlite-loader-lib| (see \autoref{arch:sqlite:rust}). %FIXME ref is broken
-	\item[FR-2] \textbf{columnar} The class \Verb|PolarsTable| uses the Polars library, which implements the Apache Arrow specification, a columnar format (see \autoref{subsection:arch:polarstable}).
-	\item[FR-3] \textbf{feature toggle} The implementation can be chosen with the interpreter's \ac{CLI} flags \Verb|--use-polars| and \Verb|--use-rusqlite|. %FIXME maybe link something here too
-	\item[FR-4] \textbf{compatibility} The electric vehicles example completes without errors.
+	\item[interoperability] The standardized \emph{Apache Arrow} \ac{IPC} format is used by \Verb|RustSQLiteLoaderExecutor| and \Verb|sqlite-loader-lib| (see \autoref{arch:sqlite:lib}).
+	\item[columnar] The class \Verb|PolarsTable| uses the \emph{Polars} library, which implements the \emph{Apache Arrow} specification, a columnar format (see \autoref{subsection:arch:polarstable}).
+	\item[feature toggle] The implementation can be chosen with the interpreter's \ac{CLI} flags \Verb|--use-polars| and \Verb|--use-rusqlite|.
+	\item[compatibility] The electric vehicles example completes without errors.
 	      However, discrepancies still exist:
 	      \begin{itemize}
 		      \item Not all operators are supported by the new implementation (see \autoref{tab:impl:expressions}).
-		      \item It is not possible to convert all Jayvee \Verb|ValueType|s to Polars \Verb|DataType|s, nor vice versa (see \autoref{subsection:TypeConversion}).
+		      \item It is not possible to convert all \emph{Jayvee} \Verb|ValueType|s to \emph{Polars} \Verb|DataType|s, nor vice versa (see \autoref{subsection:TypeConversion}).
 		      \item The tables produced by the new implementations are not consistent with the old implementation (see \autoref{eval:diffs}).
 	      \end{itemize}
 	      Consequently, this requirement remains unfulfilled.
-	\item[FR-5] \textbf{modularization} The Rust library \Verb|sqlite-loader-lib| is usable from TypeScript through NAPI-RS (see \autoref{arch:sqlite:lib}). %FIXME ref is broken
-	\item[FR-6] \textbf{extensibility} \Verb|RustSQLiteLoaderExecutor|, using \Verb|sqlite-loader-lib|, exports a \Verb|DataFrame| into an SQLite database.
-	      This functionality is not yet implemented in Polars (see \autoref{arch:sqlite:rust}).
+	\item[modularization] The \emph{Rust} library \Verb|sqlite-loader-lib| is usable from \emph{TypeScript} through \emph{NAPI-RS} (see \autoref{arch:sqlite:lib}).
+	\item[extensibility] \Verb|RustSQLiteLoaderExecutor|, using \Verb|sqlite-loader-lib|, exports a \Verb|DataFrame| into an SQLite database.
+	      This functionality is not yet implemented in \emph{Polars} (see \autoref{arch:sqlite:lib}).
 \end{enumerate}
 
 It is our contention, that all functional requirements, except for compatibility, have been met.
 
 \subsection{Non-functional requirements}
 \begin{enumerate}
-	\item[NFR-1] \textbf{performance} \autoref{eval:numbers} demonstrated that the optimizations afforded by the new implementation enhance processing speeds,
+	\item[performance] \autoref{eval:numbers} demonstrated that the optimizations afforded by the new implementation enhance processing speeds,
 	      \autoref{eval:max_size}  illustrated that the new implementation is capable of accommodating greater input data without crashing.
-	\item[NFR-2] \textbf{code style} \Verb|npm run lint| only throws errors for files out of the scope of this thesis.
-	      Rust's linter \emph{clippy} and formatter \emph{rustfmt} do not report any issues.
-	\item[NFR-3] \textbf{maturity} This thesis implemented a prototype.
+	\item[code style] \Verb|npm run lint| only throws errors for files out of the scope of this thesis.
+	      \emph{Rust}'s linter \emph{clippy} and formatter \emph{rustfmt} do not report any issues.
+	\item[maturity] This thesis implemented a prototype.
 \end{enumerate}
 
 It is our contention, that all non-functional requirements have been met.

@@ -1,8 +1,8 @@
 \chapter{Architecture}
 \label{chapter:Architecture}
 
-The objective of this thesis is to optimize Jayvee's internal data representation.
-This necessitates modifying the Jayvee interpreter, the program, that parses Jayvee source files and executes the defined pipelines.
+The objective of this thesis is to optimize \emph{Jayvee}'s internal data representation.
+This necessitates modifying the \emph{Jayvee} interpreter, the program, that parses \emph{Jayvee} source files and executes the defined pipelines.
 
 \section{Interpreter Overview}
 \label{section:prev}
@@ -29,8 +29,8 @@ This necessitates modifying the Jayvee interpreter, the program, that parses Jay
 % 	\label{fig:}
 % \end{figure}
 
-This section provides an overview of how the interpreter executes a Jayvee pipeline and the involved classes, illustrated by \autoref{fig:uml:overview}.
-How the interpreter parses a Jayvee source file is not relevant for the purpose of this thesis.
+This section provides an overview of how the interpreter executes a \emph{Jayvee} pipeline and the involved classes, illustrated by \autoref{fig:uml:overview}.
+How the interpreter parses a \emph{Jayvee} source file is not relevant for the purpose of this thesis.
 
 Once the parsing process is complete, the interpreter obtains a series of pipeline definitions, which consist of block definitions.
 Block definitions include a \emph{block type}.
@@ -38,10 +38,10 @@ The interpreter uses this block type to find an executor for the block, which is
 The interpreter then executes these executors in the order specified in the pipeline definition.
 The output of the preceding block executor is always the input for the subsequent one.
 
-Inputs and outputs are instances of classes that implement the interface \Verb[breakanywhere]|IOTypeImplementation|.
-This includes the \Verb|Table| class, which will be used to integrate Apache Arrow into the Jayvee interpreter.
+Inputs and outputs are instances of classes that implement the interface \Verb[breakbefore=TIt]|IOTypeImplementation|.
+This includes the \Verb|Table| class, which will be used to integrate \emph{Apache Arrow} into the \emph{Jayvee} interpreter.
 
-One of Jayvee's core features is the transformation of tables with the \Verb|TableTransformer| block type.
+One of \emph{Jayvee}'s core features is the transformation of tables with the \Verb|TableTransformer| block type.
 Consequently, we will devote particular attention to this functionality.
 The executor for blocks of type \Verb|TableTransformer| is \Verb|TableTransformerExecutor|.
 It creates and executes the \Verb|TransformExecutor|, which evaluates the transform's expression for every row of the table and returns the resulting column.
@@ -82,53 +82,14 @@ The function \Verb|evaluateExpression(...)| finds the correct evaluator with the
 		OperatorEvaluatorRegistry - OperatorEvaluator: maps ""operator"" to an implementation of >
 		@enduml
 	\end{plantuml}
-	\caption{The general structure of the Jayvee interpreter. Many subclasses and implementations have been omitted for readability}
+	\caption{The general structure of the \emph{Jayvee} interpreter. Many subclasses and implementations have been omitted for readability}
 	\label{fig:uml:overview}
 \end{figure}
 
 
-% \begin{figure}
-% 	\begin{plantuml}
-% 		@startuml
-% 		hide empty members
-%
-% 		interface PipelineDefinition
-% 		interface BlockDefinition
-%
-% 		interface BlockExecutor<I extends IOType, O extends IOType> {
-% 				+execute(input: IOTypeImplementation<I\>, context: ExecutionContext): Result<IOTypeImplementation<O>>
-% 			}
-%
-% 		interface BlockExecutorClass {}
-%
-% 		PipelineDefinition "1" *-- "many" BlockDefinition
-% 		BlockDefinition "1" --> "1" BlockExecutor: interpreter finds fitting implementation %FIXME: fitting
-%
-% 		interface IOTypeImplementation<T extends IOType>
-% 		IOTypeImplementation - BlockExecutor: input
-% 		IOTypeImplementation - BlockExecutor: output
-%
-% 		class Table
-% 		IOTypeImplementation <|.. Table : IOTypeImplementation<IOType.TABLE>
-%
-% 		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType> implements BlockExecutor {
-% 		+ {abstract} doExecute(input: IOTypeImplementation<I\>, context: ExecutionContext): Result<IOTypeImplementation<O\>>
-% 		}
-%
-% 		class TableTransformerExecutor {
-% 				+doExecute(input: Table, context: ExecutionContext): Result<Table>
-% 			}
-% 		AbstractBlockExecutor <|-- TableTransformerExecutor: AbstractBlockExecutor<IOType.TABLE, IOType.TABLE>
-% 		BlockExecutorClass <|-- TableTransformerExecutor
-% 		@enduml
-% 	\end{plantuml}
-% 	\caption{How \Verb|Table| fits into the interpreter} %FIXME
-% 	\label{fig:prev_sit}
-% \end{figure}
-
 \section{General Idea}
 \label{section:General Idea}
-We add an alternative table implementation, based on the Apache Arrow framework (\autoref{section:arrow}), to the interpreter.
+We add an alternative table implementation, based on the \emph{Apache Arrow} framework (\autoref{section:arrow}), to the interpreter.
 This means, the interpreter will contain two table implementations at the same time.
 \textcite{Dooley2024} recommend the strategy pattern for this situation, because it will ensure that both implementations share a common interface and, that the different implementations can be chosen dynamically.
 
@@ -141,17 +102,15 @@ But, because the original implementation needs to be preserved here too, the str
 		start
 		:start interpreter;
 		:parse model;
-		if (parseOnly) then (yes)
-		else (no)
-		while (more pipeline)
-		partition run pipelines {
+		while (for each pipeline)
+		partition run pipeline {
 				:sort blocks into execution order;
-				while (more blocks)
+				while (for each block)
 				partition run block {
-						partition get block exectutor {
+						partition get block executor {
 								if (block has multiple executors) then (yes)
-								if (usePolars) then (true)
-								:pick polars executor;
+								if (--use-polars) then (true)
+								:pick Polars executor;
 								else (false)
 								:pick TypeScript executor;
 								endif
@@ -159,18 +118,17 @@ But, because the original implementation needs to be preserved here too, the str
 								:pick general executor;
 								endif
 							}
-						:call exectutor;
+						:call executor;
 						:save output as input for the next block;
 					}
 				endwhile
 			}
 		endwhile
-		endif
 		stop
 		@enduml
 	\end{plantuml}
-	\caption{An activity diagram overview of the interpreter.} %TODO klären
-	\label{fig:interpreter_activity}
+	\caption{The activity diagram overview of the interpreter}
+	\label{fig:interpreter_activity} %TODO maybe split up
 \end{figure}
 
 
@@ -181,39 +139,37 @@ In this section, we will discuss possible implementations of the arrow specifica
 
 \subsubsection{Implementation from scratch}
 \label{subsubsection:direct_implementation}
-The most direct approach would be a new implementation of the Arrow specification.
+The most direct approach would be a new implementation of the \emph{Arrow} specification.
 This would afford the advantage of having full control over the implementation.
 However, it is not guaranteed, that a sufficient amount can be implemented within the timeframe of the thesis.
 Furthermore, this implementation may not perform as well as an existing, more mature implementation, which may also be more correct.
 
-\subsubsection{Apache Arrow in TypeScript}
+\subsubsection{\emph{Apache Arrow} in \emph{TypeScript}}
 \label{subsubsection:arrow_in_js}
-There is an Arrow library written in TypeScript \autocite{arrow:overview}, which is the language of the Jayvee interpreter.
-This implementation is comparable to those in other languages regarding supported data types, but it lags behind with support for other Apache frameworks \autocite{arrow:status}, which takes away one of Arrow's strengths.
+There is an \emph{Arrow} library written in \emph{TypeScript} \autocite{arrow:overview}, which is the language of the \emph{Jayvee} interpreter.
+This implementation is comparable to those in other languages regarding supported data types, but it lags behind with support for other Apache frameworks \autocite{arrow:status}, which takes away one of \emph{Arrow}'s strengths.
 
-\subsubsection{Polars}
-\label{subsection:polars}
-As described in \autoref{section:polars}, Polars is a high level library built on top of Apache Arrow, which also offers useful abstractions such as \Verb|DataFrames|, that hide the Arrow data types.
-These abstractions make it easier for developers unfamiliar with Arrow to contribute to Jayvee.
-Polars is written in Rust, but offers a TypeScript \ac{API}, thereby enabling access to the speed of Rust, %FIXME: citation
-while still remaining accessible to TypeScript developers.
-For these reasons, we choose to build the new table implementation on top of Polars.
+\subsubsection{\emph{Polars}}
+As described in \autoref{section:polars}, \emph{Polars} is a high level library built on top of \emph{Apache Arrow}, which also offers useful abstractions such as \Verb|DataFrames|, that hide the \emph{Arrow} data types.
+These abstractions make it easier for developers unfamiliar with \emph{Arrow} to contribute to \emph{Jayvee}.
+\emph{Polars} is written in \emph{Rust}, but offers a \emph{TypeScript} \ac{API}, which enables the \emph{Jayvee} interpreter to use \emph{Polars}.
+For these reasons, we choose to build the new table implementation on top of \emph{Polars}.
 
 
 
 \section{Type conversion}
 \label{section:type_conversion}
-Jayvee has a concept called \Verb|ValueType|, that represent Jayvee types, e.g. text, boolean or decimal. %FIXME citation
-They are useful, because Jayvee types do not map directly to TypeScript types.
-For example, when a value inside a table has the TypeScript type \Verb|number|, a \Verb|ValueType| denotes whether the value is a Jayvee \Verb|integer| or a Jayvee \Verb|decimal|.
+\emph{Jayvee} types, e.g. text, boolean or decimal \autocite{jvalue:jayvee:docs:core_concepts}, are represented by the class \Verb|ValueType|,
+They are useful, because \emph{Jayvee} types do not map directly to \emph{TypeScript} types.
+For example, when a value inside a table has the \emph{TypeScript} type \Verb|number|, an object of the class \Verb|ValueType| denotes whether the value is a \emph{Jayvee} \Verb|integer| or a \emph{Jayvee} \Verb|decimal|.
 
-Polars has a similar system, except it's called Verb|DataType|.
+\emph{Polars}' types are represented by the class \Verb|DataType|.
 \Verb|DataType|s are not compatible with \Verb|ValueType|s, which leaves us with two possible approaches.
 \begin{enumerate}
 	\item \emph{Replace} \Verb|ValueType|s with \Verb|DataType|s.
-	      We decided against this approach, because it enforces the Polars implementation at compile time, which breaks the feature toggle requirement.
+	      We decided against this approach, because it enforces the \emph{Polars} implementation at compile time, which breaks the feature toggle requirement.
 	\item \emph{Convert} between \Verb|ValueType|s and \Verb|DataType|s when needed.
-	      The TypeScript implementation can ignore the conversion and keep using \Verb|ValueType|s as before.
+	      The \emph{TypeScript} implementation can ignore the conversion and keep using \Verb|ValueType|s as before.
 	      Because of the \emph{feature toggle} requirement, we choose this approach.
 \end{enumerate}
 
@@ -221,47 +177,77 @@ Polars has a similar system, except it's called Verb|DataType|.
 
 For details on how this conversion mechanism is implemented, see \autoref{subsection:TypeConversion}.
 
-% Jayvee also defines a union type \Verb|InternalValueRepresentation| which aggregates %FIXME: aggregate
-% all TypeScript types allowed in jayvee.
-%
-% This includes \Verb|string|, \Verb|number| and \Verb|boolean|.
-%
-% \subsection{Wrong Approach}
-% At first we thought that polars' DataTypes were similar to \Verb|InternalValueRepresentation| and tried to add them to the union type.
-% However pl.String does not contain an actual string it's just a symbol for the string type
-%
-% This happened because we did not understand the Difference between ValueTypes and InternalValueRepresentation
-
-
-\section{Creating a table implementation based on Polars}
+\section{Creating a table implementation based on \emph{Polars}}
 \label{section:new_table}
 
 The usual application of the strategy pattern would create an interface \autocite{Dooley2024} that both the old and the new table classes implement.
 Instead, we utilize an abstract class, to allow for code-sharing between the table subclasses.
 We can still define functionality for both subclasses using \emph{abstract methods}.
 
-Jayvee already has a \Verb|Table| class that implements the \Verb|IOTypeImplementation<IOType.TABLE>| interface.
-We move all the functionality from \Verb{Table} to \Verb{TsTable} and create a new \emph{abstract} class \Verb|Table|.
-%TODO before / after klassendiagram
+\emph{Jayvee} already contains a class \Verb|Table| that implements the interface \Verb|IOTypeImplementation<IOType.TABLE>|.
+We move all the functionality from \Verb{Table} to the class \Verb{TsTable} and create a new abstract class \Verb|Table|.
+
+\autoref{fig:current_sit} visualizes the table architecture described in the following subsections.
+\begin{figure}[H]
+	\begin{plantuml}
+		@startuml
+		hide members
+		interface IOTypeImplementation<T extends IOType = IOType> {
+				+ioType: T
+			}
+		abstract class Table {
+				+ioType: IOType.TABLE
+			}
+		IOTypeImplementation <|.. Table : IOTypeImplementation<IOType.TABLE>
+		abstract class TableColumn<T> {
+			}
+		class PolarsTable extends Table {
+				PolarsTable(df, valueTypeProvider)
+				-df: polars.DataFrame
+				-valueTypeProvider: ValueTypeProvider
+			}
+		class TsTable extends Table {
+				TsTable(_columns, number_of_rows)
+				-_columns: Map<string, TsTableColumn>
+				-number_of_rows: number
+			}
+		class PolarsTableColumn<T> extends TableColumn {
+				PolarsTableColumn(_series, _valueType)
+				-_series: polars.Series
+				-_valueType: ValueType<T>
+			}
+		class TsTableColumn<T> extends TableColumn {
+				-_name: string
+				-_valueType: ValueType<T>
+				-_values: T[]
+			}
+		TsTable "1" *-- "many" TsTableColumn
+		PolarsTable "1" *-- "1" polars.DataFrame: df
+		PolarsTableColumn "1" *-- "1" polars.Series: series
+		@enduml
+	\end{plantuml}
+	\caption{Overview of the classes relevant for the table implementation} %TODO at the beginnning
+	\label{fig:current_sit}
+\end{figure}
 
 \subsection{abstract Table}
-This class implements the \Verb|IOTypeImplementation<IOType.TABLE>| interface to be allowed as an input or output for blocks.
+This class implements the interface \Verb|IOTypeImplementation<IOType.TABLE>| to be allowed as an input or output for blocks.
 Its methods are based on those of the original class \Verb|Table|.
 See \autoref{fig:uml:table} for a class diagram.
 
 \subsubsection{Differences between the old class Table and the new abstract class Table}
-\Verb|getRow(...)|, \Verb|addRow(...)|, \Verb|dropRow(...)|, \Verb|dropRows(...)| and \Verb|addColumn(...)| are not part of the abstract table.
-Operations, that work with rows, will not benefit from the columnar data representation.
+The methods \Verb|getRow(...)|, \Verb|addRow(...)|, \Verb|dropRow(...)| and \Verb|dropRows(...)| are not part of the abstract table.
+These methods work with rows, so their usage would make the columnar data representation obsolete.
 They still exist in the \Verb|TsTable| class to satisfy the \emph{compatibility} requirement.
 
 In order to meet the requirement \emph{feature toggle}, it is necessary to distinguish the concrete table implementation.
-To this end, we have implemented the type guards \Verb|isPolars()| and \Verb|isTypescript()|.
+Therefore, we have implemented the type guards \Verb|isPolars()| and \Verb|isTypescript()|.
 
 Given the difficulties in executing operations with side effects in parallel \autocite{Gordon2012}, it is preferable to clone tables rather than mutate them.
 To satisfy the compatibility requirement, a new method, \Verb|withColumn(...)| is created to implement this behavior.
 The method \Verb|TsTable.addColumn(...)| preserves the old behavior.
 
-Because of the fact, that the Polars and TypeScript implementations of the method \Verb|generateDropTableStatement(...)| are identical, we implement it as a non-abstract method in \Verb|Table|.
+Because of the fact, that the \emph{Polars} and \emph{TypeScript} implementations of the method \Verb|generateDropTableStatement(...)| are identical, we implement it as a non-abstract method in \Verb|Table|.
 
 \begin{figure}
 	\begin{plantuml}
@@ -288,20 +274,20 @@ Because of the fact, that the Polars and TypeScript implementations of the metho
 
 \subsection{PolarsTable}
 \label{subsection:arch:polarstable}
-Polars' \Verb|DataFrame| already has table functionality, such as the ability to add, remove and transform columns.
+\emph{Polars}' \Verb|DataFrame| already has table functionality, such as the ability to add, remove and transform columns.
 However, \Verb|DataFrame|'s methods aren't the same as those required by \Verb|Table|.
-To solve this, we create a wrapper class \Verb|PolarsTable|, that extends \Verb|Table| and thereby implements \Verb|IOTypeImplementation<IOType.TABLE>|, allowing \Verb|PolarsTable| to be used as an input or output for block executors.
+To solve this, we create a wrapper class \Verb|PolarsTable|, that extends \Verb|Table| and thereby implements \Verb[breakbefore=T,breakafter=<]|IOTypeImplementation<IOType.TABLE>|, allowing \Verb|PolarsTable| to be used as an input or output for block executors.
 \Verb|PolarsTable| extends \Verb|Table|'s abstract methods by calling \Verb|DataFrames| methods, which is a characteristic of the \emph{adapter pattern} \autocite{Dooley2024}.
 In the terminology of the adapter pattern, \Verb|Table| is the target, \Verb|PolarsTable| the adapter and \Verb|DataFrame| the adaptee.
 
 It is notable, that when \Verb|Table| is parameter or return type in an abstract method in \Verb|Table|, the overriding method in \Verb|PolarsTable| replaced that with \Verb|PolarsTable|.
 For example, \mint{typescript}{abstract clone(): Table} becomes \mint{typescript}{override clone(): PolarsTable}
 
-In addition to the abstract methods from \Verb|Table|, \Verb|PolarsTable| also implements methods that take advantage of Polars' features unavailable to the TypeScript implementation.
+In addition to the abstract methods from \Verb|Table|, \Verb|PolarsTable| also implements methods that take advantage of \emph{Polars}' features unavailable to the \emph{TypeScript} implementation.
 
-The method \Verb|withColumn(...)| is overloaded with a second signature that can handle Polars expressions.
-Polars expressions are a way to describe a series of operations, that result in one or more columns, with automatic optimization and parallelization \autocite{polars:docs:expr}.
-\autoref{lst:pl_expr_example} contains an example of how Polars expression can be chained.
+The method \Verb|withColumn(...)| is overloaded with a second signature that can handle \emph{Polars} expressions.
+\emph{Polars} expressions are a way to describe a series of operations, that result in one or more columns, with automatic optimization and parallelization \autocite{polars:docs:expr}.
+\autoref{lst:pl_expr_example} contains an example of how \emph{Polars} expression can be chained.
 \begin{listing}[h]
 	\begin{center}
 		\begin{minted}{typescript}
@@ -330,24 +316,14 @@ const newDataFrame = dataFrame.withColumn(renamed)
 	\label{lst:pl_expr_example}
 \end{listing}
 
-The methods \Verb|writeIpc(...)| and \Verb|writeIpcTo(...)| convert the table to the Arrow \ac{IPC} format, writing either into a buffer or a file.
+The methods \Verb|writeIpc(...)| and \Verb|writeIpcTo(...)| convert the table to the \emph{Arrow} \ac{IPC} format, writing either into a buffer or a file.
 
-One of the negative consequences is that adding a column into a \Verb|DataFrame| object is, that the column's \Verb|ValueType| is lost, because the \Verb|DataFrame| uses Polars' \Verb|DataType|s.
+One of the challenges is, that adding a column into a \Verb|DataFrame| object loses that column's \Verb|ValueType| because the \Verb|DataFrame| uses \emph{Polars}' \Verb|DataType|s.
 This is problematic, because the class \Verb|TableColumn| expects a \Verb|ValueType| for its constructor.
 
-The solution is to convert the Polars \Verb|DataType| of a column to a \Verb|ValueType| using the conversion mechanism in \autoref{subsection:TypeConversion}.
+The solution is to convert the \emph{Polars} \Verb|DataType| object into a \Verb|ValueType| object using the conversion mechanism in \autoref{subsection:TypeConversion}.
 This conversion requires a \Verb|ValueTypeProvider| object, which is saved as one of \Verb|PolarsTable|'s properties.
 Refer to \autoref{fig:uml:polarstable} for the class diagram.
-
-%FIXME dieser absatz muss aufgebrochend werden
-Polars expressions are a way of describing a series of operations, that result in one or more columns.
-They facilitate automatic optimization and parallelization \autocite{polars:docs:expr}.
-The approach to executing transforms no longer is to compute all the values of the new column, but to create a Polars expression, and return this expression to \Verb|PolarsTableTransformerExecutor|.
-As a consequence, we add the new function \Verb|jayveeExpressionToPolars(...)|.
-This function transforms a Jayvee expression into a Polars Expression.
-\Verb|PolarsTransformExecutor.executeTransform(...)| returns this Polars expression to \Verb|PolarsTableTransformerExecutor|.
-can apply the expression returned by \Verb|PolarsTransformExecutor.executeTransform(...)| to its input table and compute the new column.
-
 
 \begin{figure}
 	\begin{plantuml}
@@ -379,14 +355,17 @@ can apply the expression returned by \Verb|PolarsTransformExecutor.executeTransf
 	\label{fig:uml:polarstable}
 \end{figure}
 
-\subsection{Implementing Columns}
+\subsection{The new columns}
 Analogous to the class \Verb|Table|, we create an abstract class \Verb|TableColumn| that has two subclasses, \Verb|TsTableColumn| and \Verb|PolarsTableColumn|
 
 \subsubsection{\Verb{abstract TableColumn}}
 Compared to the old class \Verb|TableColumn| (\autoref{fig:uml:old_tablecolumn}), the new abstract class no longer defines how the values of the column are saved.
-It used to be a TypeScript array, but now this decision is left to the subclasses of \Verb|TableColumn|.
-We utilize a generic type parameter, to remain close to the original implementation and to be more specific on the return type of \Verb|valueType()|.
+It used to be a \emph{TypeScript} array, but now this decision is left to the subclasses of \Verb|TableColumn|.
+
+We utilize a generic type parameter, to remain close to the original implementation and to be more specific on the return type of the method \Verb|valueType()|.
+
 The type guards \Verb|isPolars()| and \Verb|isTypescript()| were added.
+
 \autoref{fig:uml:tablecolumn} contains a diagram of this class.
 
 \begin{figure}
@@ -421,9 +400,7 @@ The type guards \Verb|isPolars()| and \Verb|isTypescript()| were added.
 \end{figure}
 
 \subsubsection{PolarsTableColumn}
-\label{subsubsection:polarstablecolumn}
-\Verb|DataFrame|'s method \Verb|getColumn(...)| returns an instance of the Polars class \Verb|Series|, which means that \Verb[breakbefore=o]|Series| %FIXME bad rendering in PDF
-represents a column in Polars.
+The method \Verb|DataFrame.getColumn(...)| returns an instance of the \emph{Polars} class \Verb|Series|, which means that \Verb[breakbefore=o]|Series| represents a column in \emph{Polars}.
 To make \Verb[breakbefore=o]|Series| useful, we create a class adapter with the target \Verb|TableColumn| and the adaptee \Verb|Series|.
 
 One challenge here is that \Verb|Series| does not have a generic type parameter.
@@ -431,9 +408,9 @@ To overcome it, one option is to create the class \Verb|PolarsTableColumn<T exte
 Alternatively, we create \Verb|PolarsTableColumn| without a type parameter too and extend the general \Verb|TableColumn<InternalValueRepresentation>|. \\
 The former approach is preferable, because it allows us to preserve the generic type parameter of the \Verb|_valueType: ValueType<T>| property (see \autoref{fig:uml:polarstablecolumn}).
 
-It should be noted, that \Verb|T| does not denote the actual type of the values stored in the column, as would be the case for \Verb|Array<T>|.
+It should be noted, that \Verb|T| does not indicate the actual type of the values stored in the column, as would be the case for \Verb|Array<T>|.
 This detail is left to \Verb|Series|.
-\Verb|T| specifies what type the column's values would be if it were implemented in TypeScript.
+\Verb|T| specifies what type the column's values would be if it were implemented in \emph{TypeScript}.
 This is used to narrow down the type of \Verb|_valueType|.
 
 \begin{figure}
@@ -464,7 +441,6 @@ For the class \Verb|TsTableColumn| (see \autoref{fig:uml:tstablecolumn}), the ty
 Then, \Verb|TableColumn| is the target, \Verb|TsTableColumn| the adapter and \Verb|T[]| the adaptee.
 
 In addition to the abstract methods of \Verb|TableColumn|, \Verb|TsTableColumn| also has methods that allow users to use the wrapped array functionality, \Verb|push(...)|, \Verb|at(...)| and \Verb|drop(...)|.
-% At one point during development, \Verb|at(...)| was also implemented for the class \Verb|PolarsTableColumn|, but it was unused and thus \Verb|at(...)| was made exclusive to the class \Verb|TsTableColumn|. %FIXME decide whether to use this
 
 \begin{figure}
 	\begin{plantuml}
@@ -491,53 +467,10 @@ In addition to the abstract methods of \Verb|TableColumn|, \Verb|TsTableColumn| 
 	\label{fig:uml:tstablecolumn}
 \end{figure}
 
-\subsection{Overview of the new table implementation}
-\autoref{fig:current_sit} visualizes the table architecture described in the previous subsections.
-\begin{figure}[H]
-	\begin{plantuml}
-		@startuml
-		hide members
-		interface IOTypeImplementation<T extends IOType = IOType> {
-				+ioType: T
-			}
-		abstract class Table {
-				+ioType: IOType.TABLE
-			}
-		IOTypeImplementation <|.. Table : IOtypeImplementation<IOType.TABLE>
-		abstract class TableColumn<T> {
-			}
-		class PolarsTable extends Table {
-				PolarsTable(df, valueTypeProvider)
-				-df: polars.DataFrame
-				-valueTypeProvider: ValueTypeProvider
-			}
-		class TsTable extends Table {
-				TsTable(_columns, number_of_rows)
-				-_columns: Map<string, TsTableColumn>
-				-number_of_rows: number
-			}
-		class PolarsTableColumn<T> extends TableColumn {
-				PolarsTableColumn(_series, _valueType)
-				-_series: polars.Series
-				-_valueType: ValueType<T>
-			}
-		class TsTableColumn<T> extends TableColumn {
-				-_name: string
-				-_valueType: ValueType<T>
-				-_values: T[]
-			}
-		TsTable "1" *-- "many" TsTableColumn
-		PolarsTable "1" *-- "1" polars.DataFrame: df
-		PolarsTableColumn "1" *-- "1" polars.Series: series
-		@enduml
-	\end{plantuml}
-	\caption{Overview of the classes relevant for the table implementation}
-	\label{fig:current_sit}
-\end{figure}
 
 \section{Adapting and creating block types}
-The executors for Jayvee blocks are organized in extensions that extend the abstract class \Verb|JayveeExecExtension| (see \autoref{fig:uml:jayveeexecextension}).
-The Jayvee interpreter uses the method \Verb|createBlockExecutor(...)| to get an implementation of the interface \Verb|BlockExecutor|.
+The executors for \emph{Jayvee} blocks are organized in extensions that extend the abstract class \Verb|JayveeExecExtension| (see \autoref{fig:uml:jayveeexecextension}).
+The \emph{Jayvee} interpreter uses the method \Verb|createBlockExecutor(...)| to get an implementation of the interface \Verb|BlockExecutor|.
 This is the method, that chooses either the existing block executors or the new block executors that are described in this section.
 For details on the implementation of this method, see \autoref{subsection:createBlockExecutor}.
 
@@ -560,52 +493,9 @@ For details on the implementation of this method, see \autoref{subsection:create
 			}
 		@enduml
 	\end{plantuml}
-	\caption{The Jayvee execution extensions}
+	\caption{The \emph{Jayvee} execution extensions}
 	\label{fig:uml:jayveeexecextension}
 \end{figure}
-
-% \begin{figure}
-% 	\begin{plantuml}
-% 		@startuml
-% 		abstract class JayveeExecExtension {
-% 				{abstract} getBlockExecutors(): BlockExecutorClass[]
-% 				getExecutorForBlockType(blockTypeName: string, usePolars: boolean, useRusqlite: boolean, logger: Logger): BlockExecutorClass | undefined
-% 				createBlockExecutor(block: BlockDefinition, usePolars: boolean, useRusqlite: boolean, logger: Logger): BlockExecutor
-% 			}
-%
-% 		class StdExecExtension extends JayveeExecExtension {
-% 				getBlockExecutors(): BlockExecutorClass[]
-% 			}
-% 		class TabularExecExtension extends JayveeExecExtension {
-% 				getBlockExecutors(): BlockExecutorClass[]
-% 			}
-% 		class RdbmsExecExtension extends JayveeExecExtension {
-% 				getBlockExecutors(): BlockExecutorClass[]
-% 			}
-% 		annotation implementsStatic<T>
-% 		interface BlockExecutorClass<T extends BlockExecutor> {
-% 				<<readonly>> type: string
-% 			}
-% 		interface BlockExecutor<I extends IOType, O extends IOType> {
-% 				<<readonly>> inputType: I
-% 				<<readonly>> outputType: O
-% 				execute(input: IOTypeImplementation<I\>, context): Result<IOTypeImplementation<O>>
-% 			}
-% 		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType> implements BlockExecutor {
-% 				AbstractBlockExecutor(inputType, outputType)
-% 				-logBlockResult(result: IOTypeImplementation, context)
-% 				{abstract} doExecute(input: IOTypeImplementation<I\>, context): Result<IOTypeImplementation<O>>
-% 			}
-% 		class TableTansfromerExecutor {}
-% 		AbstractBlockExecutor <|-- TableTansfromerExecutor: AbstractBlockExecutor<IOType.TABLE, IOType.TABLE>
-% 		implementsStatic - TableTansfromerExecutor: @implementsStatic<BlockExecutorClass>
-% 		(TableTansfromerExecutor, implementsStatic) <|.. BlockExecutorClass: BlockExecutorClass<TableTansfromerExecutor>
-% 		BlockExecutorClass .. JayveeExecExtension
-% 		@enduml
-% 	\end{plantuml}
-% 	\caption{}
-% 	\label{fig:}
-% \end{figure}
 
 The only class implementing \Verb|BlockExecutor| is the abstract class \Verb|AbstractBlockExecutor|.
 It exists as an intermediary between \Verb|BlockExecutor| and the concrete classes implementing it.
@@ -631,8 +521,8 @@ Classes extending \Verb|AbstractBlockExecutor|, instead of implementing \Verb|Bl
 \end{figure}
 
 \subsection{TableInterpreter}
-The \Verb|TableInterpreter| block type converts a Sheet, Jayvee's representation for \ac{CSV} data, into a table.
-We create an abstract class \Verb|TableInterpreterExecutor| that extends \Verb|AbstractTableInterpreter<IOType.SHEET, IOType.Table>| (\autoref{fig:uml:tableinterpreter}).
+The \Verb|TableInterpreter| block type converts a Sheet, \emph{Jayvee}'s representation for \ac{CSV} data, into a table.
+We create an abstract class \Verb|TableInterpreterExecutor| that extends \Verb|AbstractTableInterpreter<IOType.SHEET, IOType.TABLE>| (\autoref{fig:uml:tableinterpreter}).
 For implementation details, see \autoref{section:tableinterpreterexecutor}.
 \Verb|TableInterpreter| has two subclasses, \Verb|TsTableInterpreter|, which contains the old behavior, and the new \Verb|PolarsTableInterpreter|.
 
@@ -668,16 +558,16 @@ In order to facilitate code sharing, we use static methods to implement behavior
 \end{figure}
 
 
-\subsection{FileToTableIntepreter}
+\subsection{FileToTableInterpreter}
 \label{subsection:FileToTableInterpreter}
-Blocks with the type \Verb|FileToTableInterpreter| receive a \Verb|BinaryFile|, which contains a TypeScript \Verb|ArrayBuffer| and converts that into a table.
+Blocks with the type \Verb|FileToTableInterpreter| receive a \Verb|BinaryFile|, which contains a \emph{TypeScript} \Verb|ArrayBuffer| and converts that into a table.
 This combines the block types \Verb|TextFileInterpreter|, \Verb|CSVInterpreter| and \Verb|TableInterpreter|.
 
-Merging these block types allows us to utilize Polars' builtin \ac{CSV} parsing functionality, instead of relying on the \Verb|fast-csv| library, like \Verb|CSVInterpreter|, which means less indirection when reading a \ac{CSV} file.
+Merging these block types allows us to utilize \emph{Polars}' builtin \ac{CSV} parsing functionality, instead of relying on the \Verb|fast-csv| library, like \Verb|CSVInterpreter|, which means less indirection when reading a \ac{CSV} file.
 
 \subsubsection{Adding a block type}
-To add this block type to the Jayvee language, it's definition is put in \Verb|FileToTableInterpreter.jv| (refer to \autoref{tab:src} for the full path).
-Running the command \Verb|npm run generate| creates the necessary files for this block type to be used in the Jayvee interpreter.
+To add this block type to the \emph{Jayvee} language, it's definition is put in \Verb|FileToTableInterpreter.jv| (refer to \autoref{tab:src} for the full path).
+Running the command \Verb|npm run generate| creates the necessary files for this block type to be used in the \emph{Jayvee} interpreter.
 
 We also create an executor for the new block type (\autoref {fig:uml:filetotableinterpreter}).
 All methods except \Verb|doExecute(...)| are static, making them reusable by other executors.
@@ -708,9 +598,9 @@ Because there is no preexisting implementation of this executor, we do not need 
 \subsection{LocalFileToTableExtractor}
 \label{arch:execs:localfiletotableextractor}
 The \Verb|LocalFileToTableExtractor| block type combines \Verb|LocalFileExtractor| and \Verb|FileToTableInterpreter|.
-This removes another layer of indirection for parsing \ac{CSV} data, letting Polars handle as much of the process as possible. %FIXME maybee all of the process
+This removes another layer of indirection for parsing \ac{CSV} data, letting \emph{Polars} handle the entire the process.
 
-The process of adding the block type to Jayvee is the same as described in \autoref{subsection:FileToTableInterpreter},
+The process of adding the block type to \emph{Jayvee} is the same as described in \autoref{subsection:FileToTableInterpreter},
 the only difference being that the definition file is placed in \Verb|LocalFileToTableExtractor.jv| (see \autoref{tab:src}).
 \autoref{fig:uml:localfiletotableinterpreter} contains the executor's class diagram.
 
@@ -780,19 +670,16 @@ the only difference being that the definition file is placed in \Verb|LocalFileT
 		\end{plantuml}
 		\caption{\Verb{LocalFileToTableExtractor}}
 	\end{subfigure}
-	\caption{Jayvee pipelines using only original block types, \Verb{FileToTableInterpreter} or \Verb{LocalFileToTableInterpreter}}
+	\caption{\emph{Jayvee} pipelines using only original block types, \Verb{FileToTableInterpreter} or \Verb{LocalFileToTableInterpreter}}
 	\label{fig:uml:pipelines}
 \end{figure}
 
 \subsection{TableTransformer}
-% Blocks with type \Verb|TableTransformer| are Jayvee's main method of manipulating data.
-% This subsection is only concerned with the executor of this block type, the architecture of transforms is explained in \autoref{section:transforms}, expressions in \autoref{section:expressions}.
-
 We still follow the strategy pattern (\autoref{section:General Idea}), so, we create another abstract class \Verb|TableTransformer| (\autoref{fig:uml:tabletransformer}) with two subclasses \Verb|TsTableTransformer| and \Verb|PolarsTableTransformer| (\autoref{fig:uml:polarstabletransformer}).
 As usual the created abstract class contains some shared behavior, in this case \Verb|logColumnOverwriteStatus(...)| and \Verb|checkInputColumnsExist(...)|.
 
-Blocks with type \Verb|TableInterpreter| use Jayvee transforms to compute an ouptput column from a series of input columns.
-Jayvee transforms are executed by \Verb|TransformExecutor|s (see \autoref{section:transforms}).
+Blocks with type \Verb|TableInterpreter| use \emph{Jayvee} transforms to compute an output column from a series of input columns.
+\emph{Jayvee} transforms are executed by \Verb|TransformExecutor|s (see \autoref{section:transforms}).
 
 \begin{figure}
 	\begin{plantuml}
@@ -825,15 +712,15 @@ Jayvee transforms are executed by \Verb|TransformExecutor|s (see \autoref{sectio
 \end{figure}
 
 \subsection{SQLiteLoaderExecutor}
-Jayvee blocks with type SQLiteLoader load their input table into a SQLite database.
-Its output IOType is \Verb|None|, so no blocks in the pipeline can come after a block with type SQLiteLoader.
+\emph{Jayvee} blocks with type SQLiteLoader load their input table into a SQLite database.
+Its output \Verb|IOType| is \Verb|None|, so no blocks in the pipeline can come after a block with type SQLiteLoader.
 The abstract \Verb|SQLiteLoaderExecutor| (\autoref{fig:uml:sqliteloader}) offers a general implementation, utilizing methods defined in the abstract \Verb|Table| class.
-This approach includes serializing all of the data contained in the input table into a \ac{SQL} query with type string.
-We consider this to be a non-optimal representation of the data and improve it in \autoref{arch:sqlite:rust}. %FIXME this shows up as Figure X.X.X
+This approach includes serializing all the data contained in the input table into a \ac{SQL} query with type string.
+We consider this to be a non-optimal representation of the data and improve it in \autoref{arch:sqlite:lib}.
 
 \Verb|SQLiteLoaderExecutor| has three subclasses:
-\Verb|TsSQLiteLoaderExecutor| doesn't override the superclass' methods to preserve the original TypeScript implementation.
-\Verb|PolarSQLiteLoaderExecutor| doesn't override the superclass' methods, because Polars' NodeJS \ac{API} does not offer any database functionality at the time of writing. %FIXME make sure you can write `at the time of writing`.
+\Verb|TsSQLiteLoaderExecutor| doesn't override the super class' methods to preserve the original \emph{TypeScript} implementation.
+\Verb|PolarSQLiteLoaderExecutor| doesn't override the super class' methods, because \emph{Polars}' \emph{NodeJS} \ac{API} does not offer any database functionality at the time of writing this thesis.
 The different behavior results from different overrides of the \Verb|generateCreateTableStatement| and \Verb|generateInsertValuesStatement| in the \Verb|PolarsTable| and \Verb|TsTable| classes.
 
 \begin{figure}
@@ -855,19 +742,18 @@ The different behavior results from different overrides of the \Verb|generateCre
 \end{figure}
 
 \subsubsection{RustSQLiteLoaderExecutor}
-\label{arch:sqlite:rust}
 \Verb|RustSQLiteLoaderExecutor| avoids serializing the input table's data into a \ac{SQL} query string, by relying on an external library, \Verb|sqlite-loader-lib|.
 
-\subsubsection{sqlite-loader-lib}
+\subsection{sqlite-loader-lib}
 \label{arch:sqlite:lib}
-Polars' core functionality is written in Rust, which \textcite{polars} describe as allowing "for high performance with fine-grained control over memory".
-For this reason, we choose Rust to implement sqlite-loader-lib (see \autoref{fig:uml:rust_components}).
+\emph{Polars}' core functionality is written in \emph{Rust}, which \textcite{polars} describe as allowing "for high performance with fine-grained control over memory".
+For this reason, we choose \emph{Rust} to implement sqlite-loader-lib (see \autoref{fig:uml:rust_components}).
 
 \begin{figure}
 	\begin{plantuml}
 		@startuml
 		frame "TypeScript" {
-		[Jayvee interpreter] as jv
+		[\emph{Jayvee} interpreter] as jv
 		}
 		frame "Rust" {
 		[sqlite-loader-lib] as lib
@@ -880,24 +766,32 @@ For this reason, we choose Rust to implement sqlite-loader-lib (see \autoref{fig
 		pl -- arrow
 		@enduml
 	\end{plantuml}
-	\caption{The Rust components used by the interpreter}
+	\caption{The \emph{Rust} components used by the interpreter}
 	\label{fig:uml:rust_components}
 \end{figure}
 
-Polars uses NAPI-RS \autocite{polars:src:napi}, which compiles a Rust library to a NodeJS addon \autocite{napi}.
-With this, the Jayvee interpreter, written in TypeScript, can use functions from a library written in Rust.
+\emph{Polars} uses \emph{NAPI-RS} \autocite{polars:src:napi}, which compiles a \emph{Rust} library to a \emph{NodeJS} addon \autocite{napi}.
+With this, the \emph{Jayvee} interpreter, written in \emph{TypeScript}, can use functions from a library written in \emph{Rust}.
 
-The \Verb|RustSQLiteLoaderExecutor|'s role is to save its input table into an Arrow \ac{IPC} file on disk, because passing the \Verb|PolarsTable| object to sqlite-loader-lib through a function parameter is %FIXME decide if it is too complex or if it seems too complex, orif it just isnt supported, also citation
-too complex for NAPI-RS.
+We were not able to figure out, how to pass the DataFrame to the library as a function parameter.
+This is because we were not able to figure out, how To define the parameter's type in \emph{Rust}.
+as a solution \Verb|RustSQLiteLoaderExecutor|'s role is to save its input table into an \emph{Arrow} \ac{IPC} file on disk.
+sqlite loader lib can then read this file an reconstruct the dataframe.
+
+We were not able to pass the table to the library as a function parameter.
+This would require redefining the class \Verb|PolarsTable| inside \Verb|sqlite-loader-lib| using \emph{NAPI-RS}.
+Instead, the class \Verb|RustSQLiteLoaderExecutor| saves its input table into an \emph{Arrow} \ac{IPC} file on disk.
+\Verb|sqlite-loader-lib| can then read this file and reconstruct the table.
+
 
 Because the library only exists to execute a single task, it only exposes one function:
 \mint{typescript}{loadSqlite(ipcPath: string, tableName: string, sqlitePath: string, dropTable: boolean): void}
-Its parameters are the path of the Arrow \ac{IPC} file and the properties of the \Verb|SQLiteLoader| block.
+Its parameters are the path of the \emph{Arrow} \ac{IPC} file and the properties of the \Verb|SQLiteLoader| block.
 
-At the time of writing this thesis, Polars' Rust implementation doesn't offer database export either.
+At the time of writing this thesis, \emph{Polars}' \emph{Rust} implementation doesn't offer database export either.
 As a consequence, \Verb|sqlite-loader-lib| uses a separate library to interface with a SQLite database.
-This library, known as Connector Arrow, enables the writing of Arrow record batches into a SQLite database table \autocite{connector-arrow}.
-Connector Arrow relies on the Rusqlite library to support SQLite databases \autocite{connector-arrow}.
+This library, known as \emph{Connector Arrow}, enables the writing of \emph{Arrow} record batches into a SQLite database table \autocite{connector-arrow}.
+Connector \emph{Arrow} relies on the \emph{rusqlite} library to support SQLite databases \autocite{connector-arrow}.
 
 See \autoref{subsection:sqlite-loader-lib} for the implementation.
 
@@ -932,7 +826,7 @@ See \autoref{subsection:sqlite-loader-lib} for the implementation.
 		AbstractBlockExecutor <|-- SQLiteLoaderExecutor: AbstractBlockExecutor<IOType.TABLE, IOType.NONE>
 		@enduml
 	\end{plantuml}
-	\caption{The executors for the class \Verb{SQLiteLoader}.}
+	\caption{The executors for the class \Verb{SQLiteLoader}}
 	\label{fig:uml:sqliteloaderexecutor:combined}
 \end{figure}
 
@@ -957,12 +851,12 @@ for row in inputColumns:
 return newColumn
 	\end{minted}
 	\end{center}
-	\caption{Pseudocode of the algorithm the interpreter used to execute transforms.}
+	\caption{Pseudocode of the algorithm the interpreter used to execute transforms}
 	\label{lst:old_eval}
 \end{listing}
-It applies the Jayvee expression to each row in the input columns and returns a column.
-The new approach transforms the Jayvee expression into a Polars expression, that the \Verb|PolarsTableTransformer| can apply to its input table.
-So, we add the new function\Verb|jayveeExpressionToPolars(...)| (see \autoref{section:expressions}), which is similar to the existing \Verb|evaluateExpression(...)|, but it returns a Polars expression, not a final value.
+It applies the \emph{Jayvee} expression to each row in the input columns and returns a column.
+The new approach transforms the \emph{Jayvee} expression into a \emph{Polars} expression, that the \Verb|PolarsTableTransformer| can apply to its input table.
+So, we add the new function\Verb|jayveeExpressionToPolars(...)| (see \autoref{section:expressions}), which is similar to the existing \Verb|evaluateExpression(...)|, but it returns a \emph{Polars} expression, not a final value.
 
 A detailed explanation of this process can be found at \autoref{section:impl:transforms}.
 
@@ -994,16 +888,16 @@ A detailed explanation of this process can be found at \autoref{section:impl:tra
 
 \section{Expressions}
 \label{section:expressions}
-\textcite{polars:docs:expr} separate Jayvee expressions into three categories: \emph{literals}, \emph{variables}, \emph{operators}.
+\textcite{polars:docs:expr} separate \emph{Jayvee} expressions into three categories: \emph{literals}, \emph{variables}, \emph{operators}.
 \begin{description}
 	\item[literal] Concrete values, e.g. \Verb|5|, \Verb|"sometext"| or \Verb|true|.
 	      Their evaluation does not differ from the original implementation.
 	\item[variable] Represents a value defined in the evaluation context (\autoref{fig:uml:eval_context}).
 	      Variables are used to refer to columns inside of transforms.
-	\item[operator] Transforms one to three Jayvee expressions into one result.
+	\item[operator] Transforms one to three \emph{Jayvee} expressions into one result.
 	      The evaluation context contains a registry of operator evaluators (see \autoref{subsection:arch:operator_evaluators})
 \end{description}
-Jayvee expressions are transformed to Polars expressions using the function \Verb|jayveeExpressionToPolars(...)| (see \autoref{impl:expressions}).
+\emph{Jayvee} expressions are transformed to \emph{Polars} expressions using the function \Verb|jayveeExpressionToPolars(...)| (see \autoref{impl:expressions}).
 
 \begin{figure}
 	\begin{plantuml}
@@ -1040,13 +934,13 @@ Evaluators implement the interface \Verb|OperatorEvaluator|.
 
 We create a new interface \Verb|PolarsOperatorEvaluator|, that defines one method, \Verb|polarsEvaluate(...)| and extends the existing \Verb|OperatorEvaluator|.
 As a consequence, all classes that implement \Verb|PolarsOperatorEvaluator| are also required to implement the properties defined by \Verb|OperatorEvaluator|.
-This ensures, that the existing TypeScript implementation remains available.
+This ensures, that the existing \emph{TypeScript} implementation remains available.
 
 All classes, that previously implemented \Verb|OperatorEvaluator| interface, now implement \Verb|PolarsOperatorEvaluator| (see \autoref{subsubsection:impl:operator_evaluator}).
 
 We deliberately did not follow the strategy pattern approach here.
-Jayvee currently has ~32 evaluator operators. %FIXME: decide whether to be imprecise or not. I counted 32. Mention, that this is my count.
-The strategy pattern requires two additional classes per evaluator, one for the abstract class and one for the Polars implementation.
+\emph{Jayvee} currently has 32 evaluator operators.
+The strategy pattern requires two additional classes per evaluator, one for the abstract class and one for the \emph{Polars} implementation.
 This would increase the number of evaluator classes to 96.
 Because of this, we considered implementing one additional method per evaluator the simpler option.
 

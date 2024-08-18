@@ -4,12 +4,12 @@
 Each year the European Union publishes a report on the maturity of open data offerings by its member states.
 \textcite{eu:opendata} show an increase in average maturity scores since 2018.
 The use of this open data is diminished by the often significant technical knowledge required to work with it.
-Lowering this barrier of entry is the major motivation behind the JValue Project \autocite{jvalue:landing} in general and its language, Jayvee, specifically \autocite{jvalue:jayvee}.
+Lowering this barrier of entry is the major motivation behind the JValue Project \autocite{jvalue:landing} in general and its language, \emph{Jayvee}, specifically \autocite{jvalue:jayvee}.
 
-\section{The Jayvee language}
+\section{The \emph{Jayvee} language}
 \label{section:jv_intro}
 
-The Jayvee language enables the description and subsequent execution of data pipelines.
+The \emph{Jayvee} language enables the description and subsequent execution of data pipelines.
 A pipeline is a sequence of executable blocks to perform operations on data.
 These blocks are categorized in extractors, transformers and loaders.
 
@@ -29,17 +29,12 @@ These blocks are categorized in extractors, transformers and loaders.
 \end{figure}
 
 \textbf{Extractors} bring the data into the pipeline and make it available for the other types of blocks.
-Jayvee supports retrieving data from local files (\Verb|LocalFileExtractor|) and \ac{URL}s (\Verb|HttpExtractor|).
+\emph{Jayvee} supports retrieving data from a local file (\Verb|LocalFileExtractor|) or a \ac{URL} (\Verb|HttpExtractor|).
 
 \textbf{Transformers} modify the data between extractor and loader.
 
-\textbf{Loaders} export data to somewhere outside the pipeline.
-Most common is a SQLite file (\Verb|SQLiteLoader|), but Postgres (\Verb|PostgresLoader|) and \ac{CSV} (\Verb|CSVFileLoader|) are also supported. %FIXME don't know if its the most common -> rephrase
+\textbf{Loaders} export data to somewhere outside the pipeline, such as a SQLite file (\Verb|SQLiteLoader|), Postgres database (\Verb|PostgresLoader|) or \ac{CSV} file (\Verb|CSVFileLoader|).
 
-% The Jayvee interface of blocks (see reference architecture chapter
-% ) defines one input and one output port.
-% The output port can be linked to multiple input ports. %FIXME decide whether to use this
+A more detailed description of \emph{Jayvee}'s core concepts has been provided by \textcite{jvalue:jayvee:docs:core_concepts}.
 
-A more detailed description of Jayvee's core concepts has been provided by \textcite{jvalue:jayvee:docs:core_concepts}.
-
-Jayvee's goal is to enable everyone to describe ETL pipelines \autocite{jvalue:jayvee}.
+\emph{Jayvee}'s goal is to enable everyone to describe \ac{ETL} pipelines \autocite{jvalue:jayvee}.

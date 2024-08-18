@@ -1,32 +1,29 @@
 \chapter{Conclusions}
 \label{chapter:Conclusions}
 
-In this thesis, we created an alternative table implementation for the Jayvee interpreter.
-This prototype is based on the Polars library and, by using this library, implements the Apache Arrow specification.
+In this thesis, we created an alternative table implementation for the \emph{Jayvee} interpreter.
+This prototype is based on the \emph{Polars} library and, by using this library, implements the \emph{Apache Arrow} specification.
 
 The strategy pattern is used, to allow for the original implementation to be preserved alongside the implementation presented in this thesis.
 It also allows the interpreter's users to choose the implementation at runtime.
 
-The Polars library was utilized to extend the Jayvee interpreter with a new table implementation, that adheres to the Apache Arrow specification.
-The original implementation is left intact.
+
+The external library \Verb|sqlite-loader-lib| was developed.
+This library implements database functionality that is not present in \emph{Polars}.
+\Verb|sqlite-loader-lib| was shown to be more performant than the other approaches.
+However, we suspect, that an implementation of database functionality within the \emph{Polars} library, may potentially be even more performant.
+
+The new optimizations, enabled by the new implementation, were shown to increase the maximum input size, $475$ \ac{MB} of the \emph{Jayvee} interpreter.
+With all optimizations enabled, the $2.5$ \ac{GB} evaluation dataset could be completely processed.
+
+We also demonstrated, that simply replacing the table implementation is not enough to reduce the average duration of a pipeline.
+When more optimizations were enabled, the new implementation was always faster than the old one.
+With all optimizations enabled, the speedup factor was between $3.60$ and $18.22$.
+This factor increased with a larger input and more pipelines.
+
 
 Further work is required to address the identified compatibility issues.
-It is believed that the remaining unsupported Jayvee operators can be implemented and that NULL values can be handled appropriately.
+It is believed that the remaining unsupported \emph{Jayvee} operators can be implemented and that \Verb|NULL| values can be handled appropriately.
 However, the cause and potential solution for the seemingly random differences in floating-point numbers remain unclear.
 
-A library, that addresses missing functionality in Polars, was developed.
-This library was demonstrated to be more performant, than the implementation, that uses the NodeJS Polars library.
-Despite this, we suspect, that an implementation within the Polars library may potentially be even more performant.
-
-
-%TODO finish
-The new implementation increases the maximum amount of input data.
-
-
-
-
-
-
-- we extended the maximum file size jayvee can handle
-- we shortened the time it takes to execute jayvee models
-
+% vim: filetype=tex

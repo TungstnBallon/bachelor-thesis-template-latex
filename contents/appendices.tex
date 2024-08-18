@@ -47,13 +47,13 @@
 			rows    & TS       & PL       & PL / TS \\
 			\hline
 			\hline
-			56250   & 850 ms   & 1857 ms  & 2,18    \\
-			112500  & 1892 ms  & 3677 ms  & 1,94    \\
-			225000  & 3591 ms  & 7356 ms  & 2,05    \\
-			450000  & 7341 ms  & 14549 ms & 1,98    \\
-			900000  & 14830 ms & 30934 ms & 2,09    \\
-			1300000 & 22516 ms & 46691 ms & 2,07    \\
-			1800000 & 24720 ms & 61527 ms & 2,49    \\
+			56250   & 850 ms   & 1857 ms  & 2.18    \\
+			112500  & 1892 ms  & 3677 ms  & 1.94    \\
+			225000  & 3591 ms  & 7356 ms  & 2.05    \\
+			450000  & 7341 ms  & 14549 ms & 1.98    \\
+			900000  & 14830 ms & 30934 ms & 2.09    \\
+			1300000 & 22516 ms & 46691 ms & 2.07    \\
+			1800000 & 24720 ms & 61527 ms & 2.49    \\
 			\hline
 		\end{tabular}
 	\end{center}
@@ -97,23 +97,23 @@
 	\begin{center}
 		\begin{tabular}{|l|l|l|l|l|l|}
 			\hline
-			rows   & TS       & PL       & PLOB     & PLRS     & PLOBRS  \\
+			rows   & TS         & PL       & PLOB     & PLRS     & PLOBRS  \\
 			\hline
 			\hline
-			56250  & 5722 ms  & 5421 ms  & 3064 ms  & 3545 ms  & 1178 ms \\
-			       & 206 ms   & 158 ms   & 46 ms    & 103 ms   & 22 ms   \\
+			56250  & $5722$ ms  & 5421 ms  & 3064 ms  & 3545 ms  & 1178 ms \\
+			       & $206$ ms   & 158 ms   & 46 ms    & 103 ms   & 22 ms   \\
 			\hline
-			112500 & 11097 ms & 10348 ms & 5248 ms  & 5997 ms  & 1383 ms \\
-			       & 450 ms   & 401 ms   & 84 ms    & 134 ms   & 36 ms   \\
+			112500 & $11097$ ms & 10348 ms & 5248 ms  & 5997 ms  & 1383 ms \\
+			       & $450$ ms   & 401 ms   & 84 ms    & 134 ms   & 36 ms   \\
 			\hline
-			225000 & 18750 ms & 17914 ms & 9470 ms  & 10051 ms & 1668 ms \\
-			       & 155 ms   & 889 ms   & 87 ms    & 195 ms   & 35 ms   \\
+			225000 & $18750$ ms & 17914 ms & 9470 ms  & 10051 ms & 1668 ms \\
+			       & $155$ ms   & 889 ms   & 87 ms    & 195 ms   & 35 ms   \\
 			\hline
-			450000 & 38264 ms & 35151 ms & 18147 ms & 24406 ms & 2627 ms \\
-			       & 992 ms   & 954 ms   & 537 ms   & 712 ms   & 111 ms  \\
+			450000 & $38264$ ms & 35151 ms & 18147 ms & 24406 ms & 2627 ms \\
+			       & $992$ ms   & 954 ms   & 537 ms   & 712 ms   & 111 ms  \\
 			\hline
-			900000 & 81900 ms & 72515 ms & 35656 ms & 38963 ms & 4518 ms \\
-			       & 1168 ms  & 2056 ms  & 2845 ms  & 1246 ms  & 1017 ms \\
+			900000 & $81900$ ms & 72515 ms & 35656 ms & 38963 ms & 4518 ms \\
+			       & $1168$ ms  & 2056 ms  & 2845 ms  & 1246 ms  & 1017 ms \\
 			\hline
 		\end{tabular}
 	\end{center}
@@ -128,13 +128,13 @@
 			\hline
 			rows    & no transforms & some transforms & many transforms \\
 			\hline
-			56250   & 3,60          & 4,06            & 4,86            \\
-			112500  & 5,31          & 6,35            & 8,02            \\
-			225000  & 6,22          & 8,58            & 11,24           \\
-			450000  & 9,34          & 13,55           & 14,57           \\
-			900000  & 10,40         & 14,06           & 18,22           \\
-			1300000 & 11,35         & 15,22           & -               \\
-			1800000 & 11,80         & -               & -               \\
+			56250   & $3.60$        & 4.06            & 4.86            \\
+			112500  & $5.31$        & 6.35            & 8.02            \\
+			225000  & 6.22          & 8.58            & 11.24           \\
+			450000  & $9.34$        & 13.55           & 14.57           \\
+			900000  & 10.40         & 14.06           & 18.22           \\
+			1300000 & $11.35$       & 15.22           & -               \\
+			1800000 & 11.80         & -               & -               \\
 			\hline
 		\end{tabular}
 	\end{center}
@@ -142,27 +142,27 @@
 
 
 \begin{table}[H]
-	\caption{Jayvee interpreter crashes}
+	\caption{\emph{Jayvee} interpreter crashes}
 	\label{tab:crashes}
 	\begin{center}
 		\begin{tabularx}{\textwidth}{|l|l|l|X|}
 			\hline
-			configuration & largest row count & file size    & error message                                           \\
+			configuration & number of rows   & file size     & error message                                           \\
 			\hline
 			\hline
-			TS-no         & $1 900 000$ rows  & $475$\ac{MB} & Invalid string lenght.                                  \\
-			TS-so         & $1 300 000$ rows  & $325$\ac{MB} & JavaScrip heap overflow.                                \\
-			TS-ma         & $900 000$ rows    & $225$\ac{MB} & JavaScrip heap overflow.                                \\
+			TS-no         & $2 000 000$ rows & $500$ \ac{MB} & Invalid string lenght.                                  \\
+			TS-so         & $1 400 000$ rows & $350$ \ac{MB} & JavaScrip heap overflow.                                \\
+			TS-ma         & $1 000 000$ rows & $250$ \ac{MB} & JavaScrip heap overflow.                                \\
 			\hline
-			PL-no         & $1 800 000$ rows  & $450$\ac{MB} & JavaScrip heap overflow.                                \\
-			PL-so         & $1 800 000$ rows  & $450$\ac{MB} & JavaScrip heap overflow.                                \\
-			PL-ma         & $1 700 000$ rows  & $425$\ac{MB} & Invalid string length.                                  \\
+			PL-no         & $1 900 000$ rows & $475$ \ac{MB} & JavaScrip heap overflow.                                \\
+			PL-so         & $1 900 000$ rows & $475$ \ac{MB} & JavaScrip heap overflow.                                \\
+			PL-ma         & $1 800 000$ rows & $450$ \ac{MB} & Invalid string length.                                  \\
 			\hline
-			PLOB-no       & $1 900 000$ rows  & $475$\ac{MB} & Invalid string lenght.                                  \\
-			PLOB-so       & $1 700 000$ rows  & $425$\ac{MB} & Invalid string length.                                  \\
-			PLOB-ma       & $1 700 000$ rows  & $425$\ac{MB} & Invalid string length.                                  \\
+			PLOB-no       & $2 000 000$ rows & $500$ \ac{MB} & Invalid string lenght.                                  \\
+			PLOB-so       & $1 800 000$ rows & $450$ \ac{MB} & Invalid string length.                                  \\
+			PLOB-ma       & $1 800 000$ rows & $450$ \ac{MB} & Invalid string length.                                  \\
 			\hline
-			PLRS          & $2 000 000$ rows  & $500$\ac{MB} & Cannot make a string longer than 0x1fffffe8 characters. \\
+			PLRS          & $2 100 000$ rows & $525$ \ac{MB} & Cannot make a string longer than 0x1fffffe8 characters. \\
 			\hline
 		\end{tabularx}
 	\end{center}
@@ -170,48 +170,48 @@
 
 \subsection{Other tables}
 \begin{table}[H]
-	\caption{Jayvee operators and the Polars expressions they are transformed to.
+	\caption{\emph{Jayvee} operators and the \emph{Polars} expressions they are transformed to.
 		a represents the first parameter, b the second, and c the third}
 	\label{tab:impl:expressions}
 	\begin{center}
 		\begin{tabular}{|l|l|}
 			\hline
-			Jayvee operator    & Polars expression                  \\
+			\emph{Jayvee} operator & \emph{Polars} expression           \\
 			\hline
 			\hline
-			a + b              & a.plus(b)                          \\
-			asText a           & a.cast(Text.toPolarsDataType())    \\
-			asDecimal a        & a.cast(Decimal.toPolarsDataType()) \\
-			asInteger a        & a.cast(Integer.toPolarsDataType()) \\
-			a and b            & a.and(b)                           \\
-			ceil a             & a.ceil()                           \\
-			a / b              & a.div(b)                           \\
-			a == b             & a.eq(b)                            \\
-			floor a            & a.floor()                          \\
-			a >= b             & a.gtEq(b)                          \\
-			a > b              & a.gt(b)                            \\
-			a in b             & a.isIn(b)                          \\
-			a != b             & a.neq(b)                           \\
-			a <= b             & a.ltEq(b)                          \\
-			a < b              & a.lt(b)                            \\
-			lowercase a        & a.str.toLowerCase()                \\
-			-a                 & a.mul(-1)                          \\
-			a \% b             & a.modulo(b)                        \\
-			a * b              & a.mul(b)                           \\
-			!a                 & a.not()                            \\
-			a or b             & a.or(b)                            \\
-			+a                 & a                                  \\
-			round a            & a.round(0)                         \\
-			sqrt a             & a.pow(1/2)                         \\
-			a - b              & a.minus(b)                         \\
-			uppercase a        & a.str.toUpperCase()                \\
-			a xor b            & a.and(b.not()).or(a.not().and(b))  \\
+			a + b                  & a.plus(b)                          \\
+			asText a               & a.cast(Text.toPolarsDataType())    \\
+			asDecimal a            & a.cast(Decimal.toPolarsDataType()) \\
+			asInteger a            & a.cast(Integer.toPolarsDataType()) \\
+			a and b                & a.and(b)                           \\
+			ceil a                 & a.ceil()                           \\
+			a / b                  & a.div(b)                           \\
+			a == b                 & a.eq(b)                            \\
+			floor a                & a.floor()                          \\
+			a >= b                 & a.gtEq(b)                          \\
+			a > b                  & a.gt(b)                            \\
+			a in b                 & a.isIn(b)                          \\
+			a != b                 & a.neq(b)                           \\
+			a <= b                 & a.ltEq(b)                          \\
+			a < b                  & a.lt(b)                            \\
+			lowercase a            & a.str.toLowerCase()                \\
+			-a                     & a.mul(-1)                          \\
+			a \% b                 & a.modulo(b)                        \\
+			a * b                  & a.mul(b)                           \\
+			!a                     & a.not()                            \\
+			a or b                 & a.or(b)                            \\
+			+a                     & a                                  \\
+			round a                & a.round(0)                         \\
+			sqrt a                 & a.pow(1/2)                         \\
+			a - b                  & a.minus(b)                         \\
+			uppercase a            & a.str.toUpperCase()                \\
+			a xor b                & a.and(b.not()).or(a.not().and(b))  \\
 			\hline
-			asBoolean a        & unsupported                        \\
-			a matches b        & unsupported                        \\
-			a pow b            & unsupported                        \\
-			a replace b with c & unsupported                        \\
-			a root b           & unsupported                        \\
+			asBoolean a            & unsupported                        \\
+			a matches b            & unsupported                        \\
+			a pow b                & unsupported                        \\
+			a replace b with c     & unsupported                        \\
+			a root b               & unsupported                        \\
 			\hline
 		\end{tabular}
 	\end{center}
@@ -262,7 +262,7 @@
 			boolean                           & typeof                                                                    \\
 			RegExp                            & instanceof                                                                \\
 			CellRangeLiteral                  & langium generated type guard                                              \\
-			ContraintDefinition               & langium generated type guard                                              \\
+			ConstraintDefinition              & langium generated type guard                                              \\
 			ValuetypeAssignment               & langium generated type guard                                              \\
 			BlockTypeProperty                 & langium generated type guard                                              \\
 			TransformDefinition               & langium generated type guard                                              \\
@@ -304,7 +304,7 @@
 \end{table}
 
 \section{Lists}
-\subsection{Languages with Apache Arrow libraries}
+\subsection{Languages with \emph{Apache Arrow} libraries}
 \label{subsubsection:arrow:langs}
 C++, C\#, Go, Java, JavaScript, Julia, Rust, Swift, C, MATLAB, Python, R and Ruby \autocite{arrow:overview}.
 
