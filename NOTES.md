@@ -57,7 +57,7 @@
 ```lualatex
 Tables are the central way Jayvee represent's data.
 The other types like \Verb|TextFile| or \Verb|Sheet| mostly exists to be parsed into tables.
-Hence 
+Hence
 we shall focus on how to efficiently represent tables in memory.
 ```
 
@@ -142,12 +142,16 @@ center plots
 
 HERE:
 64. persönlich abgeben? personal/uni ausweis mitbringen?
+- no
 65. make it clear the scope of a citation is the paragraph vs scentence, maybe example in 2.2?
+- passt
 66. discuss citation:
 "Polars expressions are a way of describing a series of operations, that result in
 one or more columns. They facilitate automatic optimization and parallelization
 (Polars Contributors, n.d.-c)"
+- passt
 67. figure captions mit fullstop? was ist bei zwei sätzen in der caption?
+- einheitlich
 
 
 

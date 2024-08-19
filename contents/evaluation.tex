@@ -6,7 +6,7 @@ The Evaluation will focus on the execution time of \emph{Jayvee} pipelines, and 
 \section{Data source}
 \label{section:data_source}
 
-\emph{Jayvee} pipelines require a data input with the following requirements
+\emph{Jayvee} pipelines require a data input with the following requirements.
 
 \subsection{Requirements}
 \label{subsection:data_source_requirements}
@@ -17,7 +17,7 @@ The Evaluation will focus on the execution time of \emph{Jayvee} pipelines, and 
 \end{description}
 
 
-\subsection{Chosen Dataset}
+\subsection{Chosen dataset}
 The selected dataset is entitled "Brewery Operations and Market Analysis" \autocite{dataset}.
 The dataset does not contain real world data.
 The dataset is licensed under the \ac{ODbL}.
@@ -42,7 +42,7 @@ We define the following backends:
 	\item[PLOB] Polars-One-Block.
 	      Enables PL, plus the \Verb|LocalFileToTableExtractor| block (see \autoref{arch:execs:localfiletotableextractor}).
 	\item[PLRS] Polars-Rusqlite.
-	      Enables PL, plus the \Verb|RustSQLiteLoaderExecutor| executor and the \Verb|sqlite-loader-lib| library (see \autoref{arch:sqlite:lib}).
+	      Enables PL, plus the \Verb|RustSQLiteLoaderExecutor| executor and the \emph{sqlite-loader-lib} library (see \autoref{arch:sqlite:lib}).
 	\item[PLOBRS] Polars-One-Block-Rusqlite.
 	      Enables PL, plus \Verb|LocalFileToTableExtractor|, plus \Verb|RustSQLiteLoaderExecutor|.
 
@@ -77,24 +77,25 @@ It also uses \Verb|sqldiff| \ac{CLI} program \autocite{sqldiff}, to verify that 
 	\begin{plantuml}
 		@startuml
 		start
-		while (For each combination of\nrowcount and amount of transforms)
-		while (For each optimization)
-		while (10 times)
+		while (For each combination of\nrowcount and amount of transforms) is (not done)
+		while (For each optimization) is (not done)
+		while (10 times) is (not done)
 		:start timer;
-		:Run \emph{Jayvee} interpreter with the configuration;
+		:Run Jayvee interpreter with the configuration;
 		:stop timer and save duration;
-		endwhile
+		endwhile (done)
 		:Calculate average and
 		standard deviation;
 		endwhile (done)
-		if (sqldiff reports differences)
+		if (sqldiff reports differences) then (yes)
 		:Print an error;
+		else (no)
 		endif
 		endwhile (done)
 		stop
 		@enduml
 	\end{plantuml}
-	\caption{The evaluation tool's activity diagram}
+	\caption{The evaluation tool's activity diagram.}
 	\label{fig:uml:evalation-tool}
 \end{figure}
 
@@ -145,7 +146,7 @@ For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| 
 		endif
 		@enduml
 	\end{plantuml}
-	\caption{This diagram describes the process, by which the evaluation tool identifies the correct source file}
+	\caption{The process, by which the evaluation tool identifies the correct source file.}
 	\label{fig:uml:pick-jv-model}
 \end{figure}
 
@@ -179,7 +180,7 @@ def run_config(interpreter_dir, rowcount, transforms, backend):
 	\label{lst:run_config}
 \end{listing}
 
-\subsection{Evaluation Pipelines}
+\subsection{Evaluation pipelines}
 This subsection describes the \emph{Jayvee} pipelines that get executed during the evaluation.
 
 In total, there are six different pipelines, each with its own file.
@@ -221,7 +222,7 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 		\label{fig:uml:pipelines:plob}
 	\end{subfigure}
 	\caption{The initial section of \emph{Jayvee} pipelines in \emph{Jayvee} files starting with TS or PLOB.
-		Presents the block's types and their associated \Verb{IOType}}
+		Presents the block's types and their associated \Verb{IOType}.}
 	\label{fig:uml:pipelines:backends}
 \end{figure}
 
@@ -272,7 +273,7 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 		\end{plantuml}
 		\caption{many}
 	\end{subfigure}
-	\caption{The transform section of pipelines with none, some or many transforms}
+	\caption{The transform section of pipelines with none, some or many transforms.}
 	\label{fig:uml:pipelines:transforms}
 \end{figure}
 
@@ -287,7 +288,7 @@ The following is an explanation of the transforms used inside the evaluation pip
 The implementation of string operations, such as \Verb|lowercase|, was not completed until after the conclusion of the evaluation process.
 Consequently, the aforementioned pipelines do not contain such operations.
 
-\section{Maximum Size of the input data}
+\section{Maximum size of the input data}
 \label{eval:max_size}
 During the evaluation process, we encountered \emph{Jayvee} interpreter crashes (see \autoref{tab:crashes}).
 We observed, that reducing the size of the input file appeared to prevent these crashes.
@@ -299,7 +300,7 @@ Because the biggest data input ($1 800 000$ rows) exceeds the limits for pipelin
 The configurations with many transforms will only process data inputs with $900 000$ rows or lower.
 
 Based on our knowledge of the interpreter, the "Invalid string length" error originates from a \emph{NodeJS} limit on the maximum length of a string.
-The observation, that the error occurs during the loading of the table into the SQLite database, suggests, that the string limit may be exceeded during the generation of the \ac{SQL} queries.
+The observation, that the error occurs during the loading of the table into the \emph{SQLite} database, suggests, that the string limit may be exceeded during the generation of the \ac{SQL} queries.
 
 The error message "JavaScript heap overflow", which also occurs is the \Verb|SQLiteLoader| block, indicates that the heap can not contain the data and the \ac{SQL} queries.
 
@@ -352,7 +353,7 @@ The PLOBRS backend processed $10 000 000$ rows ($2.5$ \ac{GB}) without crashing.
 				\addlegendentry{PLRS}
 			\end{axis}
 		\end{tikzpicture}
-		\caption{Maximum input sizes for each backend}
+		\caption{Maximum input sizes for each backend.}
 		\label{fig:plot:filesize}
 	\end{center}
 \end{figure}
@@ -383,7 +384,7 @@ The precise numbers can be found in \autoref{app:eval:transforms}.
 	      This indicates, that the block type \Verb|LocalFileToTableExtractor| (\autoref{arch:execs:localfiletotableextractor}) is a more effective method of parsing local \ac{CSV} data, than the existing block types.
 
 	\item[PLRS] The PLRS backend also performs better than the baseline on all tested pipelines and inputs.
-	      This is compelling evidence, that the combination of the executor \Verb|RustSQLiteLoaderExecutor| and the library \Verb|sqlite-loader-lib| is superior to the original implementation.
+	      This is compelling evidence, that the combination of the executor \Verb|RustSQLiteLoaderExecutor| and the library \emph{sqlite-loader-lib} is superior to the original implementation.
 	      Furthermore, PLRS outperforms than PL in all tested situations.
 	      This means, that the external library is more effective than the approach described in \autoref{impl:execs:sqloader}.
 
@@ -453,7 +454,7 @@ The PL backend can only be considered an optimization, if the pipeline has suffi
 				\legend{TS,PL,PLOB,PLRS,PLOBRS}
 			\end{axis}
 		\end{tikzpicture}
-		\caption{The execution durations for a pipeline with no transforms}
+		\caption{The execution durations for a pipeline with no transforms.}
 		\label{fig:plot_no_transforms}
 	\end{center}
 \end{figure}
@@ -506,7 +507,7 @@ The PL backend can only be considered an optimization, if the pipeline has suffi
 				\legend{TS,PL,PLOB,PLRS,PLOBRS}
 			\end{axis}
 		\end{tikzpicture}
-		\caption{The execution durations for a pipeline with some transforms}
+		\caption{The execution durations for a pipeline with some transforms.}
 		\label{fig:plot_so_transforms}
 	\end{center}
 \end{figure}
@@ -563,7 +564,7 @@ The PL backend can only be considered an optimization, if the pipeline has suffi
 				\legend{TS,PL,PLOB,PLRS,PLOBRS}
 			\end{axis}
 		\end{tikzpicture}
-		\caption{The execution durations for a pipeline with many transforms}
+		\caption{The execution durations for a pipeline with many transforms.}
 		\label{fig:plot_ma_transforms}
 	\end{center}
 \end{figure}
@@ -628,53 +629,10 @@ The PL backend can only be considered an optimization, if the pipeline has suffi
 				\addlegendentry{PLOBRS-ma}
 			\end{axis}
 		\end{tikzpicture}
-		\caption{The execution duration of the TS and PLOBRS backends}
+		\caption{The execution duration of the TS and PLOBRS backends.}
 		\label{fig:plot:ts_vs_plobrs}
 	\end{center}
 \end{figure}
-
-% \begin{figure}
-% 	\begin{center}
-% 		\begin{tikzpicture}
-% 			\begin{axis}[
-% 					title = {PLOBRS},
-% 					% axis lines = left,
-% 					xlabel = {rows},
-% 					ylabel = {time in ms},
-% 					% xtick={0,56250,112500,225000,450000,900000,1800000},
-% 					legend pos=north west,
-% 				]
-% 				\addplot[
-% 					color = red,
-% 					mark=triangle*,
-% 				]
-% 				coordinates {
-% 						(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
-% 					};
-% 				\addlegendentry{PLOBRS-no}
-% 				\addplot[
-% 					color = blue,
-% 					mark=*,
-% 				]
-% 				coordinates {
-% 						(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
-% 					};
-% 				\addlegendentry{PLOBRS-so}
-% 				\addplot[
-% 					mark=square*,
-% 				]
-% 				coordinates {
-% 						(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
-% 					};
-% 				\addlegendentry{PLOBRS-ma}
-% 			\end{axis}
-% 		\end{tikzpicture}
-% 		\caption{The execution durations of the PLOBRS backend}
-% 		\label{fig:plot:plobrs}
-% 	\end{center}
-% \end{figure}
-
-
 
 \begin{figure}
 	\begin{center}
@@ -710,7 +668,7 @@ The PL backend can only be considered an optimization, if the pipeline has suffi
 				\addlegendentry{many}
 			\end{axis}
 		\end{tikzpicture}
-		\caption{The processing speed of TS compared to PLOBRS}
+		\caption{The processing speed of TS compared to PLOBRS.}
 		\label{fig:plot:factor}
 	\end{center}
 \end{figure}
@@ -743,32 +701,31 @@ While this issue has not been resolved due to the time constraints of this thesi
 In order to evaluate the success of this thesis, it is necessary to revisit the defined requirements and determine whether they have been met.
 
 \subsection{Functional requirements}
-\begin{enumerate}
-	\item[interoperability] The standardized \emph{Apache Arrow} \ac{IPC} format is used by \Verb|RustSQLiteLoaderExecutor| and \Verb|sqlite-loader-lib| (see \autoref{arch:sqlite:lib}).
+\begin{description}
+	\item[interoperability] The standardized \emph{Apache Arrow} \ac{IPC} format is used by \Verb|RustSQLiteLoaderExecutor| and \emph{sqlite-loader-lib} (see \autoref{arch:sqlite:lib}).
 	\item[columnar] The class \Verb|PolarsTable| uses the \emph{Polars} library, which implements the \emph{Apache Arrow} specification, a columnar format (see \autoref{subsection:arch:polarstable}).
 	\item[feature toggle] The implementation can be chosen with the interpreter's \ac{CLI} flags \Verb|--use-polars| and \Verb|--use-rusqlite|.
 	\item[compatibility] The electric vehicles example completes without errors.
 	      However, discrepancies still exist:
 	      \begin{itemize}
 		      \item Not all operators are supported by the new implementation (see \autoref{tab:impl:expressions}).
-		      \item It is not possible to convert all \emph{Jayvee} \Verb|ValueType|s to \emph{Polars} \Verb|DataType|s, nor vice versa (see \autoref{subsection:TypeConversion}).
+		      \item It is not possible to convert every \emph{Jayvee} \Verb|ValueType| to a \emph{Polars} \Verb|DataType|, nor vice versa (see \autoref{subsection:TypeConversion}).
 		      \item The tables produced by the new implementations are not consistent with the old implementation (see \autoref{eval:diffs}).
 	      \end{itemize}
 	      Consequently, this requirement remains unfulfilled.
-	\item[modularization] The \emph{Rust} library \Verb|sqlite-loader-lib| is usable from \emph{TypeScript} through \emph{NAPI-RS} (see \autoref{arch:sqlite:lib}).
-	\item[extensibility] \Verb|RustSQLiteLoaderExecutor|, using \Verb|sqlite-loader-lib|, exports a \Verb|DataFrame| into an SQLite database.
+	\item[modularization] The \emph{Rust} library \emph{sqlite-loader-lib} is usable from \emph{TypeScript} through \emph{NAPI-RS} (see \autoref{arch:sqlite:lib}).
+	\item[extensibility] \Verb|RustSQLiteLoaderExecutor|, using \emph{sqlite-loader-lib}, exports a \Verb|DataFrame| into an \emph{SQLite} database.
 	      This functionality is not yet implemented in \emph{Polars} (see \autoref{arch:sqlite:lib}).
-\end{enumerate}
+\end{description}
 
 It is our contention, that all functional requirements, except for compatibility, have been met.
 
 \subsection{Non-functional requirements}
-\begin{enumerate}
-	\item[performance] \autoref{eval:numbers} demonstrated that the optimizations afforded by the new implementation enhance processing speeds,
-	      \autoref{eval:max_size}  illustrated that the new implementation is capable of accommodating greater input data without crashing.
+\begin{description}
+	\item[performance] The optimizations afforded by the new implementation enhance processing speeds (see \autoref{eval:numbers}) and the new implementation is capable of processing more input data without crashing (see \autoref{eval:max_size}).
 	\item[code style] \Verb|npm run lint| only throws errors for files out of the scope of this thesis.
 	      \emph{Rust}'s linter \emph{clippy} and formatter \emph{rustfmt} do not report any issues.
 	\item[maturity] This thesis implemented a prototype.
-\end{enumerate}
+\end{description}
 
 It is our contention, that all non-functional requirements have been met.

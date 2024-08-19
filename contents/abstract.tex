@@ -5,7 +5,7 @@ This thesis develops a new table implementation for the \emph{Jayvee} interprete
 
 We present the architectural design and implementation of such a prototype.
 It uses the \emph{Polars} library to adhere to the \emph{Apache Arrow} specification.
-Additionally, a library, written in \emph{Rust}, is integrated into this architecture, to accelerate the export of tables.
+Additionally, the library \emph{sqlite-loader-lib}, written in \emph{Rust}, is integrated into this architecture, to accelerate the export of tables.
 
 The evaluation demonstrates, that the new implementation has the potential to increase the \emph{Jayvee} interpreter's maximum input size from $475$ Megabyte above $2.5$ Gigabyte and its processing speed by a factor of between $3.60$ and $18.22$.
 

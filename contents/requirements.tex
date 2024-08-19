@@ -3,10 +3,10 @@
 
 We differentiate between functional and non-functional requirements \autocite{Herrmann2022}.
 
-\section{Functional Requirements}
+\section{Functional requirements}
 \label{subsection:FunctionalRequirements}
 
-\begin{enumerate}
+\begin{description}
 	\item[interoperability] The memory format is standardized.
 	\item[columnar] A columnar format has advantages outlined in \autoref{section:column_vs_row}.
 	\item[feature toggle] We must be able to (de)activate the new features at runtime.
@@ -16,19 +16,20 @@ We differentiate between functional and non-functional requirements \autocite{He
 	      The \Verb|.sqlite| files produced by the different implementations must be identical.
 	\item[modularization] Should it be necessary to write code in a language other than \emph{TypeScript}, this code must be placed in an external library usable from \emph{TypeScript}.
 	\item[extensibility] The functionality of the chosen data representation must be extensible.
-\end{enumerate}
+\end{description}
 
-\section{Non-Functional Requirements}
+\section{Non-functional requirements}
 \label{subsection:NonFunctionalRequirements}
 
-\begin{enumerate}
+\begin{description}
 	\item[performance] The main goal of this thesis is to optimize \emph{Jayvee}'s in-memory representation.
 	      We expect this to result in either a decrease in the execution time for \emph{Jayvee} models, or an extension of the \emph{Jayvee} interpreter's capabilities.
+	      \pagebreak %FIXME decide
 	\item[code style] The source code adheres to the project's code style.
 	      This is enforced by running \Verb|npm run lint|.
-	      In rust code we use the defaults from \emph{rustfmt} and \emph{clippy}.
+	      For \emph{Rust} source code, we use the defaults from \emph{rustfmt} and \emph{clippy}.
 	\item[maturity] We aim to create a prototype, not a mature implementation.
-\end{enumerate}
+\end{description}
 
 
 Both types of requirements have been evaluated for completeness, consistency and feasibility by us.

@@ -2,15 +2,16 @@
 \label{chapter:Conclusions}
 
 In this thesis, we created an alternative table implementation for the \emph{Jayvee} interpreter.
-This prototype is based on the \emph{Polars} library and, by using this library, implements the \emph{Apache Arrow} specification.
+This prototype is based on the \emph{Polars} library.
+By using this library, the prototype implements the \emph{Apache Arrow} specification.
 
 The strategy pattern is used, to allow for the original implementation to be preserved alongside the implementation presented in this thesis.
 It also allows the interpreter's users to choose the implementation at runtime.
 
 
-The external library \Verb|sqlite-loader-lib| was developed.
+The external library \emph{sqlite-loader-lib} was developed.
 This library implements database functionality that is not present in \emph{Polars}.
-\Verb|sqlite-loader-lib| was shown to be more performant than the other approaches.
+\emph{sqlite-loader-lib} was shown to be more performant than the other approaches.
 However, we suspect, that an implementation of database functionality within the \emph{Polars} library, may potentially be even more performant.
 
 The new optimizations, enabled by the new implementation, were shown to increase the maximum input size, $475$ \ac{MB} of the \emph{Jayvee} interpreter.

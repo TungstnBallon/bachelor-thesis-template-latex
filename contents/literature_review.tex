@@ -6,7 +6,7 @@
 \textcite{Ahmad2020}
 created their own memory format based on \emph{Apache Arrow} to process genome data.
 They found that \emph{Arrow} improved the use of the available hardware, and led to fewer cache misses.
-\emph{Arrow} performed better than both ramDisk and Unix pipes.
+\emph{Arrow} performed better than both \emph{ramDisk} and \emph{Unix} pipes.
 The overall execution time was 4.85 times faster with \emph{Arrow}.
 
 % - process genome data, heavily dependent on I/O
@@ -14,7 +14,7 @@ The overall execution time was 4.85 times faster with \emph{Arrow}.
 % - applications can communicate and share data in-memory
 % - better system resource utilization
 % - high cache locality -> less memory access
-% - columnar representation outperforms both ramDisk and unixPipes
+% - columnar representation outperforms both \emph{ramDisk} and unixPipes
 % - overall execution time speedup of 4.85x for WGS (whole genome sequencing)
 
 \textcite{Peltenburg2021}
@@ -58,17 +58,31 @@ Two primary approaches have been developed to address this challenge \autocite{F
 
 See \autoref{fig:row_v_col} for a visual comparison.
 \begin{figure}[h]
-	\begin{center}
-		\includegraphics[width=0.95\textwidth]{resources/columnar}
-	\end{center}
-	\caption{\textbf{Top:} An example table \textbf{Left:} The table in row oriented memory \textbf{Right:} The table in columnar memory \autocite{arrow:overview}}
-	\label{fig:row_v_col} %TODO split the figure
+	\centering
+	\begin{subfigure}{0.5\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{resources/table-example}
+		\caption{An example table in \dots}
+	\end{subfigure}
+	\\
+	\begin{subfigure}{0.3\linewidth}
+		\centering
+		\includegraphics[width=0.85\linewidth]{resources/table-row}
+		\caption{\dots row-oriented memory.}
+	\end{subfigure}
+	\begin{subfigure}{0.3\linewidth}
+		\centering
+		\includegraphics[width=0.85\linewidth]{resources/table-columnar}
+		\caption{\dots columnar memory.}
+	\end{subfigure}
+	\caption{A table's is representation in row-oriented and columnar memory \autocite{arrow:overview}.}
+	\label{fig:row_v_col}
 \end{figure}
 
-The earliest instances of columnar storage formats were initially developed for use in databases, with MonetDB \autocite{Boncz2002} being a notable example.
+The earliest instances of columnar storage formats were initially developed for use in databases, with \emph{MonetDB} \autocite{Boncz2002} being a notable example.
 By 2013 these formats had become widely implemented across the industry
 \autocite{Abadi2013}.
-In approximately 2011 initial research was conducted into the potential applications of columnar storage in the context of Big Data frameworks, which culminated in the development of Apache Parquet and Apache ORC, both disk-based columnar formats \autocite{Floratou2019}.
+In approximately 2011 initial research was conducted into the potential applications of columnar storage in the context of Big Data frameworks, which culminated in the development of \emph{Apache Parquet} and \emph{Apache ORC}, both disk-based columnar formats \autocite{Floratou2019}.
 
 In 2016, The Apache Foundation initiated \emph{Apache Arrow}, which specifies a columnar storage layout \emph{in memory} \autocite{Ahmad2020}.
 
@@ -115,16 +129,16 @@ At the time of writing this thesis, there are 48 projects powered by \emph{Apach
 
 \begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=\textwidth]{resources/arrow_tab}
+		\includegraphics[width=0.95\textwidth]{resources/arrow_tab}
 	\end{center}
-	\caption{Key Concepts of an \emph{Arrow} Table \autocite{Dremio}}
+	\caption{Key Concepts of an \emph{Arrow} Table \autocite{Dremio}.}
 	\label{fig:arrow_tab}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=\textwidth]{resources/arrow_interop}
+		\includegraphics[width=0.95\textwidth]{resources/arrow_interop}
 	\end{center}
-	\caption{Illustration demonstrating \emph{Arrow} enhances interoperability between processes \autocite{Ahmad2020}}
+	\caption{Illustration demonstrating \emph{Arrow} enhances interoperability between processes \autocite{Ahmad2020}.}
 	\label{fig:arrow_com}
 \end{figure}
 
@@ -133,6 +147,6 @@ At the time of writing this thesis, there are 48 projects powered by \emph{Apach
 \label{section:polars}
 \emph{Polars} is built on top of the \emph{Rust} implementation of the \emph{Arrow} specification.
 It incorporates convenient abstractions such as \Verb|DataFrame| and \Verb|Series|.
-Additionally, it uses \emph{NAPI-RS} to provide a \emph{TypeScript} \ac{API} that preserves the performance of the rust library.
-It promises "up to 50x performance" \autocite{polars}. %FIXME make it clear this citation is the whole paragraph
+Additionally, it uses \emph{NAPI-RS} to provide a \emph{TypeScript} \ac{API} that preserves the performance of the \emph{Rust} library.
+It promises "up to 50x performance" \autocite{polars}.
 
