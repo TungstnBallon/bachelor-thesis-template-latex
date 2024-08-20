@@ -4,30 +4,10 @@
 The objective of this thesis is to optimize \emph{Jayvee}'s internal data representation.
 This necessitates modifying the \emph{Jayvee} interpreter, the program, that parses \emph{Jayvee} source files and executes the defined pipelines.
 
+In order to improve the class diagrams' readability, some parameters and return types have been abbreviated with "\dots".
+
 \section{Interpreter Overview}
 \label{section:prev}
-
-% \begin{figure}
-% 	\begin{plantuml}
-% 		@startuml
-% 		start
-% 		:LocalFileExtractor;
-% 		->File;
-% 		:TextFileInterpreter;
-% 		->TextFile;
-% 		:CSVFileInterpreter;
-% 		->Sheet;
-% 		:TableInterpreter;
-% 		->Table;
-% 		:TableTransformer;
-% 		->Table;
-% 		:SQLiteLoader;
-% 		stop
-% 		@enduml
-% 	\end{plantuml}
-% 	\caption{The Flow of an examplory pipeline in jayvee. Between the blocks is noted the type of the data called IOType}
-% 	\label{fig:}
-% \end{figure}
 
 This section provides an overview of how the interpreter executes a \emph{Jayvee} pipeline and the involved classes, illustrated by \autoref{fig:uml:overview}.
 How the interpreter parses a \emph{Jayvee} source file is not relevant for the purpose of this thesis.
@@ -144,10 +124,8 @@ But, because the original implementation needs to be preserved here too, the str
 	\caption{The activity diagram overview of the interpreter.}
 \end{figure}
 
-\subsection{Possible implementations}
+\subsection{Possible implementations of \emph{Arrow}}
 \label{subsection:arrow implementations}
-
-In this section, we will discuss possible implementations of the arrow specification.
 
 \subsubsection{Implementation from scratch}
 \label{subsubsection:direct_implementation}
@@ -282,7 +260,7 @@ Because of the fact, that the \emph{Polars} and \emph{TypeScript} implementation
 			}
 		@enduml
 	\end{plantuml}
-	\caption{The class \Verb{Table}.}
+	\caption{The abstract class \Verb{Table}.}
 	\label{fig:uml:table}
 \end{figure}
 
@@ -291,6 +269,7 @@ Because of the fact, that the \emph{Polars} and \emph{TypeScript} implementation
 \emph{Polars}' \Verb|DataFrame| already has table functionality, such as the ability to add, remove and transform columns.
 However, \Verb|DataFrame|'s methods aren't the same as those required by \Verb|Table|.
 To solve this, we create a wrapper class \Verb|PolarsTable|, that extends \Verb|Table| and thereby implements \Verb[breakbefore=T,breakafter=<]|IOTypeImplementation<IOType.TABLE>|, allowing \Verb|PolarsTable| to be used as an input or output for block executors.
+
 \Verb|PolarsTable| extends \Verb|Table|'s abstract methods by calling \Verb|DataFrames| methods, which is a characteristic of the \emph{adapter pattern} \autocite{Dooley2024}.
 In the terminology of the adapter pattern, \Verb|Table| is the target, \Verb|PolarsTable| the adapter and \Verb|DataFrame| the adaptee.
 
@@ -300,11 +279,12 @@ For example, %FIXME ensure this looks good
 becomes
 \mint{typescript}{override clone(): PolarsTable}
 
+\subsubsection{New functionality enabled by \emph{Polars}}
 In addition to the abstract methods from \Verb|Table|, \Verb|PolarsTable| also implements methods that take advantage of \emph{Polars}' features unavailable to the \emph{TypeScript} implementation.
 
-The method \Verb|withColumn(...)| is overloaded with a second signature that can handle \emph{Polars} expressions.
+The method \Verb|withColumn(...)| is overloaded with a second signature, that can handle \emph{Polars} expressions.
 \emph{Polars} expressions are a way to describe a series of operations, that result in one or more columns, with automatic optimization and parallelization \autocite{polars:docs:expr}.
-\autoref{lst:pl_expr_example} contains an example of how \emph{Polars} expression can be chained.
+\autoref{lst:pl_expr_example} contains an example of how \emph{Polars} expressions can be chained.
 \begin{listing}[h]
 	\begin{center}
 		\begin{minted}{typescript}
@@ -329,7 +309,7 @@ const newDataFrame = dataFrame.withColumn(renamed)
 
 The methods \Verb|writeIpc(...)| and \Verb|writeIpcTo(...)| convert the table to the \emph{Arrow} \ac{IPC} format, writing either into a buffer or a file.
 
-One of the challenges is, that adding a column into a \Verb|DataFrame| object loses that column's \Verb|ValueType| because the \Verb|DataFrame| uses \emph{Polars}' \Verb|DataType|.
+One of the challenges is, that adding a column into a \Verb|DataFrame| object loses that column's \Verb|ValueType|, because the \Verb|DataFrame| uses \emph{Polars}' \Verb|DataType|.
 This is problematic, because the class \Verb|TableColumn| expects a \Verb|ValueType| for its constructor.
 
 The solution is to convert the \emph{Polars} \Verb|DataType| object into a \Verb|ValueType| object using the conversion mechanism in \autoref{subsection:TypeConversion}.
@@ -369,8 +349,7 @@ Refer to \autoref{fig:uml:polarstable} for the class diagram.
 \subsection{TableColumn}
 Analogous to the class \Verb|Table|, we create an abstract class \Verb|TableColumn| that has two subclasses, \Verb|TsTableColumn| and \Verb|PolarsTableColumn|
 
-\subsubsection{\Verb{abstract TableColumn}}
-Compared to the old class \Verb|TableColumn| (\autoref{fig:uml:old_tablecolumn}), the new abstract class no longer defines how the values of the column are saved.
+Compared to the old interface \Verb|TableColumn| (\autoref{fig:uml:old_tablecolumn}), the new abstract class no longer defines how the values of the column are saved.
 It used to be a \emph{TypeScript} array, but now this decision is left to the subclasses of \Verb|TableColumn|.
 
 We utilize a generic type parameter, to remain close to the original implementation and to be more specific on the return type of the method \Verb|valueType()|.
@@ -414,14 +393,18 @@ The type guards \Verb|isPolars()| and \Verb|isTypescript()| were added.
 The method \Verb|DataFrame.getColumn(...)| returns an instance of the \emph{Polars} class \Verb|Series|, which means that \Verb[breakbefore=o]|Series| represents a column in \emph{Polars}.
 To make \Verb[breakbefore=o]|Series| useful, we create a class adapter with the target \Verb|TableColumn| and the adaptee \Verb|Series|.
 
-One challenge here is that \Verb|Series| does not have a generic type parameter.
-To overcome it, one option is to create the class \Verb|PolarsTableColumn<T extends InternalValueRepresentation>| with a type parameter, extend the abstract class \Verb|TableColumn<T>| and work around \Verb|Series|' limitations in the implementation. \\
-Alternatively, we create \Verb|PolarsTableColumn| without a type parameter too and extend the general \Verb|TableColumn<InternalValueRepresentation>|. \\
-The former approach is preferable, because it allows us to preserve the generic type parameter of the \Verb|_valueType: ValueType<T>| property (see \autoref{fig:uml:polarstablecolumn}).
+One challenge here is, that \Verb|Series| does not have a generic type parameter.
+This limitation can be addressed in two ways:
+\begin{itemize}
+	\item Create the class \Verb|PolarsTableColumn| without a type parameter and extend the abstract class \Verb|TableColumn<InternalValueRepresentation>|.
+	\item Create the class \Verb[breakanywhere]|PolarsTableColumn<T>| with a type parameter and extend the abstract class \Verb|TableColumn<T>|.
+\end{itemize}
+
+The second approach is preferable, because it allows us to preserve the generic type parameter of the property \Verb|_valueType: ValueType<T>| (see \autoref{fig:uml:polarstablecolumn}).
 
 It should be noted, that \Verb|T| does not indicate the actual type of the values stored in the column, as would be the case for \Verb|Array<T>|.
 This detail is left to \Verb|Series|.
-\Verb|T| specifies what type the column's values would be if it were implemented in \emph{TypeScript}.
+\Verb|T| specifies what type the column's values would be, if it were implemented in \emph{TypeScript}.
 This is used to narrow down the type of \Verb|_valueType|.
 
 \begin{figure}
@@ -453,7 +436,7 @@ Then, \Verb|TableColumn| is the target, \Verb|TsTableColumn| the adapter and \Ve
 
 In addition to the abstract methods of \Verb|TableColumn|, \Verb|TsTableColumn| also has methods that allow users to use the wrapped array functionality, \Verb|push(...)|, \Verb|at(...)| and \Verb|drop(...)|.
 
-\begin{figure}
+\begin{figure}[h]
 	\begin{plantuml}
 		@startuml
 		class TsTableColumn<T extends InternalValueRepresentation> {
@@ -485,13 +468,14 @@ The \emph{Jayvee} interpreter uses the method \Verb|createBlockExecutor(...)| to
 This is the method, that chooses either the existing block executors or the new block executors that are described in this section.
 For details on the implementation of this method, see \autoref{subsection:createBlockExecutor}.
 
-\begin{figure}
+\begin{figure}[h]
 	\begin{plantuml}
 		@startuml
+		hide members
 		abstract class JayveeExecExtension {
 				{abstract} getBlockExecutors(): BlockExecutorClass[]
-				getExecutorForBlockType(blockTypeName: string, usePolars: boolean, useRusqlite: boolean): BlockExecutorClass | undefined
-				createBlockExecutor(block: BlockDefinition, usePolars: boolean, useRusqlite: boolean): BlockExecutor
+				getExecutorForBlockType(blockTypeName: string, usePolars: boolean, ...): BlockExecutorClass | undefined
+				createBlockExecutor(block: BlockDefinition, usePolars: boolean, ...): BlockExecutor
 			}
 		class StdExecExtension extends JayveeExecExtension {
 				getBlockExecutors(): BlockExecutorClass[]
@@ -522,7 +506,7 @@ Classes extending \Verb|AbstractBlockExecutor|, instead of implementing \Verb|Bl
 			}
 		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType> implements BlockExecutor {
 				AbstractBlockExecutor(inputType, outputType)
-				-logBlockResult(result: IOTypeImplementation, context)
+				-logBlockResult(result: IOTypeImplementation, context) %TODO explain red square
 				{abstract} doExecute(input: IOTypeImplementation<I\>, context): Result<IOTypeImplementation<O>\>
 			}
 		@enduml
@@ -532,13 +516,13 @@ Classes extending \Verb|AbstractBlockExecutor|, instead of implementing \Verb|Bl
 \end{figure}
 
 \subsection{TableInterpreter}
-The \Verb|TableInterpreter| block type converts a Sheet, \emph{Jayvee}'s representation for \ac{CSV} data, into a table.
+The block type \Verb|TableInterpreter| converts a Sheet, \emph{Jayvee}'s representation for \ac{CSV} data, into a table.
 We create an abstract class \Verb|TableInterpreterExecutor| that extends \Verb|AbstractTableInterpreter<IOType.SHEET, IOType.TABLE>| (\autoref{fig:uml:tableinterpreter}).
 For implementation details, see \autoref{section:tableinterpreterexecutor}.
 \Verb|TableInterpreter| has two subclasses, \Verb|TsTableInterpreter|, which contains the old behavior, and the new \Verb|PolarsTableInterpreter|.
 
-This architecture, like the table implementation, follows the strategy pattern from \textcite{Dooley2024}.
-The usual strategy interface is split up into \Verb|BlockExecutor|, \Verb|AbstractBlockExecutor| and \Verb|TableInterpreterExecutor|, while the concrete strategy is either \Verb|TsTableInterpreterExecutor| or \Verb|PolarsTableInterpreterExecutor|.
+This architecture, like the table architecture in \autoref{section:new_table}, follows the strategy pattern from \textcite{Dooley2024}.
+The usual strategy interface is split up into \Verb|BlockExecutor|, \Verb|AbstractBlockExecutor| and \Verb|TableInterpreterExecutor|, while the concrete strategy is either \Verb|TsTableInterpreterExecutor| or \Verb[breakbefore=TIEpt]|PolarsTableInterpreterExecutor|.
 
 In order to facilitate code sharing, we use static methods to implement behavior that is useful for other executors as well.
 
@@ -634,7 +618,7 @@ the only difference being that the definition file is placed in \Verb|LocalFileT
 	\label{fig:uml:localfiletotableinterpreter}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
 	\begin{subfigure}[h]{0.3\linewidth}
 		\begin{plantuml}
 			@startuml
@@ -918,17 +902,17 @@ A detailed explanation of this process can be found at \autoref{section:impl:tra
 				+ <<readonly>> operatorRegistry: OperatorEvaluatorRegistry;
 				+ <<readonly>> valueTypeProvider: valueTypeProvider;
 
-				getValueFor(literal: FreeVariableLiteral): InternalValueRepresentation | pl.Expr | undefined
-				setValueForReference(refText: string, value: InternalValueRepresentation | pl.Expr): void
+				getValueFor(...): InternalValueRepresentation | pl.Expr | undefined
+				setValueForReference(...): void
 				deleteValueForReference(refText: string): void
-				getValueForReference(referenceLiteral: ReferenceLiteral): InternalValueRepresentation | pl.Expr | undefined
+				getValueForReference(...): InternalValueRepresentation | pl.Expr | undefined
 
 				hasValueForRuntimeParameter(key: string): boolean
-				getValueForRuntimeParameter<I extends InternalValueRepresentation>(key: string, valueType: ValueType<I\>): I | undefined
+				getValueForRuntimeParameter<I extends InternalValueRepresentation>(...): I | undefined
 
 				setValueForValueKeyword(value: InternalValueRepresentation)
 				deleteValueForValueKeyword()
-				getValueForValueKeyword(literal: ValueKeywordLiteral, valueTypeProvider: ValueTypeProvider): InternalValueRepresentation | undefined
+				getValueForValueKeyword(...): InternalValueRepresentation | undefined
 			}
 		@enduml
 	\end{plantuml}

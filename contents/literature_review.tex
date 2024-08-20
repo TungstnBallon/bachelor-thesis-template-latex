@@ -18,7 +18,7 @@ The overall execution time was 4.85 times faster with \emph{Arrow}.
 % - overall execution time speedup of 4.85x for WGS (whole genome sequencing)
 
 \textcite{Peltenburg2021}
-developed \emph{Fletchgen} which can generate hardware interfaces designed for \emph{Arrow} workloads.
+developed \emph{Fletchgen}, which can generate hardware interfaces designed for \emph{Arrow} workloads.
 
 % - cpus are at their performance limit for big data -> fpga accellerators
 % - develop open source fletcher framework
@@ -114,22 +114,21 @@ In the \emph{Arrow} specification \autocite{arrow:spec}, a table is called \emph
 They are comprised of \emph{Arrow} arrays which represent columns.
 These \emph{Arrow} arrays are different from \emph{TypeScript} arrays, as they cannot contain different data types.
 An \emph{Arrow} array's actual data is split across a series of \emph{Arrow} buffers, which represent continuous space in memory.
-\emph{Arrow} record batches also have \emph{Arrow} schemas, which contain the batch's metadata.
+\emph{Arrow} record batches also have \emph{Arrow} schemas, which contain the batch's metadata (see \autoref{fig:arrow_tab}).
 
 \emph{Arrow} has a more granular type system than \emph{TypeScript}. This allows for a more precise control of memory.
 \emph{Arrow} types can have parameters.
 For example instead of \emph{TypeScript}'s type \Verb|number|, \emph{Arrow} has (un)signed integers with a bit width parameter,
 decimals with width, scale and precision as parameters, and floating point numbers with a precision parameter.
 The specification includes a physical memory layout for each type \autocite{arrow:spec}.
-% MAYBE  - fixed-size list - list (32-bit offset), largelist (64bit offset) instead of array
 
-Additionally, the \emph{Arrow} specification defines an \ac{IPC} file format, that allows saving \emph{Arrow} record batches on disk.
+Additionally, the \emph{Arrow} specification defines an \ac{IPC} file format, that allows saving \emph{Arrow} record batches on disk (see \autoref{fig:arrow_com}).
 
 At the time of writing this thesis, there are 48 projects powered by \emph{Apache Arrow} \autocite{arrow:projects}.
 
 \begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=0.95\textwidth]{resources/arrow_tab}
+		\includegraphics[width=0.8\textwidth]{resources/arrow_tab}
 	\end{center}
 	\caption{Key Concepts of an \emph{Arrow} Table \autocite{Dremio}.}
 	\label{fig:arrow_tab}
@@ -141,7 +140,6 @@ At the time of writing this thesis, there are 48 projects powered by \emph{Apach
 	\caption{Illustration demonstrating \emph{Arrow} enhances interoperability between processes \autocite{Ahmad2020}.}
 	\label{fig:arrow_com}
 \end{figure}
-
 
 \section{\emph{Polars}}
 \label{section:polars}

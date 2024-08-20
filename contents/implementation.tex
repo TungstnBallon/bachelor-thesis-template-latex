@@ -35,7 +35,6 @@ The interface \Verb|ValueType|, located in \Verb|value-type.ts|, defines this me
 	toPolarsDataType(): polars.DataType | undefined
 	\end{minted}
 \end{center}
-is defined in the interface \Verb|ValueType|.
 Classes, that implement \Verb|ValueType|, but are not supported by \emph{Polars}, implement this method to return \Verb[breakafter=n]|undefined|.
 
 \subsection{InternalValueRepresentation}
@@ -78,12 +77,12 @@ Besides these wrapping methods, it is necessary for \Verb|PolarsTable| to implem
 \Verb|PolarsTable.clone()| does \emph{not} clone the attribute \Verb|PolarsTable.valueTypeProvider|, because it should be treated as a Singleton (see \autoref{lst:singleton}).
 \begin{listing}[H]
 	\begin{center}
-		\begin{minted}[linenos,firstnumber=23,numbersep=-10pt]{typescript}
-	/**
-	* Should be created as singleton due to the equality comparison of primitive value types.
-	* Exported for testing purposes.
-	*/
-	export class ValueTypeProvider {
+		\begin{minted}{typescript}
+/**
+* Should be created as singleton due to the equality comparison of primitive value types.
+* Exported for testing purposes.
+*/
+export class ValueTypeProvider {
 		\end{minted}
 	\end{center}
 	\caption{Excerpt from \Verb{primitive-value-type-provider.ts}.}
