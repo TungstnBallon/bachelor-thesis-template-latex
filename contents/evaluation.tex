@@ -73,32 +73,6 @@ The tool creates a list of all possible configurations and runs each of them 10 
 It also uses \Verb|sqldiff| \ac{CLI} program \autocite{sqldiff}, to verify that the created databases are identical.
 \textcite{so:benchmark} provides example code, showing how to time execution duration in \emph{Rust}.
 
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		start
-		while (For each combination of\nrowcount and amount of transforms) is (not done)
-		while (For each optimization) is (not done)
-		while (10 times) is (not done)
-		:start timer;
-		:Run Jayvee interpreter with the configuration;
-		:stop timer and save duration;
-		endwhile (done)
-		:Calculate average and
-		standard deviation;
-		endwhile (done)
-		if (sqldiff reports differences) then (yes)
-		:Print an error;
-		else (no)
-		endif
-		endwhile (done)
-		stop
-		@enduml
-	\end{plantuml}
-	\caption{The evaluation tool's activity diagram.}
-	\label{fig:uml:evalation-tool}
-\end{figure}
-
 \subsection{Running a configuration}
 
 Running a configuration involves creating a source file with the correct amount of lines,
@@ -113,93 +87,32 @@ generates a \ac{CSV} file with the requisite number of rows.
 Given that there are three distinct numbers of transform amounts, three separate \emph{Jayvee} source files are created.
 For each of these, a variant incorporating the \Verb|LocalFileToTableExtractor| block is required, resulting in a total of six.
 \autoref{fig:uml:pick-jv-model} outlines the process by which the evaluation tool select the correct source file.
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		!pragma useVerticalIf on
-		start
-		if (no transforms) then (yes)
-		if (PLOB or PLOBRS enabled) then (yes)
-		:plob-no.jv;
-		stop
-		else (TS, PL or PLRS enabled)
-		:ts-no.jv;
-		stop
-		endif
-		elseif (some transforms) then
-		if (PLOB or PLOBRS enabled) then (yes)
-		:plob-so.jv;
-		stop
-		else (TS, PL or PLRS enabled)
-		:ts-so.jv;
-		stop
-		endif
-		else (many transforms)
-		if (PLOB or PLOBRS enabled) then (yes)
-		:plob-ma.jv;
-		stop
-		else (TS, PL or PLRS enabled)
-		:ts-ma.jv;
-		stop
-		endif
-		endif
-		@enduml
-	\end{plantuml}
-	\caption{The process, by which the evaluation tool identifies the correct source file.} %FIXME stupid diamond
-	\label{fig:uml:pick-jv-model}
-\end{figure}
 
 The path of the \ac{CSV} data source, as well as the path of the destination database, are passed to the \emph{Jayvee} interpreter via runtime parameters \autocite{jvalue:jayvee:docs:runtime}.
 
 Given that the interpreter is required to be executed via a shell command, it was determined, that shell commands would be preferred over libraries for other functionality, such as comparing \Verb|.sqlite| files, or creating the input data files.
 
 \autoref{lst:run_config} outlines the whole process of running a configuration.
-\begin{listing}
-	\begin{minted}{python}
-def run_config(interpreter_dir, rowcount, transforms, backend):
-		source = f"l-{rowcount}.csv"
-		run f"head --lines=${rowcount} brewery_data_all.csv > {source}"
-		source_file = ... # Omitted the source file selection.
-		destination = f"{backend}-{transforms}-{rowcount}.sqlite"
 
-		command = f"node dist/apps/interpreter/main.js {source_file} -e SRC={source} -e SRC {destination}";
-
-		if backend != "TS":
-			command += " --use-polars"
-
-		if backend == "PLOBRS" or backend == "PLRS":
-			command += " --use-rusqlite"
-
-		start = now()
-		execute(command)
-		duration = now() - start
-		return duration
-	\end{minted}
-	\caption{Pseudocode illustrating the manner in which the evaluation tool executes a configuration}
-	\label{lst:run_config}
-\end{listing}
 
 \subsection{Evaluation pipelines}
 This subsection describes the \emph{Jayvee} pipelines that get executed during the evaluation.
 
-In total, there are six different pipelines, each with its own file.
-The pipelines differ in two ways: how they extract the data from the data file and how many transforms are in the pipeline.
-The former way is visualized in \autoref{fig:uml:pipelines:backends},
-the latter in \autoref{fig:uml:pipelines:transforms}.
+\begin{minipage}{\linewidth}
+	In total, there are six different pipelines, each with its own file.
+	The pipelines differ in two ways: how they extract the data from the data file and how many transforms are in the pipeline.
+	The former way is visualized in \autoref{fig:uml:pipelines:backends},
+	the latter in \autoref{fig:uml:pipelines:transforms}.
+\end{minipage}
 \begin{figure}
 	\begin{subfigure}[h]{0.45\linewidth}
 		\begin{plantuml}
 			@startuml
 			start
-			-> None;
 			::LocalFileExtractor;
-			-> File;
 			::TextFileInterpreter;
-			-> TextFile;
 			::CSVInterpreter;
-			-> Sheet;
 			::TableInterpreter;
-			-> Table;
 			stop
 			@enduml
 		\end{plantuml}
@@ -211,9 +124,7 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 		\begin{plantuml}
 			@startuml
 			start
-			-> None;
 			::LocalFileToTableExtractor;
-			-> Table;
 			stop
 			@enduml
 		\end{plantuml}
@@ -221,7 +132,7 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 		\label{fig:uml:pipelines:plob}
 	\end{subfigure}
 	\caption{The initial section of \emph{Jayvee} pipelines in \emph{Jayvee} files starting with TS or PLOB.
-		Presents the block's types and their associated \Verb{IOType}.}
+		Presents the block types and their associated \Verb{IOType}.}
 	\label{fig:uml:pipelines:backends}
 \end{figure}
 
@@ -230,9 +141,7 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 		\begin{plantuml}
 			@startuml
 			start
-			-> Table;
-			:LiquorLoader :SQLiteLoader;
-			-> None;
+			:LiquorLoader;
 			stop
 			@enduml
 		\end{plantuml}
@@ -243,11 +152,11 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 		\begin{plantuml}
 			@startuml
 			start
-			:AddColumnOne :TableTransformer;
-			:BitPlusVol :TableTransformer;
-			:UpdatePHLevel :TableTransformer;
-			:SoldSqrt :TableTransformer;
-			:LiquorLoader :SQLiteLoader;
+			:AddColumnOne;
+			:BitPlusVol;
+			:UpdatePHLevel;
+			:SoldSqrt;
+			:LiquorLoader;
 			stop
 			@enduml
 		\end{plantuml}
@@ -258,21 +167,22 @@ the latter in \autoref{fig:uml:pipelines:transforms}.
 		\begin{plantuml}
 			@startuml
 			start
-			:AddColumnOne :TableTransformer;
-			:BitPlusVol :TableTransformer;
-			:UpdatePHLevel :TableTransformer;
-			:SoldSqrt :TableTransformer;
-			:AddColmumnOneDuplicate :TableTransformer;
-			:BitPlusVolDuplicate :TableTransformer;
-			:UpdatePHLevelDuplicate :TableTransformer;
-			:SoldSqrtDuplicate :TableTransformer;
-			:LiquorLoader: SQLiteLoader;
+			:AddColumnOne;
+			:BitPlusVol;
+			:UpdatePHLevel;
+			:SoldSqrt;
+			:AddColmumnOneDuplicate;
+			:BitPlusVolDuplicate;
+			:UpdatePHLevelDuplicate;
+			:SoldSqrtDuplicate;
+			:LiquorLoader;
 			stop
 			@enduml
 		\end{plantuml}
 		\caption{many}
 	\end{subfigure}
-	\caption{The transform section of pipelines with none, some or many transforms.}
+	\caption{The transform section of pipelines with none, some or many transforms.
+		The block types have been omitted for readability.}
 	\label{fig:uml:pipelines:transforms}
 \end{figure}
 
@@ -285,7 +195,7 @@ The following is an explanation of the transforms used inside the evaluation pip
 \end{description}
 
 The implementation of string operations, such as \Verb|lowercase|, was not completed until after the conclusion of the evaluation process.
-Consequently, the aforementioned pipelines do not contain such operations.
+Consequently, the aforementioned pipelines only contain numeric operations.
 
 \section{Maximum size of the input data}
 \label{eval:max_size}
@@ -307,7 +217,7 @@ The error message "Cannot make a string longer than 0x1fffffe8 characters." is e
 
 The PLOBRS backend processed $10 000 000$ rows ($2.5$ \ac{GB}) without crashing.
 
-\begin{figure}
+\begin{figure}[h]
 	\begin{center}
 		\begin{tikzpicture}
 			\begin{axis}[
@@ -365,7 +275,7 @@ Considering these results, we conclude, that enabling optimizations increases th
 In this section, we will compare the execution duration of the configurations defined in \autoref{section:parameters}.
 We group the configurations based on the number of transforms in the executed pipeline.
 
-\autoref{fig:plot_no_transforms}, \autoref{fig:plot_so_transforms}, \autoref{fig:plot_ma_transforms}  illustrate the average execution time for each backend.
+\autoref{fig:plot_no_transforms}, \autoref{fig:plot_so_transforms} and \autoref{fig:plot_ma_transforms}  illustrate the average execution time for each backend.
 The precise numbers can be found in \autoref{app:eval:transforms}.
 
 \begin{description}
@@ -389,7 +299,7 @@ The precise numbers can be found in \autoref{app:eval:transforms}.
 
 	\item[PLOBRS] The PLOBRS backend combines the optimizations from the PLOB and PLRS backends, thereby achieving the highest processing speed.
 
-	      \autoref{fig:plot:factor} shows the factor, by which PLOBRS is faster than the baseline. %FIXME figure is too far away
+	      \autoref{fig:plot:factor} shows the factor, by which PLOBRS is faster than the baseline.
 	      The three curves are monotonously rising, which evidences the assertion, that as the number of rows increases, the PLOBRS backend's processing speed compared to TS increases.
 	      Furthermore, it can be observed, that the curve representing a pipeline with many transforms, lies above the curve representing some transforms, which itself lies above the curve representing
 	      no transforms.
@@ -401,176 +311,174 @@ The PL backend can only be considered an optimization, if the pipeline has suffi
 
 
 
-\begin{figure}
-	\begin{subfigure}{0.45\textwidth}
-		\begin{center}
-			\begin{tikzpicture}
-				\begin{axis}[
-						width = \textwidth,
-						title = {no transforms},
-						xlabel = {rows},
-						ylabel = {time in ms},
-						ymin=0, ymax=150000,
-						xmin=0, xmax=1800000,
-						legend pos=north west,
-					]
-					\addplot[
-						color = red,
-						mark=triangle*,
-					]
-					coordinates {
-							(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
-						};
-					\addplot[
-						color=blue,
-						mark=triangle*,
-					]
-					coordinates {
-							(56250,4581)(112500,8323)(225000,16118)(450000,34125)(900000,63728)(1300000,93559)(1800000,139939)
-						};
-					\addplot[
-						color=brown,
-						mark=triangle*,
-					]
-					coordinates {
-							(56250,2531)(112500,4231)(225000,7739)(450000,14976)(900000,30211)(1300000,42888)(1800000,64660)
-						};
-					\addplot[
-						color=green,
-						mark=triangle*,
-					]
-					coordinates {
-							(56250,3102)(112500,5390)(225000,10126)(450000,21270)(900000,37705)(1300000,54562)(1800000,74755)
-						};
-					\addplot[
-						mark=triangle*,
-					]
-					coordinates {
-							(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
-							%PL slopes: 0,003306667+0,006355556+0,003573333+0,003968889+0,003068+0,004248: 0,004086741
-						};
+\begin{figure}[H]
+	\begin{center}
+		\begin{tikzpicture}
+			\begin{axis}[
+					height = 0.275\textheight,
+					width = 0.8\textwidth,
+					xlabel = {rows},
+					ylabel = {time in ms},
+					ymin=0, ymax=150000,
+					xmin=0, xmax=1800000,
+					legend pos=north west,
+				]
+				\addplot[
+					color = red,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,3724)(112500,6648)(225000,12202)(450000,25701)(900000,47064)(1300000,68801)(1800000,96513)
+					};
+				\addplot[
+					color=blue,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,4581)(112500,8323)(225000,16118)(450000,34125)(900000,63728)(1300000,93559)(1800000,139939)
+					};
+				\addplot[
+					color=brown,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,2531)(112500,4231)(225000,7739)(450000,14976)(900000,30211)(1300000,42888)(1800000,64660)
+					};
+				\addplot[
+					color=green,
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,3102)(112500,5390)(225000,10126)(450000,21270)(900000,37705)(1300000,54562)(1800000,74755)
+					};
+				\addplot[
+					mark=triangle*,
+				]
+				coordinates {
+						(56250,1035)(112500,1221)(225000,1936)(450000,2740)(900000,4526)(1300000,6060)(1800000,8184)
+						%PL slopes: 0,003306667+0,006355556+0,003573333+0,003968889+0,003068+0,004248: 0,004086741
+					};
 
-					\legend{TS,PL,PLOB,PLRS,PLOBRS}
-				\end{axis}
-			\end{tikzpicture}
-			\caption{The execution durations for a pipeline with no transforms.}
-			\label{fig:plot_no_transforms}
-		\end{center}
-	\end{subfigure}
-	\begin{subfigure}{0.45\textwidth}
-		\begin{center}
-			\begin{tikzpicture}
-				\begin{axis}[
-						width = \textwidth,
-						title = {some transforms},
-						xlabel = {rows},
-						ylabel = {time in ms},
-						xmin=0, xmax=1800000,
-						ymin=0, ymax=150000,
-						legend pos=north west,
-					]
-					\addplot[
-						color = red,
-						mark=*,
-					]
-					coordinates {
-							(56250,4495)(112500,8283)(225000,15346)(450000,32467)(900000,60755)(1300000,95102)
-						};
-					\addplot[
-						color=blue,
-						mark=*,
-					]
-					coordinates {
-							(56250,4825)(112500,8952)(225000,16881)(450000,36874)(900000,67674)(1300000,99959)
-						};
-					\addplot[
-						color=brown,
-						mark=*,
-					]
-					coordinates {
-							(56250,2804)(112500,4756)(225000,8544)(450000,16524)(900000,33375)(1300000,49007)
-						};
-					\addplot[
-						color=green,
-						mark=*,
-					]
-					coordinates {
-							(56250,3144)(112500,5479)(225000,9894)(450000,21076)(900000,37910)(1300000,57910)
-						};
-					\addplot[
-						mark=*,
-					]
-					coordinates {
-							(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
-						};
-
-					\legend{TS,PL,PLOB,PLRS,PLOBRS}
-				\end{axis}
-			\end{tikzpicture}
-			\caption{The execution durations for a pipeline with some transforms.}
-			\label{fig:plot_so_transforms}
-		\end{center}
-	\end{subfigure}
-	\\
-	\begin{subfigure}{0.45\textwidth}
-		\begin{center}
-			\begin{tikzpicture}
-				\begin{axis}[
-						width = \textwidth,
-						title = {many transforms},
-						xlabel = {rows},
-						ylabel = {time in ms},
-						xmin=0, xmax=1800000,
-						ymin=0, ymax=150000,
-						legend pos=north west,
-					]
-					\addplot[
-						color = red,
-						mark=square*,
-					]
-					coordinates {
-							(56250,5722)(112500,11097)(225000,18750)(450000,38264)(900000,81900)
-						};
-					\addplot[
-						color=blue,
-						mark=square*,
-					]
-					coordinates {
-
-							(56250,5421)(112500,10348)(225000,17914)(450000,35151)(900000,72515)
-
-						};
-					\addplot[
-						color=brown,
-						mark=square*,
-					]
-					coordinates {
-
-							(56250,3064)(112500,5248)(225000,9470)(450000,18147)(900000,35656)
-
-						};
-					\addplot[
-						color=green,
-						mark=square*,
-					]
-					coordinates {
-							(56250,3545)(112500,5997)(225000,10051)(450000,24406)(900000,38963)
-						};
-					\addplot[
-						mark=square*,
-					]
-					coordinates {
-							(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
-						};
-
-					\legend{TS,PL,PLOB,PLRS,PLOBRS}
-				\end{axis}
-			\end{tikzpicture}
-			\caption{The execution durations for a pipeline with many transforms.}
-			\label{fig:plot_ma_transforms}
-		\end{center}
-	\end{subfigure}
+				\legend{TS,PL,PLOB,PLRS,PLOBRS}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{no transforms.}
+		\label{fig:plot_no_transforms}
+	\end{center}
 \end{figure}
+\begin{figure}[H]
+	\begin{center}
+		\begin{tikzpicture}
+			\begin{axis}[
+					height = 0.275\textheight,
+					width = 0.8\textwidth,
+					xlabel = {rows},
+					ylabel = {time in ms},
+					xmin=0, xmax=1800000,
+					ymin=0, ymax=150000,
+					legend pos=north west,
+				]
+				\addplot[
+					color = red,
+					mark=*,
+				]
+				coordinates {
+						(56250,4495)(112500,8283)(225000,15346)(450000,32467)(900000,60755)(1300000,95102)
+					};
+				\addplot[
+					color=blue,
+					mark=*,
+				]
+				coordinates {
+						(56250,4825)(112500,8952)(225000,16881)(450000,36874)(900000,67674)(1300000,99959)
+					};
+				\addplot[
+					color=brown,
+					mark=*,
+				]
+				coordinates {
+						(56250,2804)(112500,4756)(225000,8544)(450000,16524)(900000,33375)(1300000,49007)
+					};
+				\addplot[
+					color=green,
+					mark=*,
+				]
+				coordinates {
+						(56250,3144)(112500,5479)(225000,9894)(450000,21076)(900000,37910)(1300000,57910)
+					};
+				\addplot[
+					mark=*,
+				]
+				coordinates {
+						(56250,1106)(112500,1305)(225000,1789)(450000,2396)(900000,4323)(1300000,6252)
+					};
+
+				\legend{TS,PL,PLOB,PLRS,PLOBRS}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{some transforms.}
+		\label{fig:plot_so_transforms}
+	\end{center}
+\end{figure}
+\begin{figure}
+	\begin{center}
+		\begin{tikzpicture}
+			\begin{axis}[
+					height = 0.275\textheight,
+					width = 0.8\textwidth,
+					xlabel = {rows},
+					ylabel = {time in ms},
+					xmin=0, xmax=1800000,
+					ymin=0, ymax=150000,
+					legend pos=north west,
+				]
+				\addplot[
+					color = red,
+					mark=square*,
+				]
+				coordinates {
+						(56250,5722)(112500,11097)(225000,18750)(450000,38264)(900000,81900)
+					};
+				\addplot[
+					color=blue,
+					mark=square*,
+				]
+				coordinates {
+
+						(56250,5421)(112500,10348)(225000,17914)(450000,35151)(900000,72515)
+
+					};
+				\addplot[
+					color=brown,
+					mark=square*,
+				]
+				coordinates {
+
+						(56250,3064)(112500,5248)(225000,9470)(450000,18147)(900000,35656)
+
+					};
+				\addplot[
+					color=green,
+					mark=square*,
+				]
+				coordinates {
+						(56250,3545)(112500,5997)(225000,10051)(450000,24406)(900000,38963)
+					};
+				\addplot[
+					mark=square*,
+				]
+				coordinates {
+						(56250,1178)(112500,1383)(225000,1668)(450000,2627)(900000,4518)
+					};
+
+				\legend{TS,PL,PLOB,PLRS,PLOBRS}
+			\end{axis}
+		\end{tikzpicture}
+		\caption{many transforms.}
+		\label{fig:plot_ma_transforms}
+	\end{center}
+\end{figure}
+% \caption{The execution durations for a pipeline with no, some or many transforms.}
 
 % \begin{figure}
 % 	\begin{center}
@@ -674,6 +582,7 @@ The PL backend can only be considered an optimization, if the pipeline has suffi
 	\end{center}
 \end{figure}
 
+\pagebreak
 \section{Differences in the resulting tables}
 \label{eval:diffs}
 The backends PL, PLOB, PLRS and PLOBRS yield tables that differ from those produced by the original implementation in two notable ways:

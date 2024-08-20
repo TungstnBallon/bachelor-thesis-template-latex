@@ -365,7 +365,6 @@ def doExecuteTransform(variableToColumnName, context):
 	expr = expr.cast(targetPolarsDataType)
 
 	return expr
-end
 	\end{minted}
 	\caption{Pseudocode of the method \Verb{doExecuteTransform(...)}.}
 	\label{lst:polarstransforms:execute}
@@ -449,12 +448,14 @@ For those that do not, we provide a list of explanations here:
 	\item[round] \emph{Polars}' expression \Verb|round| expects the number of digits after the comma as a parameter.
 	      In order to remain compatible with the \emph{TypeScript} implementation, this number is set to \Verb|0|.
 \end{description}
-There are also \emph{Jayvee} operators that are not supported by the new implementation:
-\begin{description}
-	\item[root, pow, replace, matches] The \emph{Polars} expressions for these operators expect single values and do not support columns as parameters.
-	\item[asBoolean] \emph{Polars} supports converting between strings and numeric types with the expression \Verb|cast(...)|.
-	      This approach is not supported for booleans \autocite{polars:docs:expr:parsing}.
-\end{description}
+\begin{minipage}{\linewidth}
+	There are also \emph{Jayvee} operators that are not supported by the new implementation:
+	\begin{description}
+		\item[root, pow, replace, matches] The \emph{Polars} expressions for these operators expect single values and do not support columns as parameters.
+		\item[asBoolean] \emph{Polars} supports converting between strings and numeric types with the expression \Verb|cast(...)|.
+		      This approach is not supported for booleans \autocite{polars:docs:expr:parsing}.
+	\end{description}
+\end{minipage}
 
 The sequence diagram in \autoref{fig:uml:epr:example} depicts, how the block \Verb|B| from \autoref{lst:expr:example:pipeline} would execute its transform.
 \begin{listing}
@@ -517,9 +518,11 @@ These methods are:
 
 \Verb|PolarsSQLiteLoaderExecutor| and \Verb|TsSQLiteLoaderExecutor| do not override this default implementation.
 
-The subclass \Verb|RustSQLiteLoaderExecutor| overrides the method \Verb|executeLoad(...)|.
-Its implementation writes the table to \Verb|dataframe.arrow| (the .arrow extension is recommended by the \emph{Arrow} specification \autocite{arrow:spec}), using \Verb|PolarsTable|'s \Verb|writeIpcTo(...)| method.
-Then it calls the \Verb|loadSQLite(...)| function implemented in \emph{sqlite-loader-lib}.
+\begin{minipage}{\linewidth}
+	The subclass \Verb|RustSQLiteLoaderExecutor| overrides the method \Verb|executeLoad(...)|.
+	Its implementation writes the table to \Verb|dataframe.arrow| (the \Verb|.arrow| extension is recommended by the \emph{Arrow} specification \autocite{arrow:spec}), using \Verb|PolarsTable|'s \Verb|writeIpcTo(...)| method.
+	Then it calls the \Verb|loadSQLite(...)| function implemented in \emph{sqlite-loader-lib}.
+\end{minipage}
 
 
 \section{\emph{sqlite-loader-lib}}

@@ -281,23 +281,26 @@
 	\begin{center}
 		\begin{tabularx}{\textwidth}{|l|l|l|X|}
 			\hline
-			name             & version & used in           & url                                               \\
+			name             & version   & used in           & url                                               \\
 			\hline
 			\hline
-			nodejs-polars    & 0.11.0  & jayvee            & \url{https://www.npmjs.com/package/nodejs-polars} \\
+			nodejs-polars    & 0.11.0    & jayvee            & \url{https://www.npmjs.com/package/nodejs-polars} \\
 			\hline
-			arrow            & 51      & sqlite-loader-lib & \url{https://crates.io/crates/arrow}              \\
-			connector\_arrow & 0.4.2   & sqlite-loader-lib & \url{https://crates.io/crates/connector_arrow}    \\
-			napi             & 2       & sqlite-loader-lib & \url{https://crates.io/crates/napi}               \\
-			napi-derive      & 2       & sqlite-loader-lib & \url{https://crates.io/crates/napi-derive}        \\
-			napi-build       & 2       & sqlite-loader-lib & \url{https://crates.io/crates/napi-build}         \\
-			rusqlite         & 0.31.0  & sqlite-loader-lib & \url{https://crates.io/crates/rusqlite}           \\
-			package-template & f653a34 & sqlite-loader-lib & \url{https://github.com/napi-rs/package-template} \\
+			arrow            & 51        & sqlite-loader-lib & \url{https://crates.io/crates/arrow}              \\
+			connector\_arrow & 0.4.2     & sqlite-loader-lib & \url{https://crates.io/crates/connector_arrow}    \\
+			napi             & 2         & sqlite-loader-lib & \url{https://crates.io/crates/napi}               \\
+			napi-derive      & 2         & sqlite-loader-lib & \url{https://crates.io/crates/napi-derive}        \\
+			napi-build       & 2         & sqlite-loader-lib & \url{https://crates.io/crates/napi-build}         \\
+			rusqlite         & 0.31.0    & sqlite-loader-lib & \url{https://crates.io/crates/rusqlite}           \\
+			package-template & f653a34   & sqlite-loader-lib & \url{https://github.com/napi-rs/package-template} \\
 			\hline
-			clap             & 4.5.7   & evaluation tool   & \url{https://crates.io/crates/clap}               \\
-			itertools        & 0.13.0  & evaluation tool   & \url{https://crates.io/crates/itertools}          \\
-			head             & 9.5     & evaluation tool   & \url{https://www.gnu.org/software/coreutils/}     \\
-			sqldiff          & 3.46.0  & evaluation tool   & \url{https://sqlite.org/sqldiff.html}             \\
+			clap             & 4.5.7     & evaluation tool   & \url{https://crates.io/crates/clap}               \\
+			itertools        & 0.13.0    & evaluation tool   & \url{https://crates.io/crates/itertools}          \\
+			head             & 9.5       & evaluation tool   & \url{https://www.gnu.org/software/coreutils/}     \\
+			sqldiff          & 3.46.0    & evaluation tool   & \url{https://sqlite.org/sqldiff.html}             \\
+			\hline
+			texlive          & 2024.2    & thesis document   & \url{https://tug.org/texlive/}                    \\
+			plantuml         & 1.2023.13 & thesis document   & \url{https://plantuml.com/}                       \\
 			\hline
 		\end{tabularx}
 	\end{center}
@@ -317,3 +320,90 @@ C++, C\#, Go, Java, JavaScript, Julia, Rust, Swift, C, MATLAB, Python, R and Rub
 	\item \Verb|libs/extensions/rdbms/exec/project.json|
 \end{itemize}
 
+\section{Figures}
+
+\begin{figure}[H]
+	\begin{plantuml}
+		@startuml
+		!pragma useVerticalIf on
+		start
+		if (no transforms) then (yes)
+		if (PLOB or PLOBRS enabled) then (yes)
+		:plob-no.jv;
+		else (TS, PL or PLRS enabled)
+		:ts-no.jv;
+		endif
+		elseif (some transforms) then
+		if (PLOB or PLOBRS enabled) then (yes)
+		:plob-so.jv;
+		else (TS, PL or PLRS enabled)
+		:ts-so.jv;
+		endif
+		else (many transforms)
+		if (PLOB or PLOBRS enabled) then (yes)
+		:plob-ma.jv;
+		else (TS, PL or PLRS enabled)
+		:ts-ma.jv;
+		endif
+		endif
+		stop
+		@enduml
+	\end{plantuml}
+	\caption{The process, by which the evaluation tool identifies the correct source file.}
+	\label{fig:uml:pick-jv-model}
+\end{figure}
+
+\begin{figure}[H]
+	\begin{plantuml}
+		@startuml
+		start
+		while (For each combination of\nrowcount and amount of transforms) is (not done)
+		while (For each optimization) is (not done)
+		while (10 times) is (not done)
+		:start timer;
+		:Run Jayvee interpreter with the configuration;
+		:stop timer and save duration;
+		endwhile (done)
+		:Calculate average and
+		standard deviation;
+		endwhile (done)
+		if (sqldiff reports differences) then (yes)
+		:Print an error;
+		else (no)
+		endif
+		endwhile (done)
+		stop
+		@enduml
+	\end{plantuml}
+	\caption{The evaluation tool's activity diagram.}
+	\label{fig:uml:evalation-tool}
+\end{figure}
+
+
+
+\section{Listings}
+
+\begin{listing}[H]
+	\begin{minted}{python}
+def run_config(interpreter_dir, rowcount, transforms, backend):
+		source = f"l-{rowcount}.csv"
+		run f"head --lines=${rowcount} brewery_data_all.csv > {source}"
+		source_file = ... # Omitted the source file selection.
+		destination = f"{backend}-{transforms}-{rowcount}.sqlite"
+
+		command = f"node dist/apps/interpreter/main.js {source_file} -e SRC={source} -e SRC {destination}";
+
+		if backend != "TS":
+			command += " --use-polars"
+
+		if backend == "PLOBRS" or backend == "PLRS":
+			command += " --use-rusqlite"
+
+		start = now()
+		execute(command)
+		duration = now() - start
+		return duration
+	\end{minted}
+	\caption{Pseudocode illustrating the manner in which the evaluation tool executes a configuration}
+	\label{lst:run_config}
+\end{listing}

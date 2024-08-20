@@ -5,8 +5,8 @@
 \label{subsection:FunctionalRequirements}
 
 \begin{description}
-	\item[interoperability] The memory format is standardized.
-	\item[columnar] A columnar format has advantages outlined in \autoref{section:column_vs_row}.
+	\item[interoperability] This allows the data to be used by multiple different applications without complex conversion.
+	\item[columnar] A columnar format has advantages outlined in \autoref{section:column_vs_row}, including faster read times and less memory usage.
 	\item[feature toggle] We must be able to (de)activate the new features at runtime.
 	      This makes comparing the new features easier.
 	\item[compatibility]  The electric vehicles example must complete without errors.
@@ -22,7 +22,7 @@
 \begin{description}
 	\item[performance] The main goal of this thesis is to optimize \emph{Jayvee}'s in-memory representation.
 	      We expect this to result in either a decrease in the execution time for \emph{Jayvee} models, or an extension of the \emph{Jayvee} interpreter's capabilities.
-	      \pagebreak %FIXME decide
+	      \pagebreak
 	\item[code style] The source code adheres to the project's code style.
 	      This is enforced by running \Verb|npm run lint|.
 	      For \emph{Rust} source code, we use the defaults from \emph{rustfmt} and \emph{clippy}.

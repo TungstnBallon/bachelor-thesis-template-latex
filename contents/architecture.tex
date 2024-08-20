@@ -27,10 +27,12 @@ The executor for blocks of type \Verb|TableTransformer| is \Verb|TableTransforme
 It creates and executes the \Verb|TransformExecutor|, which evaluates the transform's expression for every row of the table and returns the resulting column.
 This column is then added to the input table by \Verb|TableTransformerExecutor|
 
-Expressions are evaluated by the function \Verb|evaluateExpression(...)|.
-Expressions with parameter(s) (unary, binary, ternary) are called operators.
-They have evaluator classes that implement the interface \Verb|OperatorEvaluator|.
-The function \Verb|evaluateExpression(...)| finds the correct evaluator with the help of the \Verb|OperatorEvaluatorRegistry|.
+\begin{minipage}{\linewidth}
+	Expressions are evaluated by the function \Verb|evaluateExpression(...)|.
+	Expressions with parameter(s) (unary, binary, ternary) are called operators.
+	They have evaluator classes that implement the interface \Verb|OperatorEvaluator|.
+	The function \Verb|evaluateExpression(...)| finds the correct evaluator with the help of the \Verb|OperatorEvaluatorRegistry|.
+\end{minipage}
 
 \begin{figure}
 	\begin{plantuml}
@@ -274,7 +276,7 @@ To solve this, we create a wrapper class \Verb|PolarsTable|, that extends \Verb|
 In the terminology of the adapter pattern, \Verb|Table| is the target, \Verb|PolarsTable| the adapter and \Verb|DataFrame| the adaptee.
 
 It is notable, that when \Verb|Table| is parameter or return type in an abstract method in \Verb|Table|, the overriding method in \Verb|PolarsTable| replaced that with \Verb|PolarsTable|.
-For example, %FIXME ensure this looks good
+For example,
 \mint{typescript}{abstract clone(): Table}
 becomes
 \mint{typescript}{override clone(): PolarsTable}
@@ -488,7 +490,7 @@ For details on the implementation of this method, see \autoref{subsection:create
 			}
 		@enduml
 	\end{plantuml}
-	\caption{The \emph{Jayvee} execution extensions.} %FIXME scaling
+	\caption{The \emph{Jayvee} execution extensions.}
 	\label{fig:uml:jayveeexecextension}
 \end{figure}
 
@@ -506,7 +508,7 @@ Classes extending \Verb|AbstractBlockExecutor|, instead of implementing \Verb|Bl
 			}
 		abstract class AbstractBlockExecutor<I extends IOType, O extends IOType> implements BlockExecutor {
 				AbstractBlockExecutor(inputType, outputType)
-				-logBlockResult(result: IOTypeImplementation, context) %TODO explain red square
+				-logBlockResult(result: IOTypeImplementation, context)
 				{abstract} doExecute(input: IOTypeImplementation<I\>, context): Result<IOTypeImplementation<O>\>
 			}
 		@enduml
@@ -595,9 +597,11 @@ Because there is no preexisting implementation of this executor, we do not need 
 The block type \Verb|LocalFileToTableExtractor| combines \Verb|LocalFileExtractor| and \Verb|FileToTableInterpreter|.
 This removes another layer of indirection for parsing \ac{CSV} data, letting \emph{Polars} handle the entire the process.
 
-The process of adding the block type to \emph{Jayvee} is the same as described in \autoref{subsection:FileToTableInterpreter},
-the only difference being that the definition file is placed in \Verb|LocalFileToTableExtractor.jv| (see \autoref{tab:src}).
-\autoref{fig:uml:localfiletotableinterpreter} contains the executor's class diagram.
+\begin{minipage}{\linewidth}
+	The process of adding the block type to \emph{Jayvee} is the same as described in \autoref{subsection:FileToTableInterpreter},
+	the only difference being that the definition file is placed in \Verb|LocalFileToTableExtractor.jv| (see \autoref{tab:src}).
+	\autoref{fig:uml:localfiletotableinterpreter} contains the executor's class diagram.
+\end{minipage}
 
 \autoref{fig:uml:pipelines} illustrates, how the block types introduced in \autoref{subsection:FileToTableInterpreter} and \autoref{arch:execs:localfiletotableextractor} transform \ac{CSV} input into a table.
 
@@ -671,6 +675,7 @@ the only difference being that the definition file is placed in \Verb|LocalFileT
 
 \subsection{TableTransformer}
 We still follow the strategy pattern (\autoref{section:General Idea}), so, we create another abstract class \Verb|TableTransformer| (\autoref{fig:uml:tabletransformer}) with two subclasses \Verb|TsTableTransformer| and \Verb|PolarsTableTransformer| (\autoref{fig:uml:polarstabletransformer}).
+
 As usual the created abstract class contains some shared behavior, in this case \Verb|logColumnOverwriteStatus(...)| and \Verb|checkInputColumnsExist(...)|.
 
 Blocks with type \Verb|TableInterpreter| use \emph{Jayvee} transforms to compute an output column from a series of input columns.
@@ -741,26 +746,32 @@ The different behavior results from different overrides of the methods \Verb|gen
 
 \subsection{\emph{sqlite-loader-lib}}
 \label{arch:sqlite:lib}
-\emph{Polars}' core functionality is written in \emph{Rust}, which \textcite{polars} describe as allowing "for high performance with fine-grained control over memory".
-For this reason, we choose \emph{Rust} to implement \emph{sqlite-loader-lib} (see \autoref{fig:uml:rust_components}).
+\begin{minipage}{\linewidth}
+	\emph{Polars}' core functionality is written in \emph{Rust}, which \textcite{polars} describe as allowing "for high performance with fine-grained control over memory".
+	For this reason, we choose \emph{Rust} to implement \emph{sqlite-loader-lib} (see \autoref{fig:uml:rust_components}).
+\end{minipage}
 
-\begin{figure}
-	\begin{plantuml}
-		@startuml
-		frame "TypeScript" {
-		[Jayvee interpreter] as jv
-		}
-		frame "Rust" {
-		[sqlite-loader-lib] as lib
-			[polars] as pl
-			[arrow] as arrow
-		}
-		jv -- lib
-		lib -- arrow
-		jv -- pl
-		pl -- arrow
-		@enduml
-	\end{plantuml}
+\begin{figure}[h]
+	\begin{center}
+		\begin{adjustbox}{max width=0.5\linewidth}
+			\begin{plantuml}
+				@startuml
+				frame "TypeScript" {
+				[Jayvee interpreter] as jv
+				}
+				frame "Rust" {
+				[sqlite-loader-lib] as lib
+					[polars] as pl
+					[arrow] as arrow
+				}
+				jv -- lib
+				lib -- arrow
+				jv -- pl
+				pl -- arrow
+				@enduml
+			\end{plantuml}
+		\end{adjustbox}
+	\end{center}
 	\caption{The \emph{Rust} components used by the interpreter.}
 	\label{fig:uml:rust_components}
 \end{figure}
@@ -787,7 +798,7 @@ See \autoref{subsection:sqlite-loader-lib} for the implementation.
 
 \autoref{fig:uml:sqliteloaderexecutor:combined} contains a diagram of all classes connected to loading the table into \emph{SQLite}.
 
-\begin{figure}[h]
+\begin{figure}
 	\begin{plantuml}
 		@startuml
 		hide members
@@ -829,7 +840,8 @@ For \Verb|PolarsTableTransformerExecutor| this is an instance of  \Verb|PolarsTr
 % Then, that instance's \Verb|executeTransform| method is called, which returns either the new column or an expression to compute the new column.
 
 Originally, \Verb|TransformExecutor| would compute the new column by following the algorithm outlined in \autoref{lst:old_eval}.
-\begin{listing}[h]
+It applies the \emph{Jayvee} expression to each row in the input columns and returns a column.
+\begin{listing}
 	\begin{center}
 		\begin{minted}{python}
 newColumn = ...  # An empty column
@@ -845,7 +857,6 @@ return newColumn
 	\caption{Pseudocode of the old algorithm the interpreter used, to execute transforms.}
 	\label{lst:old_eval}
 \end{listing}
-It applies the \emph{Jayvee} expression to each row in the input columns and returns a column.
 
 The new approach transforms the \emph{Jayvee} expression into a \emph{Polars} expression, that the \Verb|PolarsTableTransformer| can apply to its input table.
 So, we add the new function \Verb|jayveeExpressionToPolars(...)| (see \autoref{section:expressions}), which is similar to the existing \Verb|evaluateExpression(...)|, but it returns a \emph{Polars} expression, not a final value.
