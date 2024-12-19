@@ -1,24 +1,17 @@
-TEX_FILE = thesis
-
 .PHONY: all
 all: build
 
-.PHONY: pdflatex
-pdflatex: ## Run only the pdflatex command.
-	pdflatex ${TEX_FILE}
-	biber ${TEX_FILE} && \
-	pdflatex ${TEX_FILE}.tex
-
 .PHONY: build
-build: pdflatex ## Compile the final PDF (latex & pdflatex).
+build: ## Build the document
+	latexmk --pdf
 
 .PHONY: cleantemp
 cleantemp: ## Remove all temporary files created during the compiling process.
-	rm -f *.aux *.bbl *.bcf *.out *.blg *.dvi *.log *.toc *.run.xml
+	latexmk -c
 
 .PHONY: clean
 clean: cleantemp ## Remove all created files including the compiled PDF.
-	rm -f ${TEX_FILE}.pdf
+	latexmk -C
 
 .PHONY: help
 help:
